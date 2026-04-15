@@ -1,184 +1,3 @@
----@class Element
----@field id string
----@field autosizing {width:boolean, height:boolean} -- Whether the element should automatically size to fit its children
----@field x number|string -- X coordinate of the element
----@field y number|string -- Y coordinate of the element
----@field z number -- Z-index for layering (default: 0)
----@field tabIndex number? -- Tab navigation order: >0 (explicit order, visited first), 0 or nil (natural document order), -1 (excluded from keyboard navigation)
----@field width number|string -- Width of the element
----@field height number|string -- Height of the element
----@field top number? -- Offset from top edge (CSS-style positioning)
----@field right number? -- Offset from right edge (CSS-style positioning)
----@field bottom number? -- Offset from bottom edge (CSS-style positioning)
----@field left number? -- Offset from left edge (CSS-style positioning)
----@field children table<integer, Element> -- Children of this element
----@field parent Element? -- Parent element (nil if top-level)
----@field border Border -- Border configuration for the element
----@field opacity number
----@field borderColor Color -- Color of the border
----@field backgroundColor Color -- Background color of the element
----@field cornerRadius number|{topLeft:number?, topRight:number?, bottomLeft:number?, bottomRight:number?}? -- Corner radius for rounded corners (default: 0)
----@field prevGameSize {width:number, height:number} -- Previous game size for resize calculations
----@field text string? -- Text content to display in the element
----@field textColor Color -- Color of the text content
----@field textAlign TextAlign -- Alignment of the text content
----@field gap number|string -- Space between children elements (default: 10)
----@field padding {top?:number, right?:number, bottom?:number, left?:number}? -- Padding around children (default: {top=0, right=0, bottom=0, left=0})
----@field margin {top?:number, right?:number, bottom?:number, left?:number} -- Margin around children (default: {top=0, right=0, bottom=0, left=0})
----@field positioning Positioning -- Layout positioning mode (default: RELATIVE)
----@field flexDirection FlexDirection -- Direction of flex layout (default: HORIZONTAL)
----@field justifyContent JustifyContent -- Alignment of items along main axis (default: FLEX_START)
----@field alignItems AlignItems -- Alignment of items along cross axis (default: STRETCH)
----@field alignContent AlignContent -- Alignment of lines in multi-line flex containers (default: STRETCH)
----@field flexWrap FlexWrap -- Whether children wrap to multiple lines (default: NOWRAP)
----@field justifySelf JustifySelf -- Alignment of the item itself along main axis (default: AUTO)
----@field alignSelf AlignSelf -- Alignment of the item itself along cross axis (default: AUTO)
----@field flex number|string? -- Shorthand for flexGrow, flexShrink, flexBasis (e.g., 1, "0 1 auto", "none")
----@field flexGrow number -- How much the item will grow relative to siblings (default: 0)
----@field flexShrink number -- How much the item will shrink relative to siblings (default: 1)
----@field flexBasis string|number -- Initial main size before growing/shrinking (default: "auto")
----@field textSize number? -- Resolved font size for text content in pixels
----@field minTextSize number?
----@field maxTextSize number?
----@field fontFamily string? -- Font family name from theme or path to font file
----@field autoScaleText boolean -- Whether text should auto-scale with window size (default: true)
----@field transform TransformProps -- Transform properties for animations and styling
----@field transition TransitionProps -- Transition settings for animations
----@field onEvent fun(element:Element, event:InputEvent)? -- Callback function for interaction events
----@field onEventDeferred boolean? -- Whether onEvent callback should be deferred until after canvases are released (default: false)
----@field onFocus fun(element:Element)? -- Callback function when element receives focus
----@field onFocusDeferred boolean? -- Whether onFocus callback should be deferred (default: false)
----@field onBlur fun(element:Element)? -- Callback function when element loses focus
----@field onBlurDeferred boolean? -- Whether onBlur callback should be deferred (default: false)
----@field onTextInput fun(element:Element, text:string)? -- Callback function for text input
----@field onTextInputDeferred boolean? -- Whether onTextInput callback should be deferred (default: false)
----@field onTextChange fun(element:Element, text:string)? -- Callback function when text changes
----@field onTextChangeDeferred boolean? -- Whether onTextChange callback should be deferred (default: false)
----@field onEnter fun(element:Element)? -- Callback function when Enter key is pressed
----@field onEnterDeferred boolean? -- Whether onEnter callback should be deferred (default: false)
----@field units table -- Original unit specifications for responsive behavior
----@field _eventHandler EventHandler -- Event handler instance for input processing
----@field _explicitlyAbsolute boolean?
----@field _originalPositioning Positioning? -- Original positioning value set by user
----@field gridRows number? -- Number of rows in the grid
----@field gridColumns number? -- Number of columns in the grid
----@field columnGap number|string? -- Gap between grid columns
----@field rowGap number|string? -- Gap between grid rows
----@field theme string? -- Theme component to use for rendering
----@field themeComponent string?
----@field _themeState string? -- Current theme state (normal, hover, pressed, active, disabled)
----@field _themeManager ThemeManager -- Internal: theme manager instance
----@field _stateId string? -- State manager ID for this element
----@field _elementMode "immediate"|"retained" -- Lifecycle mode for this element (resolved from props.mode or global mode)
----@field disabled boolean? -- Whether the element is disabled (default: false)
----@field active boolean? -- Whether the element is active/focused (for inputs, default: false)
----@field disableHighlight boolean? -- Whether to disable the pressed state highlight overlay (default: false)
----@field contentAutoSizingMultiplier {width:number?, height:number?}? -- Multiplier for auto-sized content dimensions
----@field scaleCorners number? -- Scale multiplier for 9-patch corners/edges. E.g., 2 = 2x size (overrides theme setting)
----@field scalingAlgorithm "nearest"|"bilinear"? -- Scaling algorithm for 9-patch corners: "nearest" (sharp/pixelated) or "bilinear" (smooth) (overrides theme setting)
----@field contentBlur {radius:number, quality:number?}? -- Blur the element's content including children (radius: pixels, quality: 1-10, default: 5)
----@field backdropBlur {radius:number, quality:number?}? -- Blur content behind the element (radius: pixels, quality: 1-10, default: 5)
----@field _blurInstance table? -- Internal: cached blur effect instance
----@field editable boolean -- Whether the element is editable (default: false)
----@field multiline boolean -- Whether the element supports multiple lines (default: false)
----@field textWrap boolean|"word"|"char" -- Text wrapping mode (default: false for single-line, "word" for multi-line)
----@field maxLines number? -- Maximum number of lines (default: nil)
----@field maxLength number? -- Maximum text length in characters (default: nil)
----@field placeholder string? -- Placeholder text when empty (default: nil)
----@field passwordMode boolean -- Whether to display text as password (default: false)
----@field inputType "text"|"number"|"email"|"url" -- Input type for validation (default: "text")
----@field textOverflow "clip"|"ellipsis"|"scroll" -- Text overflow behavior (default: "clip")
----@field scrollable boolean -- Whether text is scrollable (default: false for single-line, true for multi-line)
----@field autoGrow boolean -- Whether element auto-grows with text (default: false)
----@field selectOnFocus boolean -- Whether to select all text on focus (default: false)
----@field cursorColor Color? -- Cursor color (default: nil, uses textColor)
----@field selectionColor Color? -- Selection background color (default: nil, uses theme or default)
----@field cursorBlinkRate number -- Cursor blink rate in seconds (default: 0.5)
----@field _cursorPosition number? -- Internal: cursor character position (0-based)
----@field _cursorLine number? -- Internal: cursor line number (1-based)
----@field _cursorColumn number? -- Internal: cursor column within line
----@field _cursorBlinkTimer number? -- Internal: cursor blink timer
----@field _cursorVisible boolean? -- Internal: cursor visibility state
-
--- Accessibility (ARIA) fields
----@field ariaRole ARIA? -- ARIA role for screen readers (e.g., "button", "link", "dialog")
----@field ariaLabel string? -- Accessible name for screen readers (overrides text content)
----@field ariaDescribedBy string? -- ID of element that describes this element
----@field ariaExpanded boolean? -- Whether element is expanded/collapsed (for containers)
----@field ariaPressed boolean? -- Whether element is pressed (for toggle buttons)
----@field ariaChecked boolean? -- Whether element is checked (for checkboxes/radios)
----@field ariaDisabled boolean? -- Whether element is disabled (overrides disabled property)
----@field ariaBusy boolean? -- Whether element is processing (for live regions)
----@field ariaLive "off"|"polite"|"assertive"? -- Live region priority for announcements
----@field _cursorBlinkPaused boolean? -- Internal: whether cursor blink is paused (e.g., while typing)
----@field _cursorBlinkPauseTimer number? -- Internal: timer for how long cursor blink has been paused
----@field _selectionStart number? -- Internal: selection start position
----@field _selectionEnd number? -- Internal: selection end position
----@field _selectionAnchor number? -- Internal: selection anchor point
----@field _focused boolean? -- Internal: focus state
----@field _textBuffer string? -- Internal: text buffer for editable elements
----@field _lines table? -- Internal: split lines for multi-line text
----@field _wrappedLines table? -- Internal: wrapped line data
----@field _textDirty boolean? -- Internal: flag to recalculate lines/wrapping
----@field _textEditor TextEditor? -- Internal: TextEditor instance for editable elements
----@field imagePath string? -- Path to image file (auto-loads via ImageCache)
----@field image love.Image? -- Image object to display
----@field objectFit "fill"|"contain"|"cover"|"scale-down"|"none"? -- Image fit mode (default: "fill")
----@field objectPosition string? -- Image position like "center center", "top left", "50% 50%" (default: "center center")
----@field imageOpacity number? -- Image opacity 0-1 (default: 1, combines with element opacity)
----@field imageRepeat "no-repeat"|"repeat"|"repeat-x"|"repeat-y"|"space"|"round"? -- Image repeat/tiling mode (default: "no-repeat")
----@field imageTint Color? -- Color to tint the image (default: nil/white, no tint)
----@field onImageLoad fun(element:Element, image:love.Image)? -- Callback when image loads successfully
----@field onImageLoadDeferred boolean? -- Whether onImageLoad callback should be deferred (default: false)
----@field onImageError fun(element:Element, error:string)? -- Callback when image fails to load
----@field onImageErrorDeferred boolean? -- Whether onImageError callback should be deferred (default: false)
----@field _loadedImage love.Image? -- Internal: cached loaded image
----@field hideScrollbars boolean|{vertical:boolean, horizontal:boolean}? -- Hide scrollbars (boolean for both, or table for individual control)
----@field userdata table?
----@field _renderer Renderer -- Internal: Renderer instance for visual rendering
----@field _layoutEngine LayoutEngine -- Internal: LayoutEngine instance for layout calculations
----@field _scrollManager ScrollManager? -- Internal: ScrollManager instance for scroll handling
----@field _borderBoxWidth number? -- Internal: cached border-box width
----@field _borderBoxHeight number? -- Internal: cached border-box height
----@field overflow string? -- Overflow behavior for both axes
----@field overflowX string? -- Overflow behavior for horizontal axis
----@field overflowY string? -- Overflow behavior for vertical axis
----@field scrollbarWidth number? -- Scrollbar width in pixels
----@field scrollbarColor Color? -- Scrollbar thumb color
----@field scrollbarTrackColor Color? -- Scrollbar track color
----@field scrollbarRadius number? -- Scrollbar corner radius
----@field scrollbarPadding number? -- Scrollbar padding from edges
----@field scrollSpeed number? -- Scroll speed multiplier
----@field invertScroll boolean? -- Invert mouse wheel scroll direction (default: false)
----@field scrollBarStyle string? -- Scrollbar style name from theme (selects from theme.scrollbars)
----@field scrollbarKnobOffset number|table? -- Scrollbar knob/handle offset (number or {x, y} or {horizontal, vertical})
----@field scrollbarPlacement string? -- "reserve-space"|"overlay" -- Whether scrollbar reserves space or overlays content (default: "reserve-space")
----@field scrollbarBalance boolean? -- When true, reserve space on both sides of content for visual balance (default: false)
----@field _overflowX boolean? -- Internal: whether content overflows horizontally
----@field _overflowY boolean? -- Internal: whether content overflows vertically
----@field _contentWidth number? -- Internal: total content width
----@field _contentHeight number? -- Internal: total content height
----@field _scrollX number? -- Internal: horizontal scroll position
----@field _scrollY number? -- Internal: vertical scroll position
----@field _maxScrollX number? -- Internal: maximum horizontal scroll
----@field _maxScrollY number? -- Internal: maximum vertical scroll
----@field _scrollbarHoveredVertical boolean? -- Internal: vertical scrollbar hover state
----@field _scrollbarHoveredHorizontal boolean? -- Internal: horizontal scrollbar hover state
----@field _scrollbarDragging boolean? -- Internal: scrollbar dragging state
----@field _hoveredScrollbar table? -- Internal: currently hovered scrollbar info
----@field _scrollbarDragOffset number? -- Internal: scrollbar drag offset
----@field _scrollbarPressHandled boolean? -- Internal: scrollbar press handled flag
----@field _pressed table? -- Internal: button press state tracking
----@field _mouseDownPosition number? -- Internal: mouse down position for drag tracking
----@field _textDragOccurred boolean? -- Internal: whether text drag occurred
----@field customDraw fun(element:Element)? -- Custom rendering callback called after standard rendering but before visual feedback (default: nil)
----@field onTouchEvent fun(element:Element, touchEvent:InputEvent)? -- Callback for touch-specific events
----@field onTouchEventDeferred boolean? -- Whether onTouchEvent callback should be deferred (default: false)
----@field onGesture fun(element:Element, gesture:table)? -- Callback for recognized gestures
----@field onGestureDeferred boolean? -- Whether onGesture callback should be deferred (default: false)
----@field touchEnabled boolean -- Whether the element responds to touch events (default: true)
----@field multiTouchEnabled boolean -- Whether the element supports multiple simultaneous touches (default: false)
----@field animation table? -- Animation instance for this element
 local Element = {}
 Element.__index = Element
 
@@ -373,6 +192,7 @@ function Element.new(props)
 
   self.onFocus = props.onFocus
   self.onFocusDeferred = props.onFocusDeferred or false
+  self.dropFocusOnSelection = props.dropFocusOnSelection
   self.onBlur = props.onBlur
   self.onBlurDeferred = props.onBlurDeferred or false
   self.onTextInput = props.onTextInput
@@ -3243,13 +3063,14 @@ function Element:update(dt)
       local anyPressed = self._eventHandler:isAnyButtonPressed()
 
       -- Update theme state via ThemeManager
+      local isFocused = Element._Context.getFocused() == self
       local newThemeState =
-        self._themeManager:updateState(isHovering and isActiveElement, anyPressed, self._focused, self.disabled)
+        self._themeManager:updateState(isHovering and isActiveElement, anyPressed, isFocused, self.disabled)
 
       if self._stateId and self._elementMode == "immediate" then
         local hover = newThemeState == "hover"
         local pressed = newThemeState == "pressed"
-        local focused = newThemeState == "active" or self._focused
+        local focused = isFocused
 
         Element._StateManager.updateState(self._stateId, {
           hover = hover,

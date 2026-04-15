@@ -21,6 +21,7 @@ local Context = require("modules.Context")
 local Element = require("modules.Element")
 local utils = require("modules.utils")
 local Color = require("modules.Color")
+local Theme = require("modules.Theme")
 
 -- Set up FlexLove in retained mode for testing (simpler for navigation tests)
 FlexLove.init()
@@ -40,6 +41,8 @@ FocusIndicator.init({
   Context = Context,
   Color = Color,
 })
+
+Theme.init({ ErrorHandler = FlexLove._ErrorHandler, Color = Color, utils = utils })
 
 -- Link FocusIndicator to KeyboardNavigation
 KeyboardNavigation.FocusIndicator = FocusIndicator
@@ -267,6 +270,127 @@ local tests = {
     assert(FocusIndicator._hidden == false, "Focus indicator should reappear on next keyboard navigation")
 
     print("[PASS] testFocusIndicatorReappearsAfterNextKeyboardNavigation")
+  end,
+
+  testKeyboardFocusUsesHoverThemeState = function()
+    local theme = Theme.new({
+      name = "Keyboard Focus Theme",
+      components = {
+        button = {
+          atlas = "path/to/button.png",
+          states = {
+            hover = {
+              atlas = "path/to/button_hover.png",
+            },
+          },
+        },
+      },
+    })
+    Theme.setActive(theme)
+
+    local container = Element.new({
+      x = 0,
+      y = 0,
+      width = 800,
+      height = 600,
+      positioning = utils.enums.Positioning.FLEX,
+      flexDirection = utils.enums.FlexDirection.VERTICAL,
+      gap = 10,
+    })
+    Context.setNavigationContainer(container)
+
+    local button = Element.new({
+      parent = container,
+      id = "themed-btn",
+      text = "Themed Button",
+      themeComponent = "button",
+      onEvent = function() end,
+    })
+
+    local success = KeyboardNavigation:nextFocusable()
+    assert(success == true, "Keyboard navigation should focus the themed button")
+    assert(Context.getFocused() == button, "Themed button should receive keyboard focus")
+
+    button:update(0.016)
+
+    assert(button._themeManager:getState() == "hover", "Keyboard focus should use hover theme state")
+    assert(button._renderer._themeState == "hover", "Renderer should receive hover theme state from keyboard focus")
+
+    print("[PASS] testKeyboardFocusUsesHoverThemeState")
+  end,
+
+  testDropFocusOnSelectionConfigAndOverride = function()
+    local originalDropFocusOnSelection = KeyboardNavigation.config.dropFocusOnSelection
+    KeyboardNavigation.config.dropFocusOnSelection = false
+
+    local container = Element.new({
+      x = 0,
+      y = 0,
+      width = 800,
+      height = 600,
+      positioning = utils.enums.Positioning.FLEX,
+      flexDirection = utils.enums.FlexDirection.VERTICAL,
+      gap = 10,
+    })
+    Context.setNavigationContainer(container)
+
+    local keepFocusButton = Element.new({
+      parent = container,
+      id = "keep-focus-btn",
+      text = "Keep Focus",
+      onEvent = function() end,
+    })
+
+    local dropFocusButton = Element.new({
+      parent = container,
+      id = "drop-focus-btn",
+      text = "Drop Focus",
+      dropFocusOnSelection = true,
+      onEvent = function() end,
+    })
+
+    Context.setFocused(keepFocusButton)
+    FocusIndicator.setFocused(keepFocusButton)
+
+    local success = KeyboardNavigation:activateElement()
+    assert(success == true, "Activation should succeed with global keep-focus config")
+    assert(Context.getFocused() == keepFocusButton, "Global config should keep focus after activation")
+
+    Context.setFocused(dropFocusButton)
+    FocusIndicator.setFocused(dropFocusButton)
+
+    success = KeyboardNavigation:activateElement()
+    assert(success == true, "Activation should succeed with per-element drop-focus override")
+    assert(Context.getFocused() == nil, "Per-element override should drop focus after activation")
+    assert(FocusIndicator._hidden == true, "Focus indicator should hide when focus is dropped")
+
+    KeyboardNavigation.config.dropFocusOnSelection = true
+
+    Context.setFocused(keepFocusButton)
+    FocusIndicator.setFocused(keepFocusButton)
+
+    success = KeyboardNavigation:activateElement()
+    assert(success == true, "Activation should succeed with global drop-focus config")
+    assert(Context.getFocused() == nil, "Global config should drop focus after activation")
+
+    local keepFocusOverrideButton = Element.new({
+      parent = container,
+      id = "keep-focus-override-btn",
+      text = "Keep Focus Override",
+      dropFocusOnSelection = false,
+      onEvent = function() end,
+    })
+
+    Context.setFocused(keepFocusOverrideButton)
+    FocusIndicator.setFocused(keepFocusOverrideButton)
+
+    success = KeyboardNavigation:activateElement()
+    assert(success == true, "Activation should succeed with per-element keep-focus override")
+    assert(Context.getFocused() == keepFocusOverrideButton, "Per-element override should keep focus after activation")
+
+    KeyboardNavigation.config.dropFocusOnSelection = originalDropFocusOnSelection
+
+    print("[PASS] testDropFocusOnSelectionConfigAndOverride")
   end,
 
   testDismiss = function()

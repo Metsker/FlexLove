@@ -9,18 +9,6 @@ end
 ---@field config KeyboardNavigationConfig
 local KeyboardNavigation = {
 
-  ---@class KeyboardNavigationConfig
-  ---@field enabled boolean Enable/disable keyboard navigation
-  ---@field debugMode boolean Enable debug logging
-  ---@field keys table Key bindings configuration
-  ---@field wrapAround boolean Allow wrapping from last to first focusable
-  ---@field directionalNavigation boolean Enable arrow key navigation
-  ---@field focusVisible boolean Show focus indicator
-  ---@field autofocusOnCreate boolean Auto-focus first element on creation
-  ---@field dropFocusOnSelection boolean Drop focus after activating an element
-  ---@field developerTools table Developer tool settings
-  ---@field focusIndicator table Focus indicator style
-
   config = {
     -- Global settings
     enabled = true,
@@ -657,6 +645,16 @@ function KeyboardNavigation:_focusElement(element)
   end
 end
 
+---@param element Element
+---@return boolean
+function KeyboardNavigation:_shouldDropFocusOnSelection(element)
+  if element and element.dropFocusOnSelection ~= nil then
+    return element.dropFocusOnSelection == true
+  end
+
+  return KeyboardNavigation.config.dropFocusOnSelection == true
+end
+
 --- Activate currently focused element
 ---@return boolean success
 function KeyboardNavigation:activateElement()
@@ -700,8 +698,8 @@ function KeyboardNavigation:activateElement()
       })
     end
 
-    -- Drop focus indicator - configurable, defaults to dropping focus after selection
-    if KeyboardNavigation.config.dropFocusOnSelection then
+    -- Drop focus after selection based on per-element override or global config.
+    if KeyboardNavigation:_shouldDropFocusOnSelection(focused) then
       Context.clearFocus()
       if KeyboardNavigation.FocusIndicator then
         KeyboardNavigation.FocusIndicator.setFocused(nil)

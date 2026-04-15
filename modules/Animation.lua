@@ -1,4 +1,3 @@
----@alias EasingFunction fun(t: number): number
 local Easing = {}
 
 ---@type EasingFunction
@@ -292,16 +291,6 @@ end
 -- TRANSFORM
 -- ============================================================================
 
----@class Transform
----@field rotate number? Rotation in radians (default: 0)
----@field scaleX number? X-axis scale (default: 1)
----@field scaleY number? Y-axis scale (default: 1)
----@field translateX number? X translation in pixels (default: 0)
----@field translateY number? Y translation in pixels (default: 0)
----@field skewX number? X-axis skew in radians (default: 0)
----@field skewY number? Y-axis skew in radians (default: 0)
----@field originX number? Transform origin X (0-1, default: 0.5)
----@field originY number? Transform origin Y (0-1, default: 0.5)
 local Transform = {}
 Transform.__index = Transform
 
@@ -499,38 +488,6 @@ local function lerpTable(startTable, finalTable, easedT)
   return result
 end
 
----@class Keyframe
----@field at number Normalized time position (0-1)
----@field values table Property values at this keyframe
----@field easing string|EasingFunction? Easing to use between this and next keyframe
-
----@class AnimationProps
----@field duration number Duration in seconds
----@field start table Starting values
----@field final table Final values
----@field easing string? Easing function name (default: "linear")
----@field keyframes Keyframe[]? Array of keyframes for complex animations
----@field transform table? Additional transform properties
----@field transition table? Transition properties
----@field onStart function? Called when animation starts: (animation, element)
----@field onUpdate function? Called each frame: (animation, element, progress)
----@field onComplete function? Called when animation completes: (animation, element)
----@field onCancel function? Called when animation is cancelled: (animation, element)
-
----@class Animation
----@field duration number Duration in seconds
----@field start table Starting values
----@field final table Final values
----@field elapsed number Elapsed time in seconds
----@field easing EasingFunction Easing function
----@field keyframes Keyframe[]? Array of keyframes
----@field transform table? Additional transform properties
----@field transition table? Transition properties
----@field _cachedResult table Cached interpolation result
----@field _resultDirty boolean Whether cached result needs recalculation
----@field _Color table? Reference to Color module
----@field _Transform table? Reference to Transform module
----@field _ErrorHandler table? Reference to ErrorHandler module
 local Animation = {
   _Transform = Transform,
 }
@@ -1255,25 +1212,6 @@ end
 -- ANIMATION GROUP (Utility)
 -- ============================================================================
 
----@class AnimationGroupProps
----@field animations table Array of Animation instances
----@field mode string? "parallel", "sequence", or "stagger" (default: "parallel")
----@field stagger number? Stagger delay in seconds (default: 0.1)
----@field onComplete function? Called when all animations complete
----@field onStart function? Called when group starts
-
----@class AnimationGroup
----@field animations table
----@field mode string
----@field stagger number
----@field onComplete function?
----@field onStart function?
----@field _currentIndex number
----@field _staggerElapsed number
----@field _startedAnimations table
----@field _hasStarted boolean
----@field _paused boolean
----@field _state string
 local AnimationGroup = {}
 AnimationGroup.__index = AnimationGroup
 

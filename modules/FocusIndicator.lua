@@ -5,25 +5,10 @@ local function req(name)
   return require(modulePath .. name)
 end
 
----@class FocusIndicator
----@field config FocusIndicatorConfig
 local FocusIndicator = {}
 
----@class FocusIndicatorConfig
----@field enabled boolean Whether the focus indicator is rendered
----@field draw function|nil Custom draw function: function(element, bounds, style)
----@field color number[] RGBA color values (0-1 range)
----@field lineWidth number Stroke width in pixels
----@field inset number Offset from element bounds (negative extends beyond)
----@field borderRadius number Corner radius for rounded rectangle
----@field animationDuration number Seconds for focus entrance animation
----@field pulseEnabled boolean Enable pulsing animation
----@field pulseDuration number Seconds per pulse cycle
----@field pulseScaleMin number Minimum scale during pulse
----@field pulseScaleMax number Maximum scale during pulse
-
 --- Configuration
----@type FocusIndicatorConfig
+---@type KeyboardNavigationFocusIndicatorConfig
 FocusIndicator.config = {
   enabled = true,
 

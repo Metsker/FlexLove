@@ -1,11 +1,3 @@
----@class Color
----@field r number Red component (0-1)
----@field g number Green component (0-1)
----@field b number Blue component (0-1)
----@field a number Alpha component (0-1)
----@field _ErrorHandler table? ErrorHandler module dependency
----@field _FFI table? FFI module dependency
----@field _useFFI boolean Whether to use FFI optimizations
 local Color = {}
 Color.__index = Color
 

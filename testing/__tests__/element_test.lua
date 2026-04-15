@@ -2405,6 +2405,73 @@ function TestElementTheme:test_children_shift_uses_corner_scaling_not_full_stret
   luaunit.assertTrue(math.abs(offsetY - 2) < 0.001)
 end
 
+function TestElementTheme:test_hover_state_uses_normal_content_padding()
+  local atlas = love.graphics.newImage(love.image.newImageData(100, 100))
+  local previousTheme = FlexLove.Theme.getActive()
+  local preloadKey = "modules.themes.hover_padding_stability_test"
+
+  local definition = {
+    name = "hover_padding_stability_test",
+    components = {
+      button = {
+        atlas = atlas,
+        _ninePatchData = {
+          contentPadding = { left = 10, top = 10, right = 10, bottom = 10 },
+        },
+        states = {
+          hover = {
+            atlas = atlas,
+            _ninePatchData = {
+              contentPadding = { left = 16, top = 16, right = 4, bottom = 4 },
+            },
+          },
+        },
+      },
+    },
+  }
+
+  package.preload[preloadKey] = function()
+    return definition
+  end
+
+  local theme = FlexLove.Theme.load("hover_padding_stability_test")
+  FlexLove.Theme.setActive(theme)
+
+  local parent = FlexLove.new({
+    id = "hover_padding_stability_parent",
+    x = 0,
+    y = 0,
+    width = 100,
+    height = 60,
+    theme = "hover_padding_stability_test",
+    themeComponent = "button",
+  })
+
+  parent._themeManager:setState("hover")
+  if parent._renderer then
+    parent._renderer:setThemeState("hover")
+  end
+
+  local borderBoxWidth = parent._borderBoxWidth or (parent.width + parent.padding.left + parent.padding.right)
+  local borderBoxHeight = parent._borderBoxHeight or (parent.height + parent.padding.top + parent.padding.bottom)
+  local normalPadding = parent._themeManager:getScaledContentPaddingForState("normal", borderBoxWidth, borderBoxHeight)
+  local hoverPadding = parent:getScaledContentPadding()
+  local offsetX, offsetY = parent:getContentStateOffset()
+
+  package.preload[preloadKey] = nil
+  if previousTheme then
+    FlexLove.Theme.setActive(previousTheme)
+  end
+
+  luaunit.assertNotNil(hoverPadding)
+  luaunit.assertEquals(hoverPadding.left, normalPadding.left)
+  luaunit.assertEquals(hoverPadding.top, normalPadding.top)
+  luaunit.assertEquals(hoverPadding.right, normalPadding.right)
+  luaunit.assertEquals(hoverPadding.bottom, normalPadding.bottom)
+  luaunit.assertTrue(math.abs(offsetX) < 0.001)
+  luaunit.assertTrue(math.abs(offsetY) < 0.001)
+end
+
 -- ============================================================================
 -- Element Convenience API Tests
 -- ============================================================================

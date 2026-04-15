@@ -307,52 +307,6 @@ local function parseNinePatch(imagePath)
   }
 end
 
----@class ThemeRegion
----@field x number -- X position in atlas
----@field y number -- Y position in atlas
----@field w number -- Width in atlas
----@field h number -- Height in atlas
-
----@class ThemeComponent
----@field atlas string|love.Image? -- Optional: component-specific atlas (overrides theme atlas). Files ending in .9.png are auto-parsed
----@field insets {left:number, top:number, right:number, bottom:number}? -- Optional: 9-patch insets (auto-extracted from .9.png files or manually defined)
----@field regions {topLeft:ThemeRegion, topCenter:ThemeRegion, topRight:ThemeRegion, middleLeft:ThemeRegion, middleCenter:ThemeRegion, middleRight:ThemeRegion, bottomLeft:ThemeRegion, bottomCenter:ThemeRegion, bottomRight:ThemeRegion}
----@field stretch {horizontal:table<integer, string>, vertical:table<integer, string>}
----@field states table<string, ThemeComponent>?
----@field contentAutoSizingMultiplier {width:number?, height:number?}? -- Optional: multiplier for auto-sized content dimensions
----@field scaleCorners number? -- Optional: scale multiplier for non-stretched regions (corners/edges). E.g., 2 = 2x size. Default: nil (no scaling)
----@field scalingAlgorithm "nearest"|"bilinear"? -- Optional: scaling algorithm for non-stretched regions. Default: "bilinear"
----@field knobOffset number|table? -- Optional: offset for scrollbar knob/handle (number or {x, y} or {horizontal, vertical})
----@field _loadedAtlas string|love.Image? -- Internal: cached loaded atlas image
----@field _loadedAtlasData love.ImageData? -- Internal: cached loaded atlas ImageData for pixel access
----@field _ninePatchData {insets:table, contentPadding:table, stretchX:table, stretchY:table}? -- Internal: parsed 9-patch data with stretch regions and content padding
----@field _scaledRegionCache table<string, love.Image>? -- Internal: cache for scaled corner/edge images
-
----@class FontFamily
----@field path string -- Path to the font file (relative to FlexLove or absolute)
----@field _loadedFont love.Font? -- Internal: cached loaded font
-
----@class ThemeDefinition
----@field name string
----@field atlas string|love.Image? -- Optional: global atlas (can be overridden per component)
----@field components table<string, ThemeComponent>
----@field scrollbars table<string, ThemeComponent>? -- Optional: scrollbar component definitions (uses ThemeComponent format)
----@field colors table<string, Color>?
----@field fonts table<string, string>? -- Optional: font family definitions (name -> path)
----@field contentAutoSizingMultiplier {width:number?, height:number?}? -- Optional: default multiplier for auto-sized content dimensions
-
----@class Theme
----@field name string
----@field atlas love.Image? -- Optional: global atlas
----@field atlasData love.ImageData?
----@field components table<string, ThemeComponent>
----@field scrollbars table<string, ThemeComponent> -- Scrollbar component definitions
----@field colors table<string, Color>
----@field fonts table<string, string> -- Font family definitions
----@field contentAutoSizingMultiplier {width:number?, height:number?}? -- Optional: default multiplier for auto-sized content dimensions
----@field _ErrorHandler table? ErrorHandler module dependency
----@field _Color table? Color module dependency
----@field _utils table? utils module dependency
 local Theme = {}
 Theme.__index = Theme
 
@@ -885,17 +839,6 @@ end
 -- ThemeManager: Instance-level theme state management
 --------------------------------------------------------------------------------
 
----@class ThemeManager
----@field theme string? -- Override theme name
----@field themeComponent string? -- Component to use from theme
----@field _themeState string -- Current theme state (normal, hover, pressed, active, disabled)
----@field disabled boolean
----@field active boolean
----@field disableHighlight boolean -- If true, disable pressed highlight overlay
----@field themeStateLock boolean|string? -- Lock theme state: true/"default" = lock to base state, false = normal behavior, string = specific state
----@field scaleCorners number? -- Scale multiplier for 9-patch corners/edges
----@field scalingAlgorithm string? -- "nearest" or "bilinear" scaling for 9-patch
----@field _element Element? -- Reference to parent Element
 local ThemeManager = {}
 ThemeManager.__index = ThemeManager
 
@@ -929,7 +872,7 @@ end
 ---Update the theme state based on element interaction state
 ---@param isHovered boolean Whether element is hovered
 ---@param isPressed boolean Whether element is pressed
----@param isFocused boolean Whether element is focused
+---@param isFocused boolean Whether element is focused (keyboard focus)
 ---@param isDisabled boolean Whether element is disabled
 ---@return string state The new theme state ("normal", "hover", "pressed", "active", "disabled")
 function ThemeManager:updateState(isHovered, isPressed, isFocused, isDisabled)
@@ -958,6 +901,8 @@ function ThemeManager:updateState(isHovered, isPressed, isFocused, isDisabled)
   end
 
   -- Normal behavior: calculate state based on interaction
+  -- Keyboard focus reuses the hover state so themes only need one visual variant.
+  -- Priority: disabled > active > pressed > hover/focus > normal
   local newState = "normal"
 
   if isDisabled or self.disabled then
@@ -966,7 +911,7 @@ function ThemeManager:updateState(isHovered, isPressed, isFocused, isDisabled)
     newState = "active"
   elseif isPressed then
     newState = "pressed"
-  elseif isHovered then
+  elseif isHovered or isFocused then
     newState = "hover"
   end
 
@@ -1205,6 +1150,9 @@ end
 ---@return table? padding Table with {left, top, right, bottom}, or nil if no contentPadding
 function ThemeManager:getScaledContentPadding(borderBoxWidth, borderBoxHeight)
   local state = self._themeState or "normal"
+  if state ~= "pressed" then
+    state = "normal"
+  end
   return self:getScaledContentPaddingForState(state, borderBoxWidth, borderBoxHeight)
 end
 

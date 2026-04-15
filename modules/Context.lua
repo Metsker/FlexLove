@@ -223,10 +223,13 @@ function Context.setFocused(element)
   end
   Context._settingFocus = true
 
+  -- Save reference to previously focused element before updating
+  local oldFocusedElement = Context._focusedElement
+
   -- Blur previously focused element
-  if Context._focusedElement and Context._focusedElement ~= element then
-    if Context._focusedElement._textEditor then
-      Context._focusedElement._textEditor:blur(Context._focusedElement)
+  if oldFocusedElement and oldFocusedElement ~= element then
+    if oldFocusedElement._textEditor then
+      oldFocusedElement._textEditor:blur(oldFocusedElement)
     end
   end
 

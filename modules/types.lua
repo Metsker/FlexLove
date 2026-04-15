@@ -1,32 +1,60 @@
 --=====================================--
--- only used for types with lua_ls, if you're using a different LSP (or none), you can remove this file --
+-- only used for types with lua_ls
 --=====================================--
+
+---@class Element
+local Element = {}
+
+---@class Animation
+local Animation = {}
+
+---@class Color
+local Color = {}
+
+---@class Theme
+local Theme = {}
+
+---@class ThemeManager
+local ThemeManager = {}
 
 --=====================================--
 -- For Animation.lua
 --=====================================--
+---@alias EasingFunction fun(t:number): number
+
 ---@class AnimationProps
 ---@field duration number -- Duration in seconds
 ---@field start table -- Starting values (can contain: width, height, opacity, x, y, gap, imageOpacity, backgroundColor, borderColor, textColor, padding, margin, cornerRadius, transform, etc.)
 ---@field final table -- Final values (same properties as start)
 ---@field easing string? -- Easing function name: "linear", "easeInQuad", "easeOutQuad", "easeInOutQuad", "easeInCubic", "easeOutCubic", "easeInOutCubic", "easeInQuart", "easeOutQuart", "easeInExpo", "easeOutExpo" (default: "linear")
+---@field keyframes AnimationKeyframe[]? -- Array of keyframes for complex animations
 ---@field onStart fun(animation:Animation, element:Element?)? -- Called when animation starts
 ---@field onUpdate fun(animation:Animation, element:Element?, progress:number)? -- Called each frame with progress (0-1)
 ---@field onComplete fun(animation:Animation, element:Element?)? -- Called when animation completes
 ---@field onCancel fun(animation:Animation, element:Element?)? -- Called when animation is cancelled
----@field transform table? -- Additional transform properties (legacy support)
+---@field transform TransformProps? -- Additional transform properties (legacy support)
 ---@field transition table? -- Transition properties (legacy support)
 local AnimationProps = {}
 
----@class TransformProps
----@field scale {x?:number, y?:number}?
----@field rotate number?
----@field translate {x?:number, y?:number}?
----@field skew {x?:number, y?:number}?
+---@class Transform
+---@field rotate number? Rotation in radians (default: 0)
+---@field scaleX number? X-axis scale (default: 1)
+---@field scaleY number? Y-axis scale (default: 1)
+---@field translateX number? X translation in pixels (default: 0)
+---@field translateY number? Y translation in pixels (default: 0)
+---@field skewX number? X-axis skew in radians (default: 0)
+---@field skewY number? Y-axis skew in radians (default: 0)
+---@field originX number? Transform origin X (0-1, default: 0.5)
+---@field originY number? Transform origin Y (0-1, default: 0.5)
+local Transform = {}
+
+---@alias TransformProps Transform
 
 ---@class TransitionProps
 ---@field duration number?
 ---@field easing string?
+---@field delay number?
+---@field onComplete fun(element:Element)?
 
 --=====================================--
 -- For Element.lua
@@ -78,6 +106,7 @@ local AnimationProps = {}
 ---@field onEventDeferred boolean? -- Whether onEvent callback should be deferred until after canvases are released (default: false)
 ---@field onFocus fun(element:Element)? -- Callback when element receives focus
 ---@field onFocusDeferred boolean? -- Whether onFocus callback should be deferred (default: false)
+---@field dropFocusOnSelection boolean? -- Override keyboard-navigation focus drop after Enter/Space activation (default: nil, uses KeyboardNavigation.config.dropFocusOnSelection)
 ---@field onBlur fun(element:Element)? -- Callback when element loses focus
 ---@field onBlurDeferred boolean? -- Whether onBlur callback should be deferred (default: false)
 ---@field onTextInput fun(element:Element, text:string)? -- Callback when text is input
@@ -166,146 +195,6 @@ local AnimationProps = {}
 ---@field ariaLive "off"|"polite"|"assertive"? -- Live region priority for announcements
 local ElementProps = {}
 
---=====================================--
--- Enum Types
---=====================================--
----@enum Positioning
-local Positioning = {
-  ABSOLUTE = "absolute",
-  RELATIVE = "relative",
-  FLEX = "flex",
-  GRID = "grid",
-}
-
----@enum FlexDirection
-local FlexDirection = {
-  HORIZONTAL = "horizontal",
-  VERTICAL = "vertical",
-}
-
----@enum JustifyContent
-local JustifyContent = {
-  FLEX_START = "flex-start",
-  FLEX_END = "flex-end",
-  CENTER = "center",
-  SPACE_BETWEEN = "space-between",
-  SPACE_AROUND = "space-around",
-  SPACE_EVENLY = "space-evenly",
-}
-
----@enum AlignItems
-local AlignItems = {
-  STRETCH = "stretch",
-  FLEX_START = "flex-start",
-  FLEX_END = "flex-end",
-  CENTER = "center",
-  BASELINE = "baseline",
-}
-
----@enum AlignContent
-local AlignContent = {
-  STRETCH = "stretch",
-  FLEX_START = "flex-start",
-  FLEX_END = "flex-end",
-  CENTER = "center",
-  SPACE_BETWEEN = "space-between",
-  SPACE_AROUND = "space-around",
-}
-
----@enum FlexWrap
-local FlexWrap = {
-  NOWRAP = "nowrap",
-  WRAP = "wrap",
-  WRAP_REVERSE = "wrap-reverse",
-}
-
----@enum JustifySelf
-local JustifySelf = {
-  AUTO = "auto",
-  FLEX_START = "flex-start",
-  FLEX_END = "flex-end",
-  CENTER = "center",
-  STRETCH = "stretch",
-}
-
----@enum AlignSelf
-local AlignSelf = {
-  AUTO = "auto",
-  FLEX_START = "flex-start",
-  FLEX_END = "flex-end",
-  CENTER = "center",
-  STRETCH = "stretch",
-  BASELINE = "baseline",
-}
-
----@enum TextAlign
-local TextAlign = {
-  START = "start",
-  CENTER = "center",
-  END = "end",
-  LEFT = "left",
-  RIGHT = "right",
-}
-
----@enum ARIA
-local ARIA = {
-  BUTTON = "button",
-  LINK = "link",
-  Dialog = "dialog",
-  MENU = "menu",
-  MENUBAR = "menubar",
-  MENUITEM = "menuitem",
-  LISTBOX = "listbox",
-  OPTION = "option",
-  COMBOBOX = "combobox",
-  GRID = "grid",
-  TREE = "tree",
-  TREEGRID = "treegrid",
-  TABLIST = "tablist",
-  TAB = "tab",
-  TABPANEL = "tabpanel",
-  SLIDER = "slider",
-  PROGRESSBAR = "progressbar",
-  SCROLLBAR = "scrollbar",
-  CHECKBOX = "checkbox",
-  RADIO = "radio",
-  SPINBUTTON = "spinbutton",
-  METER = "meter",
-  ALERT = "alert",
-  ALERTDIALOG = "alertdialog",
-  LOG = "log",
-  MARQUEE = "marquee",
-  STATUS = "status",
-  TOOLTIP = "tooltip",
-  FORM = "form",
-  DIALOG = "dialog",
-  SEARCHBOX = "searchbox",
-  SWITCH = "switch",
-  GROUP = "group",
-  SEPARATOR = "separator",
-  REGION = "region",
-  ARTICLE = "article",
-  BANNER = "banner",
-  COMPLEMENTARY = "complementary",
-  CONTENTINFO = "contentinfo",
-  MAIN = "main",
-  NAVIGATION = "navigation",
-  APPLICATION = "application",
-  DEFINITION = "definition",
-  DIRECTORY = "directory",
-  DOCUMENT = "document",
-  FEED = "feed",
-  FIGURE = "figure",
-  HEADING = "heading",
-  IMG = "img",
-  LIST = "list",
-  LISTITEM = "listitem",
-  MARKER = "marker",
-  MATH = "math",
-  NONE = "none",
-  PRESENTATION = "presentation",
-}
-
 ---@class Border
 ---@field top boolean|number -- true sets width to 1px, number sets width to specified pixels (default: 0)
 ---@field right boolean|number -- true sets width to 1px, number sets width to specified pixels (default: 0)
@@ -313,24 +202,61 @@ local ARIA = {
 ---@field left boolean|number -- true sets width to 1px, number sets width to specified pixels (default: 0)
 local Border = {}
 
----@class TransformProps
----@field rotate number? Rotation in radians (default: 0)
----@field scaleX number? X-axis scale (default: 1)
----@field scaleY number? Y-axis scale (default: 1)
----@field translateX number? X translation in pixels (default: 0)
----@field translateY number? Y translation in pixels (default: 0)
----@field skewX number? X-axis skew in radians (default: 0)
----@field skewY number? Y-axis skew in radians (default: 0)
----@field originX number? Transform origin X (0-1, default: 0.5)
----@field originY number? Transform origin Y (0-1, default: 0.5)
-local TransformProps
+--=====================================--
+-- For KeyboardNavigation.lua
+--=====================================--
+---@class KeyboardNavigationKeyConfig
+---@field next string -- Key used to move to the next focusable element
+---@field previous string -- Key used to move to the previous focusable element
+---@field up string -- Key used for directional navigation upward
+---@field down string -- Key used for directional navigation downward
+---@field left string -- Key used for directional navigation leftward
+---@field right string -- Key used for directional navigation rightward
+---@field activate string[] -- Keys that activate the currently focused element
+---@field dismiss string -- Key used to dismiss or clear the currently focused element
+---@field toggleDebug string -- Key used to toggle keyboard-navigation debug tooling
+---@field inspect string -- Key used to inspect the currently focused element in developer tools
+local KeyboardNavigationKeyConfig = {}
+
+---@class KeyboardNavigationDeveloperToolsConfig
+---@field enabled boolean? -- Enable keyboard-navigation developer tools (default: true)
+---@field showProperties boolean? -- Show focused element properties in developer tools (default: true)
+---@field highlightColor number[]? -- RGBA color used for keyboard-navigation debug highlighting (default: {1, 0.8, 0, 0.5})
+local KeyboardNavigationDeveloperToolsConfig = {}
+
+---@class KeyboardNavigationFocusIndicatorConfig
+---@field enabled boolean? -- Enable the keyboard focus indicator (default: true)
+---@field color number[]? -- RGBA color of the focus indicator (default: {0.2, 0.6, 1.0, 0.8})
+---@field lineWidth number? -- Focus indicator stroke width in pixels (default: 2)
+---@field inset number? -- Offset from the element bounds in pixels (default: -3)
+---@field borderRadius number? -- Focus indicator border radius in pixels (default: 4)
+---@field animationDuration number? -- Focus indicator entrance animation duration in seconds (default: 0.15)
+---@field pulseEnabled boolean? -- Enable pulse animation for the focus indicator when supported
+---@field pulseDuration number? -- Seconds per pulse cycle
+---@field pulseScaleMin number? -- Minimum scale during pulse animation
+---@field pulseScaleMax number? -- Maximum scale during pulse animation
+---@field draw fun(element:Element, bounds:table, style:KeyboardNavigationFocusIndicatorConfig)? -- Custom focus indicator renderer
+local KeyboardNavigationFocusIndicatorConfig = {}
+
+---@class KeyboardNavigationConfig
+---@field enabled boolean? -- Enable or disable keyboard navigation globally (default: true)
+---@field debugMode boolean? -- Enable keyboard-navigation debug logging (default: false)
+---@field keys KeyboardNavigationKeyConfig? -- Key bindings used by keyboard navigation
+---@field wrapAround boolean? -- Allow wrapping from last to first focusable element (default: true)
+---@field directionalNavigation boolean? -- Enable arrow-key directional navigation (default: true)
+---@field focusVisible boolean? -- Show the focus indicator for keyboard-driven focus (default: true)
+---@field autofocusOnCreate boolean? -- Auto-focus the first focusable element on creation (default: false)
+---@field dropFocusOnSelection boolean? -- Drop focus after Enter/Space activates an element (default: true)
+---@field developerTools KeyboardNavigationDeveloperToolsConfig? -- Developer tool settings for keyboard navigation
+---@field focusIndicator KeyboardNavigationFocusIndicatorConfig? -- Focus indicator style configuration
+local KeyboardNavigationConfig = {}
 
 --=====================================--
 -- For FlexLove.init()
 --=====================================--
 ---@class FlexLoveConfig
 ---@field baseScale {width:number?, height:number?}? -- Base resolution for responsive scaling (default: nil, no scaling)
----@field theme string|table? -- Theme name (string) or ThemeDefinition (table) to use (default: nil, no theme)
+---@field theme string|ThemeDefinition? -- Theme name (string) or ThemeDefinition to use (default: nil, no theme)
 ---@field immediateMode boolean? -- Enable immediate mode (React-like, recreates UI each frame) vs retained mode (default: false)
 ---@field autoFrameManagement boolean? -- Automatically call beginFrame/endFrame (default: false)
 ---@field stateRetentionFrames number? -- Number of frames to retain unused state in immediate mode (default: 60)
@@ -355,9 +281,269 @@ local TransformProps
 ---@field gcInterval number? -- Frames between GC steps in periodic mode (default: 60)
 ---@field gcStepSize number? -- Work units per GC step, higher = more aggressive (default: 200)
 ---@field immediateModeBlurOptimizations boolean? -- Cache blur canvases in immediate mode to avoid re-rendering each frame (default: true)
+---@field keyboardNavigation boolean|KeyboardNavigationConfig? -- Enable keyboard navigation with defaults (`true`) or provide configuration overrides
 ---@field debugDraw boolean? -- Enable debug draw overlay showing element boundaries with random colors (default: false)
 ---@field debugDrawKey string? -- Key to toggle debug draw overlay at runtime (default: nil, no toggle key)
 local FlexLoveConfig = {}
+
+--=====================================--
+-- Public FlexLove API
+--=====================================--
+---@class FlexLoveEnums
+---@field TextAlign TextAlign
+---@field Positioning Positioning
+---@field FlexDirection FlexDirection
+---@field JustifyContent JustifyContent
+---@field JustifySelf JustifySelf
+---@field AlignItems AlignItems
+---@field AlignSelf AlignSelf
+---@field AlignContent AlignContent
+---@field FlexWrap FlexWrap
+---@field TextSize TextSize
+---@field ImageRepeat ImageRepeat
+---@field ARIA ARIA
+local FlexLoveEnums = {}
+
+---@class AnimationKeyframe
+---@field at number -- Normalized time position (0-1)
+---@field values table -- Property values at this keyframe
+---@field easing string|EasingFunction? -- Easing used between this and the next keyframe
+local AnimationKeyframe = {}
+
+---@class AnimationGroupProps
+---@field animations Animation[] -- Animations to coordinate
+---@field mode "parallel"|"sequence"|"stagger"? -- Group playback mode (default: "parallel")
+---@field stagger number? -- Delay between staggered animations in seconds (default: 0.1)
+---@field onComplete fun(group:AnimationGroup)? -- Called when all animations complete
+---@field onStart fun(group:AnimationGroup)? -- Called when the group starts
+local AnimationGroupProps = {}
+
+---@class AnimationGroup
+---@field animations Animation[]
+---@field mode "parallel"|"sequence"|"stagger"
+---@field stagger number
+---@field onComplete fun(group:AnimationGroup)?
+---@field onStart fun(group:AnimationGroup)?
+local AnimationGroup = {}
+
+---@class Animation
+---@field duration number
+---@field start table
+---@field final table
+---@field elapsed number
+---@field easing EasingFunction
+---@field keyframes AnimationKeyframe[]?
+---@field transform TransformProps?
+---@field transition TransitionProps?
+---@field onStart fun(animation:Animation, element:Element?)?
+---@field onUpdate fun(animation:Animation, element:Element?, progress:number)?
+---@field onComplete fun(animation:Animation, element:Element?)?
+---@field onCancel fun(animation:Animation, element:Element?)?
+---@field update fun(self:Animation, dt:number, element:table?): boolean
+---@field findKeyframes fun(self:Animation, progress:number): AnimationKeyframe?, AnimationKeyframe?
+---@field lerpKeyframes fun(self:Animation, prevFrame:AnimationKeyframe, nextFrame:AnimationKeyframe, easedT:number): table
+---@field interpolate fun(self:Animation): table
+---@field apply fun(self:Animation, element:table)
+---@field pause fun(self:Animation)
+---@field resume fun(self:Animation)
+---@field isPaused fun(self:Animation): boolean
+---@field reverse fun(self:Animation)
+---@field isReversed fun(self:Animation): boolean
+---@field setSpeed fun(self:Animation, speed:number)
+---@field getSpeed fun(self:Animation): number
+---@field seek fun(self:Animation, time:number)
+---@field getState fun(self:Animation): string
+---@field cancel fun(self:Animation, element:table?)
+---@field reset fun(self:Animation)
+---@field getProgress fun(self:Animation): number
+---@field chain fun(self:Animation, nextAnimation:Animation|function): Animation
+---@field delay fun(self:Animation, seconds:number): Animation
+---@field repeatCount fun(self:Animation, count:number): Animation
+---@field yoyo fun(self:Animation, enabled:boolean?): Animation
+---@class AnimationModule
+---@field Easing table<string, EasingFunction|fun(...):EasingFunction> -- Built-in easing functions and easing factories
+---@field Transform table? -- Animation transform helpers exposed by the animation module
+---@field Group AnimationGroup -- Animation group class table
+---@field new fun(props:AnimationProps): Animation
+---@field fade fun(duration:number, fromOpacity:number, toOpacity:number, easing:string?): Animation
+---@field scale fun(duration:number, fromScale:{width:number, height:number}, toScale:{width:number, height:number}, easing:string?): Animation
+---@field keyframes fun(props:{duration:number, keyframes:AnimationKeyframe[], onStart:function?, onUpdate:function?, onComplete:function?, onCancel:function?}): Animation
+---@field chainSequence fun(animations:Animation[]): Animation
+local AnimationModule = {}
+
+---@class ColorInputTable
+---@field [1] number?
+---@field [2] number?
+---@field [3] number?
+---@field [4] number?
+---@field r number?
+---@field g number?
+---@field b number?
+---@field a number?
+local ColorInputTable = {}
+
+---@alias ColorInput string|Color|ColorInputTable
+
+---@class ColorModule
+---@field new fun(r:number?, g:number?, b:number?, a:number?): Color
+---@field fromHex fun(hexWithTag:string): Color
+---@field validateColorChannel fun(value:any, max:number?): boolean, number?
+---@field validateHexColor fun(hex:string): boolean, string?
+---@field validateRGBColor fun(r:number, g:number, b:number, a:number?, max:number?): boolean, string?
+---@field isValidColorFormat fun(value:any): string?
+---@field sanitizeColor fun(value:any, default:Color?): Color
+---@field parse fun(value:any): Color
+---@field lerp fun(colorA:Color, colorB:Color, t:number): Color
+local ColorModule = {}
+
+---@class ThemeManagerConfig
+---@field theme string? -- Theme name override
+---@field themeComponent string? -- Component name to resolve from the theme
+---@field disabled boolean? -- Force disabled theme state
+---@field active boolean? -- Force active theme state
+---@field disableHighlight boolean? -- Disable pressed highlight overlay
+---@field themeStateLock boolean|string? -- Lock the theme state to base/default or a named state
+---@field scaleCorners number? -- Scale multiplier for 9-patch corners and edges
+---@field scalingAlgorithm "nearest"|"bilinear"? -- Scaling algorithm for non-stretched theme regions
+local ThemeManagerConfig = {}
+
+---@class ThemeRegion
+---@field x number
+---@field y number
+---@field w number
+---@field h number
+local ThemeRegion = {}
+
+---@class ThemeComponent
+---@field atlas string|love.Image?
+---@field insets {left:number, top:number, right:number, bottom:number}?
+---@field regions {topLeft:ThemeRegion, topCenter:ThemeRegion, topRight:ThemeRegion, middleLeft:ThemeRegion, middleCenter:ThemeRegion, middleRight:ThemeRegion, bottomLeft:ThemeRegion, bottomCenter:ThemeRegion, bottomRight:ThemeRegion}?
+---@field stretch {horizontal:table<integer, string>, vertical:table<integer, string>}?
+---@field states table<string, ThemeComponent>?
+---@field contentAutoSizingMultiplier {width:number?, height:number?}?
+---@field scaleCorners number?
+---@field scalingAlgorithm "nearest"|"bilinear"?
+---@field knobOffset number|{x:number, y:number}|{horizontal:number, vertical:number}?
+local ThemeComponent = {}
+
+---@class ThemeDefinition
+---@field name string
+---@field atlas string|love.Image?
+---@field components table<string, ThemeComponent>
+---@field scrollbars table<string, ThemeComponent>?
+---@field colors table<string, Color>?
+---@field fonts table<string, string>?
+---@field contentAutoSizingMultiplier {width:number?, height:number?}?
+local ThemeDefinition = {}
+
+---@class Theme
+---@field name string
+---@field atlas love.Image?
+---@field atlasData love.ImageData?
+---@field components table<string, ThemeComponent>
+---@field scrollbars table<string, ThemeComponent>
+---@field colors table<string, Color>
+---@field fonts table<string, string>
+---@field contentAutoSizingMultiplier {width:number?, height:number?}?
+---@class ThemeManager
+---@field theme string?
+---@field themeComponent string?
+---@field disabled boolean
+---@field active boolean
+---@field disableHighlight boolean?
+---@field themeStateLock boolean|string?
+---@field scaleCorners number?
+---@field scalingAlgorithm "nearest"|"bilinear"?
+---@field updateState fun(self:ThemeManager, isHovered:boolean, isPressed:boolean, isFocused:boolean, isDisabled:boolean): string
+---@field getState fun(self:ThemeManager): string
+---@field setState fun(self:ThemeManager, state:string)
+---@field hasThemeComponent fun(self:ThemeManager): boolean
+---@field getTheme fun(self:ThemeManager): Theme?
+---@field getComponent fun(self:ThemeManager): ThemeComponent?
+---@field getStateComponent fun(self:ThemeManager): ThemeComponent?
+---@field getScrollbarComponent fun(self:ThemeManager, scrollbarName:string?): ThemeComponent?
+---@field getStyle fun(self:ThemeManager, property:string): any?
+---@field getScaledContentPaddingForState fun(self:ThemeManager, state:string, borderBoxWidth:number, borderBoxHeight:number): table?
+---@field getScaledContentPadding fun(self:ThemeManager, borderBoxWidth:number, borderBoxHeight:number): table?
+---@field getContentAutoSizingMultiplier fun(self:ThemeManager): table?
+---@field getDefaultFontFamily fun(self:ThemeManager): string?
+---@field setTheme fun(self:ThemeManager, themeName:string?, componentName:string?)
+---@field validateThemeStateLock fun(self:ThemeManager): boolean
+---@class Color
+---@field r number
+---@field g number
+---@field b number
+---@field a number
+---@field toRGBA fun(self:Color): number, number, number, number
+---@class ThemeModule
+---@field Manager ThemeManager -- Theme manager class table
+---@field new fun(definition:ThemeDefinition): Theme
+---@field load fun(path:string): Theme?
+---@field setActive fun(themeOrName:string|Theme)
+---@field getActive fun(): Theme?
+---@field getComponent fun(componentName:string, state:string?): ThemeComponent?
+---@field getDefaultScrollbar fun(): ThemeComponent?
+---@field getScrollbar fun(scrollbarName:string, state:string?): ThemeComponent?
+---@field getFont fun(fontName:string): string?
+---@field getColor fun(colorName:string): Color?
+---@field hasActive fun(): boolean
+---@field getRegisteredThemes fun(): table<string, Theme>
+---@field getColorNames fun(): string[]
+---@field getAllColors fun(): table<string, Color>
+---@field getColorOrDefault fun(colorName:string, fallback:Color): Color
+---@field get fun(themeName:string): Theme?
+---@field validateTheme fun(theme:table?, options:table?): boolean, table
+---@field sanitizeTheme fun(theme:table?): table
+local ThemeModule = {}
+
+---@class FlexLove
+---@field _VERSION string
+---@field _DESCRIPTION string
+---@field _URL string
+---@field _LICENSE string
+---@field Animation AnimationModule?
+---@field Color ColorModule
+---@field Theme ThemeModule?
+---@field enums FlexLoveEnums
+---@field isReady fun(): boolean
+---@field init fun(config:FlexLoveConfig?)
+---@field setKeyboardNavigationDebug fun(enabled:boolean)
+---@field enableKeyboardNavigation fun(config:KeyboardNavigationConfig?)
+---@field deferCallback fun(callback:function)
+---@field executeDeferredCallbacks fun()
+---@field resize fun()
+---@field setMode fun(mode:"immediate"|"retained")
+---@field getMode fun(): "immediate"|"retained"
+---@field beginFrame fun()
+---@field endFrame fun()
+---@field draw fun(gameDrawFunc:function|nil, postDrawFunc:function|nil)
+---@field getElementAtPosition fun(x:number, y:number): Element?
+---@field update fun(dt:number)
+---@field collectGarbage fun(mode:string?, stepSize:number?): number?
+---@field setGCStrategy fun(strategy:"auto"|"periodic"|"manual"|"disabled")
+---@field getGCStats fun(): GCStats
+---@field textinput fun(text:string)
+---@field keypressed fun(key:string, scancode:string, isrepeat:boolean)
+---@field wheelmoved fun(dx:number, dy:number)
+---@field touchpressed fun(id:lightuserdata, x:number, y:number, dx:number, dy:number, pressure:number)
+---@field touchmoved fun(id:lightuserdata, x:number, y:number, dx:number, dy:number, pressure:number)
+---@field touchreleased fun(id:lightuserdata, x:number, y:number, dx:number, dy:number, pressure:number)
+---@field getActiveTouchCount fun(): number
+---@field getTouchOwner fun(touchId:string): Element?
+---@field getById fun(id:string): Element?
+---@field destroy fun()
+---@field new fun(props:ElementProps, callback:function?): Element?
+---@field getStateCount fun(): number
+---@field clearState fun(id:string)
+---@field clearAllStates fun()
+---@field getStateStats fun(): table
+---@field calc fun(expr:string): CalcObject
+---@field getFocusedElement fun(): Element?
+---@field setFocusedElement fun(element:Element?)
+---@field clearFocus fun()
+---@field setDebugDraw fun(enabled:boolean)
+---@field getDebugDraw fun(): boolean
+local FlexLove = {}
 
 --=====================================--
 -- For State Persistence
