@@ -5,6 +5,20 @@
 ---@class Element
 local Element = {}
 
+---@class SelectOptionProps
+---@field value any -- Stable option value owned by the parent select
+---@field label string? -- Optional label override, falls back to the element text
+---@field disabled boolean? -- Whether the option can be selected
+local SelectOptionProps = {}
+
+---@class SelectParentProps
+---@field value any -- Currently selected option value
+---@field open boolean? -- Initial open state for the select container
+---@field placeholder string? -- Fallback text when no option is selected
+---@field selectFrame Element? -- Optional pre-instantiated dropdown container; intended to be unattached before being adopted by the select
+---@field onChange fun(element:Element, value:any, option:SelectOptionProps)? -- Called when selection changes
+local SelectParentProps = {}
+
 ---@class Animation
 local Animation = {}
 
@@ -154,6 +168,8 @@ local Transform = {}
 ---@field cursorColor Color? -- Cursor color (default: nil, uses textColor)
 ---@field selectionColor Color? -- Selection background color (default: nil, uses theme or default)
 ---@field cursorBlinkRate number? -- Cursor blink rate in seconds (default: 0.5)
+---@field selectParent SelectParentProps? -- Parent-owned select/dropdown state and callbacks
+---@field selectOption SelectOptionProps? -- Option metadata attached to a child of a select parent
 ---@field overflow "visible"|"hidden"|"scroll"|"auto"? -- Overflow behavior (default: "hidden")
 ---@field overflowX "visible"|"hidden"|"scroll"|"auto"? -- X-axis overflow (overrides overflow)
 ---@field overflowY "visible"|"hidden"|"scroll"|"auto"? -- Y-axis overflow (overrides overflow)

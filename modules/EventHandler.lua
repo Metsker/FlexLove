@@ -154,7 +154,8 @@ function EventHandler:processMouseEvents(element, mx, my, isHovering, isActiveEl
   end
 
   -- Can only process events if we have handler, element is enabled, and is active or dragging or has tracked press
-  local canProcessEvents = (self.onEvent or element.editable)
+  local canProcessEvents = (self.onEvent or element.editable or element._selectState or element.selectOption)
+    and element.visibility ~= "hidden"
     and not element.disabled
     and (isActiveElement or isDragging or hasTrackedPress)
 
@@ -319,7 +320,10 @@ function EventHandler:_handleMousePress(element, mx, my, button)
   if type(element.isFocusable) == "function" then
     isFocusable = element:isFocusable()
   else
-    isFocusable = (element.editable == true) or (type(element.onEvent) == "function")
+    isFocusable = (element.editable == true)
+      or (type(element.onEvent) == "function")
+      or element._selectState ~= nil
+      or element.selectOption ~= nil
   end
 
   if button == 1 and EventHandler._Context and isFocusable then
@@ -485,6 +489,10 @@ function EventHandler:_handleMouseRelease(element, mx, my, button)
     clickCount = clickCount,
   })
   self:_invokeCallback(element, releaseEvent)
+
+  if button == 1 and element._handleSelectRelease then
+    element:_handleSelectRelease()
+  end
 end
 
 --- Process touch events in the update cycle

@@ -47,6 +47,9 @@ function Element.new(props)
     for _, child in ipairs(props.parent.children) do
       if child.id == props.id and child._elementMode == "retained" then
         -- Element already exists (was restored), return existing instance
+        if child._selectState then
+          child:_resetSelectOptions()
+        end
         return child
       end
     end
@@ -158,6 +161,9 @@ function Element.new(props)
           -- CRITICAL: Clear children array to prevent accumulation
           -- Children will be re-declared this frame (retained children will be found via duplicate check)
           existingElement.children = {}
+          if existingElement._selectState then
+            existingElement:_resetSelectOptions()
+          end
           return existingElement
         end
       end
@@ -169,6 +175,9 @@ function Element.new(props)
           -- CRITICAL: Clear children array to prevent accumulation
           -- Children will be re-declared this frame (retained children will be found via duplicate check)
           existingChild.children = {}
+          if existingChild._selectState then
+            existingChild:_resetSelectOptions()
+          end
           return existingChild
         end
       end
@@ -381,6 +390,51 @@ function Element.new(props)
   self.cursorColor = props.cursorColor
   self.selectionColor = props.selectionColor
   self.cursorBlinkRate = props.cursorBlinkRate or 0.5
+
+  self.selectParent = nil
+  self.selectOption = nil
+  self._selectState = nil
+
+  if type(props.selectParent) == "table" then
+    self.selectParent = props.selectParent
+    self._selectState = {
+      value = props.selectParent.value,
+      open = props.selectParent.open or false,
+      placeholder = props.selectParent.placeholder,
+      selectFrame = nil,
+      selectAnchor = nil,
+      onChange = props.selectParent.onChange,
+      options = {},
+      optionLookup = {},
+      expectedFrameParent = nil,
+      frameAdopted = false,
+    }
+
+    -- In immediate mode, restore select state from StateManager
+    if self._elementMode == "immediate" and self._stateId and self._stateId ~= "" then
+      local state = Element._StateManager.getState(self._stateId)
+      if state and state._selectOpen ~= nil then
+        self._selectState.open = state._selectOpen
+      end
+      if state and state._selectValue ~= nil then
+        self._selectState.value = state._selectValue
+        if self.selectParent then
+          self.selectParent.value = state._selectValue
+        end
+      end
+      if state and state._selectSelectedLabel ~= nil then
+        self._selectState.selectedLabel = state._selectSelectedLabel
+      end
+    end
+  end
+
+  if type(props.selectOption) == "table" then
+    self.selectOption = {
+      value = props.selectOption.value,
+      label = props.selectOption.label or props.text,
+      disabled = props.selectOption.disabled or false,
+    }
+  end
 
   if self.editable then
     self._textEditor = Element._TextEditor.new({
@@ -1798,6 +1852,10 @@ function Element.new(props)
 
   self.alignSelf = props.alignSelf or Element._utils.enums.AlignSelf.AUTO
 
+  if self._selectState and props.selectParent and props.selectParent.selectFrame ~= nil then
+    self:_adoptSelectFrame(props.selectParent.selectFrame)
+  end
+
   -- Update the LayoutEngine with actual layout properties
   -- (it was initialized early with defaults for auto-sizing calculations)
   self._layoutEngine.positioning = self.positioning
@@ -2343,10 +2401,503 @@ function Element:getAvailableContentHeight()
   return math.max(0, availableHeight)
 end
 
+---@param selectParent Element
+function Element._rebuildSelectOptionLookup(selectParent)
+  if not selectParent or not selectParent._selectState then
+    return
+  end
+
+  selectParent._selectState.optionLookup = {}
+  for _, optionElement in ipairs(selectParent._selectState.options) do
+    if optionElement and optionElement.selectOption then
+      selectParent._selectState.optionLookup[optionElement.selectOption.value] = optionElement
+    end
+  end
+end
+
+---@param selectParent Element
+function Element._syncSelectOptionStates(selectParent)
+  if not selectParent or not selectParent._selectState then
+    return
+  end
+
+  local selectedOption = nil
+  local selectedLabel = selectParent._selectState.selectedLabel
+
+  for _, optionElement in ipairs(selectParent._selectState.options) do
+    local isSelected = optionElement.selectOption
+      and optionElement.selectOption.value == selectParent._selectState.value
+    optionElement._selectSelected = isSelected
+    optionElement.ariaChecked = isSelected
+
+    if isSelected then
+      selectedOption = optionElement
+      selectedLabel = optionElement.selectOption.label or optionElement.text
+    end
+  end
+
+  selectParent._selectState.selectedOption = selectedOption
+  selectParent._selectState.selectedLabel = selectedLabel
+end
+
+function Element:_resetSelectOptions()
+  if not self._selectState then
+    return
+  end
+
+  self._selectState.options = {}
+  self._selectState.optionLookup = {}
+  self._selectState.selectedOption = nil
+end
+
+---@param frame any
+---@return boolean
+function Element:_isValidSelectFrame(frame)
+  return type(frame) == "table" and getmetatable(frame) == Element
+end
+
+---@param code string
+---@param details table?
+function Element:_warnSelectFrame(code, details)
+  Element._ErrorHandler:warn("Element", code, details or { element = self.id })
+end
+
+---@param frame Element
+function Element:_trackManagedSelectFrame(frame)
+  self._selectState.selectFrame = frame
+  local expectedParent = self._selectState.selectAnchor or self
+  self._selectState.expectedFrameParent = expectedParent
+  self._selectState.frameAdopted = frame.parent == expectedParent
+  if frame._managedSelectBaseOpacity == nil then
+    frame._managedSelectBaseOpacity = frame.opacity
+  end
+  if frame._managedSelectBaseVisibility == nil then
+    frame._managedSelectBaseVisibility = frame.visibility or "visible"
+  end
+  if frame._managedSelectBaseDisabled == nil then
+    frame._managedSelectBaseDisabled = frame.disabled or false
+  end
+  frame._managedSelectOwner = self
+  frame._managedSelectFrame = true
+end
+
+---@return Element
+function Element:_getOrCreateManagedSelectAnchor()
+  if self._selectState.selectAnchor then
+    return self._selectState.selectAnchor
+  end
+
+  local anchor = Element.new({
+    id = string.format("%s__select_anchor", self.id or "select"),
+    parent = self,
+    positioning = Element._utils.enums.Positioning.ABSOLUTE,
+    left = 0,
+    top = self:getBorderBoxHeight(),
+    width = self:getBorderBoxWidth(),
+    opacity = 1,
+    visibility = "hidden",
+    disabled = true,
+  })
+
+  anchor._managedSelectAnchor = true
+  anchor._managedSelectOwner = self
+  self._selectState.selectAnchor = anchor
+  return anchor
+end
+
+---@param frame Element
+function Element:_applyManagedSelectFrameLayout(frame)
+  local anchor = self:_getOrCreateManagedSelectAnchor()
+  anchor.left = 0
+  anchor.top = self:getBorderBoxHeight()
+  anchor.width = self:getBorderBoxWidth()
+  anchor.units.left = { value = 0, unit = "px" }
+  anchor.units.top = { value = self:getBorderBoxHeight(), unit = "px" }
+  anchor.units.width = { value = self:getBorderBoxWidth(), unit = "px" }
+
+  frame.positioning = frame.positioning or Element._utils.enums.Positioning.RELATIVE
+  frame._explicitlyAbsolute = false
+  frame.left = nil
+  frame.top = nil
+  frame.right = nil
+  frame.bottom = nil
+
+  if frame.parent ~= anchor then
+    frame:setParent(anchor)
+  end
+
+  self._selectState.expectedFrameParent = anchor
+  self._selectState.frameAdopted = frame.parent == anchor
+end
+
+---@param frame Element
+function Element:_adoptSelectFrame(frame)
+  if not self._selectState then
+    return
+  end
+
+  if not self:_isValidSelectFrame(frame) then
+    self:_warnSelectFrame("ELEM_007", {
+      element = self.id,
+      property = "selectParent.selectFrame",
+      got = type(frame),
+    })
+    return
+  end
+
+  if frame == self then
+    self:_warnSelectFrame("ELEM_007", {
+      element = self.id,
+      property = "selectParent.selectFrame",
+      reason = "select cannot use itself as its managed frame",
+    })
+    return
+  end
+
+  local anchor = self:_getOrCreateManagedSelectAnchor()
+
+  if frame.parent and frame.parent ~= self and frame.parent ~= anchor then
+    self:_warnSelectFrame("ELEM_008", {
+      element = self.id,
+      frame = frame.id,
+      parent = frame.parent.id,
+    })
+  end
+
+  self:_trackManagedSelectFrame(frame)
+  self:_applyManagedSelectFrameLayout(frame)
+  self:_syncManagedSelectFrameVisibility()
+
+  if not Element._Context._immediateMode then
+    anchor:layoutChildren()
+    self:layoutChildren()
+  end
+
+  local pendingOptions = {}
+  for _, child in ipairs(self.children) do
+    if child ~= frame and child.selectOption then
+      table.insert(pendingOptions, child)
+    end
+  end
+
+  for _, option in ipairs(pendingOptions) do
+    option:_attachSelectOptionToManagedFrame()
+  end
+end
+
+function Element:_ensureSelectFrameState()
+  if not self._selectState or not self._selectState.selectFrame then
+    return
+  end
+
+  local frame = self._selectState.selectFrame
+  local anchor = self._selectState.selectAnchor
+  if anchor then
+    anchor.left = 0
+    anchor.top = self:getBorderBoxHeight()
+    anchor.width = self:getBorderBoxWidth()
+    anchor.units.left = { value = 0, unit = "px" }
+    anchor.units.top = { value = self:getBorderBoxHeight(), unit = "px" }
+    anchor.units.width = { value = self:getBorderBoxWidth(), unit = "px" }
+    if frame.parent == anchor then
+      anchor:layoutChildren()
+    end
+  elseif frame.parent == self then
+    self:_applyManagedSelectFrameLayout(frame)
+  end
+
+  local expectedParent = anchor or self._selectState.expectedFrameParent
+  if frame.parent ~= expectedParent then
+    self:_warnSelectFrame("ELEM_009", {
+      element = self.id,
+      frame = frame.id,
+      expectedParent = expectedParent and expectedParent.id or nil,
+      actualParent = frame.parent and frame.parent.id or nil,
+    })
+    self._selectState.expectedFrameParent = frame.parent
+    self._selectState.frameAdopted = frame.parent == expectedParent
+  end
+end
+
+function Element:_syncManagedSelectFrameVisibility()
+  if not self._selectState or not self._selectState.selectFrame then
+    return
+  end
+
+  local frame = self._selectState.selectFrame
+  local anchor = self._selectState.selectAnchor
+  local isOpen = self._selectState.open == true
+  frame.visibility = isOpen and (frame._managedSelectBaseVisibility or "visible") or "hidden"
+  frame.opacity = frame._managedSelectBaseOpacity or 1
+  if isOpen then
+    frame.disabled = frame._managedSelectBaseDisabled == true
+  else
+    frame.disabled = true
+  end
+  if anchor then
+    anchor.visibility = isOpen and "visible" or "hidden"
+    anchor.opacity = 1
+    anchor.disabled = not isOpen
+  end
+end
+
+---@return Element?
+function Element:_findOwningSelectParent()
+  if self._selectParentHint and self._selectParentHint._selectState then
+    return self._selectParentHint
+  end
+
+  local current = self.parent
+  while current do
+    if current._selectState then
+      return current
+    end
+    current = current.parent
+  end
+
+  return nil
+end
+
+function Element:_registerWithSelectParent()
+  if not self.selectOption then
+    return
+  end
+
+  local selectParent = self:_findOwningSelectParent()
+  if not selectParent then
+    return
+  end
+
+  self._selectParentElement = selectParent
+
+  for _, optionElement in ipairs(selectParent._selectState.options) do
+    if optionElement == self then
+      return
+    end
+  end
+
+  table.insert(selectParent._selectState.options, self)
+  Element._rebuildSelectOptionLookup(selectParent)
+  Element._syncSelectOptionStates(selectParent)
+end
+
+function Element:_attachSelectOptionToManagedFrame()
+  if not self.selectOption then
+    return
+  end
+
+  local selectParent = self:_findOwningSelectParent()
+  if not selectParent or not selectParent._selectState or not selectParent._selectState.selectFrame then
+    return
+  end
+
+  local selectFrame = selectParent._selectState.selectFrame
+  if self.parent ~= selectFrame then
+    self._selectParentHint = selectParent
+
+    if
+      self._originalPositioning == Element._utils.enums.Positioning.ABSOLUTE
+      and self._managedSelectOptionUsesFrameLayout == nil
+    then
+      self._managedSelectOptionUsesFrameLayout = true
+      self.positioning = Element._utils.enums.Positioning.RELATIVE
+      self._originalPositioning = nil
+      self._explicitlyAbsolute = false
+      self.left = nil
+      self.top = nil
+      self.right = nil
+      self.bottom = nil
+    end
+
+    self:setParent(selectFrame)
+    if not Element._Context._immediateMode then
+      selectFrame:layoutChildren()
+      if selectParent._selectState.selectAnchor then
+        selectParent._selectState.selectAnchor:layoutChildren()
+      end
+    end
+  end
+end
+
+function Element:_unregisterFromSelectParent()
+  if not self.selectOption or not self._selectParentElement or not self._selectParentElement._selectState then
+    self._selectParentElement = nil
+    return
+  end
+
+  local selectParent = self._selectParentElement
+  for index, optionElement in ipairs(selectParent._selectState.options) do
+    if optionElement == self then
+      table.remove(selectParent._selectState.options, index)
+      break
+    end
+  end
+
+  Element._rebuildSelectOptionLookup(selectParent)
+  Element._syncSelectOptionStates(selectParent)
+  self._selectParentElement = nil
+end
+
+--- Save select state to StateManager for immediate mode persistence
+function Element:_saveSelectStateToStateManager()
+  if not self._selectState then
+    return
+  end
+  if self._stateId and self._elementMode == "immediate" and self._stateId ~= "" then
+    Element._StateManager.updateState(self._stateId, {
+      _selectOpen = self._selectState.open,
+      _selectValue = self._selectState.value,
+      _selectSelectedLabel = self._selectState.selectedLabel,
+    })
+  end
+end
+
+function Element:openSelect()
+  if not self._selectState then
+    return
+  end
+
+  self:_ensureSelectFrameState()
+  self._selectState.open = true
+  self.ariaExpanded = true
+  if self.selectParent then
+    self.selectParent.open = true
+  end
+  self:_syncManagedSelectFrameVisibility()
+  self:_saveSelectStateToStateManager()
+end
+
+function Element:closeSelect()
+  if not self._selectState then
+    return
+  end
+
+  self:_ensureSelectFrameState()
+  self._selectState.open = false
+  self.ariaExpanded = false
+  if self.selectParent then
+    self.selectParent.open = false
+  end
+  self:_syncManagedSelectFrameVisibility()
+  self:_saveSelectStateToStateManager()
+end
+
+function Element:toggleSelect()
+  if not self._selectState then
+    return
+  end
+
+  if self._selectState.open then
+    self:closeSelect()
+  else
+    self:openSelect()
+  end
+
+  if self.onEvent then
+    self.onEvent(self, { type = "selecttoggle", open = self._selectState.open })
+  end
+end
+
+---@return boolean
+function Element:isSelectOpen()
+  return self._selectState ~= nil and self._selectState.open == true
+end
+
+---@return any
+function Element:getSelectValue()
+  if not self._selectState then
+    return nil
+  end
+
+  return self._selectState.value
+end
+
+---@return string?
+function Element:getSelectLabel()
+  if not self._selectState then
+    return nil
+  end
+
+  local selectedOption = self._selectState.selectedOption or self._selectState.optionLookup[self._selectState.value]
+  if selectedOption and selectedOption.selectOption then
+    return selectedOption.selectOption.label or selectedOption.text
+  end
+
+  return self._selectState.selectedLabel or self._selectState.placeholder
+end
+
+---@return boolean
+function Element:isSelectedSelectOption()
+  if not self.selectOption or not self._selectParentElement or not self._selectParentElement._selectState then
+    return false
+  end
+
+  return self._selectParentElement._selectState.value == self.selectOption.value
+end
+
+---@param value any
+---@param optionElement Element?
+function Element:setSelectValue(value, optionElement)
+  if not self._selectState then
+    return
+  end
+
+  local didChange = self._selectState.value ~= value
+  self._selectState.value = value
+  if self.selectParent then
+    self.selectParent.value = value
+  end
+
+  if optionElement and optionElement.selectOption then
+    self._selectState.selectedLabel = optionElement.selectOption.label or optionElement.text
+  end
+
+  Element._syncSelectOptionStates(self)
+  self:closeSelect()
+  self:_saveSelectStateToStateManager()
+
+  if self.onEvent then
+    self.onEvent(self, { type = "selectchange", value = value, option = optionElement })
+  end
+
+  if didChange and self._selectState.onChange then
+    self._selectState.onChange(self, value, optionElement and optionElement.selectOption or nil)
+  end
+end
+
+function Element:_handleSelectRelease()
+  if self.disabled then
+    return
+  end
+
+  if self.selectOption then
+    local selectParent = self._selectParentElement or self:_findOwningSelectParent()
+    if not selectParent then
+      return
+    end
+
+    if self.selectOption.disabled then
+      selectParent:closeSelect()
+      return
+    end
+
+    selectParent:setSelectValue(self.selectOption.value, self)
+    return
+  end
+
+  if self._selectState then
+    self:toggleSelect()
+  end
+end
+
 --- Dynamically insert a child element into the hierarchy for runtime UI construction
 --- Use this to build interfaces procedurally or add elements based on application state
 ---@param child Element
 function Element:addChild(child)
+  if self._managedSelectFrame and child.selectOption and self._managedSelectOwner then
+    child._selectParentHint = self._managedSelectOwner
+  end
+
   child.parent = self
 
   -- Re-evaluate positioning now that we have a parent
@@ -2368,6 +2919,7 @@ function Element:addChild(child)
   -- and _explicitlyAbsolute was already set correctly during construction
 
   table.insert(self.children, child)
+  child:_registerWithSelectParent()
 
   -- Mark parent as having dirty children to trigger layout recalculation
   self._childrenDirty = true
@@ -2420,6 +2972,15 @@ function Element:addChild(child)
   if not Element._Context._immediateMode then
     self:layoutChildren()
   end
+
+  if
+    self._selectState
+    and self._selectState.selectFrame
+    and child.selectOption
+    and child ~= self._selectState.selectFrame
+  then
+    child:_attachSelectOptionToManagedFrame()
+  end
 end
 
 --- Remove a child element from the hierarchy to dynamically update UIs
@@ -2428,6 +2989,15 @@ end
 function Element:removeChild(child)
   for i, c in ipairs(self.children) do
     if c == child then
+      if self._selectState and self._selectState.selectFrame == child then
+        self._selectState.selectFrame = nil
+        self._selectState.expectedFrameParent = nil
+        self._selectState.frameAdopted = false
+      end
+      if self._selectState and self._selectState.selectAnchor == child then
+        self._selectState.selectAnchor = nil
+      end
+      child:_unregisterFromSelectParent()
       table.remove(self.children, i)
       child.parent = nil
 
@@ -2461,6 +3031,23 @@ end
 --- Works whether the element was originally created with or without a parent.
 ---@param newParent Element?
 function Element:setParent(newParent)
+  local expectedManagedSelectParent = nil
+  if self._managedSelectFrame and self._managedSelectOwner then
+    expectedManagedSelectParent = self._managedSelectOwner
+    if self._managedSelectOwner._selectState and self._managedSelectOwner._selectState.selectAnchor then
+      expectedManagedSelectParent = self._managedSelectOwner._selectState.selectAnchor
+    end
+  end
+
+  if self._managedSelectFrame and self._managedSelectOwner and newParent ~= expectedManagedSelectParent then
+    self._managedSelectOwner:_warnSelectFrame("ELEM_009", {
+      element = self._managedSelectOwner.id,
+      frame = self.id,
+      expectedParent = expectedManagedSelectParent and expectedManagedSelectParent.id or nil,
+      actualParent = newParent and newParent.id or nil,
+    })
+  end
+
   if self.parent == newParent then
     return -- Already at this parent, no-op
   end
@@ -2499,6 +3086,7 @@ end
 function Element:clearChildren()
   -- Clear parent references for all children
   for _, child in ipairs(self.children) do
+    child:_unregisterFromSelectParent()
     child.parent = nil
   end
 
@@ -2561,6 +3149,7 @@ function Element:destroy()
   if self.parent then
     for i, child in ipairs(self.parent.children) do
       if child == self then
+        self:_unregisterFromSelectParent()
         table.remove(self.parent.children, i)
         break
       end
@@ -2600,7 +3189,7 @@ end
 --- Draw element and its children
 function Element:draw(backdropCanvas)
   -- Early exit if element is invisible (optimization)
-  if self.opacity <= 0 then
+  if self.opacity <= 0 or self.visibility == "hidden" then
     return
   end
 
@@ -2807,6 +3396,10 @@ function Element:update(dt)
     self:_trackActiveAnimations()
   end
 
+  if self._selectState then
+    self:_ensureSelectFrameState()
+  end
+
   -- Restore scrollbar state from StateManager in immediate mode
   if self._stateId and self._elementMode == "immediate" then
     local state = Element._StateManager.getState(self._stateId)
@@ -2986,7 +3579,7 @@ function Element:update(dt)
     end
   end
 
-  if self.onEvent or self.themeComponent or self.editable then
+  if self.onEvent or self.themeComponent or self.editable or self._selectState or self.selectOption then
     -- Clickable area is the border box (x, y already includes padding)
     -- BORDER-BOX MODEL: Use stored border-box dimensions for hit detection
     local bx = self.x
@@ -4138,6 +4731,13 @@ function Element:saveState()
   if self._eventHandler then
     state.eventHandler = self._eventHandler:getState()
   end
+  if self._selectState then
+    state.select = {
+      value = self._selectState.value,
+      open = self._selectState.open,
+      selectedLabel = self._selectState.selectedLabel,
+    }
+  end
   if self._textEditor then
     state.textEditor = self._textEditor:getState()
   end
@@ -4191,6 +4791,18 @@ function Element:restoreState(state)
   -- Restore EventHandler state (if exists)
   if self._eventHandler and state.eventHandler then
     self._eventHandler:setState(state.eventHandler)
+  end
+
+  if self._selectState and state.select then
+    self._selectState.value = state.select.value
+    self._selectState.open = state.select.open or false
+    self._selectState.selectedLabel = state.select.selectedLabel
+    if self.selectParent then
+      self.selectParent.value = state.select.value
+      self.selectParent.open = state.select.open or false
+    end
+    self.ariaExpanded = self._selectState.open
+    Element._syncSelectOptionStates(self)
   end
 
   -- Restore TextEditor state (if exists)
@@ -4257,6 +4869,12 @@ function Element:_cleanup()
   self.onImageError = nil
   self.onTouchEvent = nil
   self.onGesture = nil
+  if self.selectParent then
+    self.selectParent.onChange = nil
+  end
+  if self._selectState then
+    self._selectState.onChange = nil
+  end
 end
 
 -- ====================
@@ -4277,6 +4895,10 @@ function Element:isFocusable()
 
   -- Elements with onEvent handlers are focusable (buttons, sliders, inputs, etc.)
   if self.onEvent then
+    return true
+  end
+
+  if self._selectState or self.selectOption then
     return true
   end
 

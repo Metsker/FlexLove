@@ -123,6 +123,9 @@ flexlove._accumulatedDt = 0
 ---@type table<string, Element>
 flexlove._touchOwners = {}
 
+---@type table<number, boolean>
+flexlove._mouseButtonStates = {}
+
 -- Shared GestureRecognizer instance for touch routing (initialized in init())
 ---@type GestureRecognizer|nil
 flexlove._gestureRecognizer = nil
@@ -755,6 +758,8 @@ function flexlove.endFrame()
     parent:layoutChildren()
   end
 
+  flexlove._handleSelectPointerDismissal()
+
   -- Auto-update all top-level elements created this frame
   -- This happens AFTER layout so positions are correct
   -- Use accumulated dt from FlexLove.update() calls to properly update animations and cursor blink
@@ -1005,6 +1010,42 @@ local function isAncestor(element, target)
   return false
 end
 
+---@param element Element
+---@param results Element[]
+local function collectOpenSelects(element, results)
+  if element._selectState and element._selectState.open then
+    table.insert(results, element)
+  end
+
+  for _, child in ipairs(element.children) do
+    collectOpenSelects(child, results)
+  end
+end
+
+function flexlove._handleSelectPointerDismissal()
+  local isLeftDown = love.mouse.isDown(1)
+  local wasLeftDown = flexlove._mouseButtonStates[1] or false
+
+  if isLeftDown and not wasLeftDown then
+    local mx, my = love.mouse.getPosition()
+    local target = flexlove.getElementAtPosition(mx, my)
+    local openSelects = {}
+
+    for _, element in ipairs(flexlove.topElements) do
+      collectOpenSelects(element, openSelects)
+    end
+
+    for _, selectParent in ipairs(openSelects) do
+      local containsTarget = target and (target == selectParent or isAncestor(selectParent, target))
+      if not containsTarget then
+        selectParent:closeSelect()
+      end
+    end
+  end
+
+  flexlove._mouseButtonStates[1] = isLeftDown
+end
+
 --- Determine which UI element the user is interacting with at a specific screen position
 --- Essential for custom input handling, tooltips, or debugging click targets in complex layouts
 ---@param x number
@@ -1028,8 +1069,14 @@ function flexlove.getElementAtPosition(x, y)
     local adjustedY = y + scrollOffsetY
 
     if adjustedX >= bx and adjustedX <= bx + bw and adjustedY >= by and adjustedY <= by + bh then
+      if element.visibility == "hidden" or element.opacity <= 0 then
+        return
+      end
+
       -- Collect interactive elements (those with onEvent handlers)
-      if element.onEvent and not element.disabled then
+      if
+        (element.onEvent or element.editable or element._selectState or element.selectOption) and not element.disabled
+      then
         table.insert(candidates, element)
       end
 
@@ -1123,6 +1170,7 @@ function flexlove.update(dt)
   local topElement = flexlove.getElementAtPosition(mx, my)
 
   flexlove._activeEventElement = topElement
+  flexlove._handleSelectPointerDismissal()
 
   -- In immediate mode, accumulate dt and skip updating here - elements will be updated in endFrame after layout
   if flexlove._immediateMode then
@@ -1733,6 +1781,7 @@ function flexlove.destroy()
 
   -- Clean up touch state
   flexlove._touchOwners = {}
+  flexlove._mouseButtonStates = {}
   if flexlove._gestureRecognizer then
     flexlove._gestureRecognizer:reset()
   end

@@ -248,6 +248,149 @@ function TestFlexLove:testNewImmediateMode()
   FlexLove.endFrame()
 end
 
+function TestFlexLove:testSelectTriggerReleaseTogglesOpenState()
+  local selectParent = FlexLove.new({
+    id = "display_mode_select",
+    x = 10,
+    y = 10,
+    width = 150,
+    height = 40,
+    selectParent = {
+      value = "windowed",
+    },
+  })
+
+  love.mouse.setPosition(20, 20)
+  love.mouse.setDown(1, true)
+  FlexLove.update(0.016)
+  love.mouse.setDown(1, false)
+  FlexLove.update(0.016)
+
+  luaunit.assertTrue(selectParent:isSelectOpen())
+end
+
+function TestFlexLove:testSelectOptionReleaseUpdatesValueAndCloses()
+  local changedValue = nil
+  local changedOption = nil
+  local selectParent = FlexLove.new({
+    id = "display_mode_parent",
+    x = 10,
+    y = 10,
+    width = 180,
+    height = 40,
+    selectParent = {
+      value = "windowed",
+      onChange = function(_, value, option)
+        changedValue = value
+        changedOption = option
+      end,
+    },
+  })
+
+  local option = FlexLove.new({
+    id = "display_mode_option_fullscreen",
+    parent = selectParent,
+    positioning = "absolute",
+    left = 0,
+    top = 50,
+    width = 180,
+    height = 30,
+    text = "Fullscreen",
+    selectOption = {
+      value = "exclusive",
+    },
+  })
+
+  selectParent:openSelect()
+
+  love.mouse.setPosition(option.x + 5, option.y + 5)
+  love.mouse.setDown(1, true)
+  FlexLove.update(0.016)
+  love.mouse.setDown(1, false)
+  FlexLove.update(0.016)
+
+  luaunit.assertEquals(selectParent:getSelectValue(), "exclusive")
+  luaunit.assertEquals(selectParent:getSelectLabel(), "Fullscreen")
+  luaunit.assertFalse(selectParent:isSelectOpen())
+  luaunit.assertEquals(changedValue, "exclusive")
+  luaunit.assertEquals(changedOption.value, "exclusive")
+  luaunit.assertTrue(option:isSelectedSelectOption())
+end
+
+function TestFlexLove:testManagedSelectFrameVisibilityTracksOpenState()
+  local dropdownFrame = FlexLove.new({
+    id = "managed_frame_visibility",
+    width = 180,
+    height = 90,
+  })
+
+  local selectParent = FlexLove.new({
+    id = "managed_frame_visibility_parent",
+    x = 10,
+    y = 10,
+    width = 180,
+    height = 40,
+    selectParent = {
+      value = "windowed",
+      selectFrame = dropdownFrame,
+    },
+  })
+
+  luaunit.assertEquals(dropdownFrame.visibility, "hidden")
+  luaunit.assertEquals(dropdownFrame.opacity, 1)
+  luaunit.assertTrue(dropdownFrame.disabled)
+
+  selectParent:openSelect()
+
+  luaunit.assertEquals(dropdownFrame.visibility, "visible")
+  luaunit.assertEquals(dropdownFrame.opacity, 1)
+  luaunit.assertFalse(dropdownFrame.disabled)
+
+  selectParent:closeSelect()
+
+  luaunit.assertEquals(dropdownFrame.visibility, "hidden")
+  luaunit.assertEquals(dropdownFrame.opacity, 1)
+  luaunit.assertTrue(dropdownFrame.disabled)
+end
+
+function TestFlexLove:testOutsideClickClosesOpenSelect()
+  local selectParent = FlexLove.new({
+    id = "outside_click_parent",
+    x = 10,
+    y = 10,
+    width = 180,
+    height = 40,
+    selectParent = {
+      value = "windowed",
+    },
+  })
+
+  FlexLove.new({
+    id = "outside_click_option",
+    parent = selectParent,
+    positioning = "absolute",
+    left = 0,
+    top = 50,
+    width = 180,
+    height = 30,
+    text = "Windowed",
+    selectOption = {
+      value = "windowed",
+    },
+  })
+
+  selectParent:openSelect()
+
+  love.mouse.setPosition(400, 400)
+  love.mouse.setDown(1, true)
+  FlexLove.update(0.016)
+
+  luaunit.assertFalse(selectParent:isSelectOpen())
+
+  love.mouse.setDown(1, false)
+  FlexLove.update(0.016)
+end
+
 -- Test: new() auto-begins frame if not started
 function TestFlexLove:testNewAutoBeginFrame()
   FlexLove.setMode("immediate")

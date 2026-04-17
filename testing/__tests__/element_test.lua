@@ -32,11 +32,13 @@ end
 TestElementCreation = {}
 
 function TestElementCreation:setUp()
+  FlexLove.init()
   FlexLove.beginFrame()
 end
 
 function TestElementCreation:tearDown()
   FlexLove.endFrame()
+  FlexLove.destroy()
 end
 
 function TestElementCreation:test_create_minimal_element()
@@ -107,6 +109,287 @@ function TestElementCreation:test_element_with_children()
   luaunit.assertEquals(child.parent, parent)
   luaunit.assertEquals(#parent.children, 1)
   luaunit.assertEquals(parent.children[1], child)
+end
+
+function TestElementCreation:test_select_parent_initializes_state()
+  local selectParent = FlexLove.new({
+    id = "select_parent",
+    width = 300,
+    height = 50,
+    selectParent = {
+      value = "exclusive",
+      placeholder = "Choose display mode",
+    },
+  })
+
+  luaunit.assertNotNil(selectParent._selectState)
+  luaunit.assertEquals(selectParent._selectState.value, "exclusive")
+  luaunit.assertFalse(selectParent._selectState.open)
+  luaunit.assertEquals(selectParent._selectState.placeholder, "Choose display mode")
+  luaunit.assertEquals(#selectParent._selectState.options, 0)
+  luaunit.assertEquals(type(selectParent._selectState.optionLookup), "table")
+end
+
+function TestElementCreation:test_select_option_registers_in_parent_order()
+  local selectParent = FlexLove.new({
+    id = "select_parent_registers",
+    width = 300,
+    height = 50,
+    selectParent = {
+      value = "windowed",
+    },
+  })
+
+  local firstOption = FlexLove.new({
+    id = "select_option_first",
+    parent = selectParent,
+    width = 300,
+    height = 20,
+    text = "Windowed",
+    selectOption = {
+      value = "windowed",
+    },
+  })
+
+  local wrapper = FlexLove.new({
+    id = "select_option_wrapper",
+    parent = selectParent,
+    width = 300,
+    height = 20,
+  })
+
+  local secondOption = FlexLove.new({
+    id = "select_option_second",
+    parent = wrapper,
+    width = 300,
+    height = 20,
+    text = "Fullscreen",
+    selectOption = {
+      value = "exclusive",
+    },
+  })
+
+  luaunit.assertEquals(#selectParent._selectState.options, 2)
+  luaunit.assertTrue(selectParent._selectState.options[1] == firstOption)
+  luaunit.assertTrue(selectParent._selectState.options[2] == secondOption)
+  luaunit.assertTrue(selectParent._selectState.optionLookup.windowed == firstOption)
+  luaunit.assertTrue(selectParent._selectState.optionLookup.exclusive == secondOption)
+  luaunit.assertTrue(secondOption._selectParentElement == selectParent)
+end
+
+function TestElementCreation:test_unrelated_element_does_not_gain_select_state()
+  local element = FlexLove.new({
+    id = "plain_element",
+    width = 100,
+    height = 50,
+  })
+
+  local orphanOption = FlexLove.new({
+    id = "orphan_option",
+    width = 100,
+    height = 20,
+    selectOption = {
+      value = "orphan",
+    },
+  })
+
+  luaunit.assertNil(element._selectState)
+  luaunit.assertNil(element.selectOption)
+  luaunit.assertNil(orphanOption._selectParentElement)
+end
+
+function TestElementCreation:test_select_frame_is_adopted_by_select_parent()
+  local dropdownFrame = FlexLove.new({
+    id = "select_frame_unattached",
+    width = 220,
+    height = 80,
+  })
+
+  local selectParent = FlexLove.new({
+    id = "select_parent_with_frame",
+    width = 220,
+    height = 40,
+    selectParent = {
+      value = "windowed",
+      selectFrame = dropdownFrame,
+    },
+  })
+
+  local anchor = selectParent._selectState.selectAnchor
+  luaunit.assertNotNil(anchor)
+  luaunit.assertTrue(dropdownFrame.parent == anchor)
+  luaunit.assertTrue(selectParent._selectState.selectFrame == dropdownFrame)
+  luaunit.assertTrue(dropdownFrame._managedSelectOwner == selectParent)
+  luaunit.assertTrue(selectParent._selectState.frameAdopted)
+  luaunit.assertEquals(anchor.left, 0)
+  luaunit.assertEquals(anchor.top, selectParent:getBorderBoxHeight())
+  luaunit.assertEquals(dropdownFrame.visibility, "hidden")
+  luaunit.assertEquals(dropdownFrame.opacity, 1)
+  luaunit.assertTrue(dropdownFrame.disabled)
+end
+
+function TestElementCreation:test_select_frame_preparent_warning_is_emitted()
+  local warnings = {}
+  local original_warn = FlexLove._ErrorHandler.warn
+  FlexLove._ErrorHandler.warn = function(_, module, code, details)
+    table.insert(warnings, { code = code, details = details })
+  end
+
+  local otherParent = FlexLove.new({
+    id = "foreign_parent",
+    width = 200,
+    height = 60,
+  })
+  local dropdownFrame = FlexLove.new({
+    id = "preparented_select_frame",
+    parent = otherParent,
+    width = 220,
+    height = 80,
+  })
+
+  local selectParent = FlexLove.new({
+    id = "select_parent_preparented_frame",
+    width = 220,
+    height = 40,
+    selectParent = {
+      value = "windowed",
+      selectFrame = dropdownFrame,
+    },
+  })
+
+  FlexLove._ErrorHandler.warn = original_warn
+
+  luaunit.assertTrue(dropdownFrame.parent == selectParent._selectState.selectAnchor)
+  luaunit.assertTrue(#warnings > 0)
+  luaunit.assertEquals(warnings[1].code, "ELEM_008")
+end
+
+function TestElementCreation:test_select_options_are_routed_into_managed_frame()
+  local dropdownFrame = FlexLove.new({
+    id = "managed_select_frame",
+    width = 220,
+    height = 80,
+  })
+
+  local selectParent = FlexLove.new({
+    id = "select_parent_routes_options",
+    width = 220,
+    height = 40,
+    selectParent = {
+      value = "windowed",
+      selectFrame = dropdownFrame,
+    },
+  })
+
+  local option = FlexLove.new({
+    id = "option_moves_into_frame",
+    parent = selectParent,
+    width = 220,
+    height = 30,
+    text = "Fullscreen",
+    selectOption = {
+      value = "exclusive",
+    },
+  })
+
+  luaunit.assertTrue(option.parent == dropdownFrame)
+  luaunit.assertTrue(option._selectParentElement == selectParent)
+  luaunit.assertTrue(selectParent._selectState.optionLookup.exclusive == option)
+  luaunit.assertEquals(option.positioning, "relative")
+  luaunit.assertFalse(option._explicitlyAbsolute)
+end
+
+function TestElementCreation:test_managed_select_frame_options_stack_inside_frame()
+  local dropdownFrame = FlexLove.new({
+    id = "stacked_select_frame",
+    width = 220,
+    positioning = "flex",
+    flexDirection = "vertical",
+    gap = 4,
+    padding = 4,
+  })
+
+  local selectParent = FlexLove.new({
+    id = "layout_select_btn",
+    width = 220,
+    height = 40,
+    selectParent = {
+      value = "windowed",
+      selectFrame = dropdownFrame,
+    },
+  })
+
+  local first = FlexLove.new({
+    id = "layout_option_windowed",
+    parent = selectParent,
+    width = "100%",
+    height = 30,
+    text = "Windowed",
+    selectOption = { value = "windowed" },
+  })
+
+  local second = FlexLove.new({
+    id = "layout_option_fullscreen",
+    parent = selectParent,
+    width = "100%",
+    height = 30,
+    text = "Fullscreen",
+    selectOption = { value = "exclusive" },
+  })
+
+  local third = FlexLove.new({
+    id = "layout_option_borderless",
+    parent = selectParent,
+    width = "100%",
+    height = 30,
+    text = "Borderless Fullscreen",
+    selectOption = { value = "desktop" },
+  })
+
+  selectParent:openSelect()
+  dropdownFrame:layoutChildren()
+
+  luaunit.assertTrue(second.y > first.y)
+  luaunit.assertTrue(third.y > second.y)
+  luaunit.assertTrue(dropdownFrame:getBorderBoxHeight() >= third:getBorderBoxHeight())
+end
+
+function TestElementCreation:test_managed_select_frame_reparent_warning_is_emitted()
+  local warnings = {}
+  local original_warn = FlexLove._ErrorHandler.warn
+  FlexLove._ErrorHandler.warn = function(_, module, code, details)
+    table.insert(warnings, { code = code, details = details })
+  end
+
+  local dropdownFrame = FlexLove.new({
+    id = "managed_frame_warns_on_reparent",
+    width = 220,
+    height = 80,
+  })
+
+  local selectParent = FlexLove.new({
+    id = "select_parent_reparent_warning",
+    width = 220,
+    height = 40,
+    selectParent = {
+      value = "windowed",
+      selectFrame = dropdownFrame,
+    },
+  })
+
+  local newParent = FlexLove.new({
+    id = "unexpected_new_parent",
+    width = 100,
+    height = 50,
+  })
+
+  dropdownFrame:setParent(newParent)
+  selectParent:update(0)
+
+  FlexLove._ErrorHandler.warn = original_warn
+
+  luaunit.assertTrue(#warnings > 0)
+  luaunit.assertEquals(warnings[1].code, "ELEM_009")
 end
 
 function TestElementCreation:test_element_with_padding()
@@ -3207,6 +3490,232 @@ function TestElementEdgeCases:test_max_length_negative()
     maxLength = -10,
   })
   luaunit.assertNotNil(element)
+end
+
+-- ============================================================================
+-- Select State Persistence in Immediate Mode
+-- ============================================================================
+
+TestSelectImmediateMode = {}
+
+function TestSelectImmediateMode:setUp()
+  FlexLove.init({ immediateMode = true })
+  FlexLove.setMode("immediate")
+end
+
+function TestSelectImmediateMode:tearDown()
+  FlexLove.destroy()
+end
+
+function TestSelectImmediateMode:test_select_open_state_persists_across_frames()
+  -- Frame 1: Create select and open it
+  FlexLove.beginFrame(1920, 1080)
+
+  local dropdownFrame = FlexLove.new({
+    id = "persist_select_frame",
+    width = 220,
+    height = 80,
+  })
+
+  local selectParent = FlexLove.new({
+    id = "persist_select_parent",
+    width = 220,
+    height = 40,
+    selectParent = {
+      value = "windowed",
+      selectFrame = dropdownFrame,
+    },
+  })
+
+  FlexLove.new({
+    id = "persist_option_1",
+    parent = selectParent,
+    width = 220,
+    height = 30,
+    text = "Windowed",
+    selectOption = { value = "windowed", label = "Windowed" },
+  })
+
+  FlexLove.new({
+    id = "persist_option_2",
+    parent = selectParent,
+    width = 220,
+    height = 30,
+    text = "Fullscreen",
+    selectOption = { value = "exclusive", label = "Fullscreen" },
+  })
+
+  luaunit.assertFalse(selectParent:isSelectOpen())
+  selectParent:toggleSelect()
+  luaunit.assertTrue(selectParent:isSelectOpen())
+
+  FlexLove.endFrame()
+
+  -- Frame 2: Recreate - open state should persist
+  FlexLove.beginFrame(1920, 1080)
+
+  local dropdownFrame2 = FlexLove.new({
+    id = "persist_select_frame",
+    width = 220,
+    height = 80,
+  })
+
+  local selectParent2 = FlexLove.new({
+    id = "persist_select_parent",
+    width = 220,
+    height = 40,
+    selectParent = {
+      value = "windowed",
+      selectFrame = dropdownFrame2,
+    },
+  })
+
+  FlexLove.new({
+    id = "persist_option_1",
+    parent = selectParent2,
+    width = 220,
+    height = 30,
+    text = "Windowed",
+    selectOption = { value = "windowed", label = "Windowed" },
+  })
+
+  FlexLove.new({
+    id = "persist_option_2",
+    parent = selectParent2,
+    width = 220,
+    height = 30,
+    text = "Fullscreen",
+    selectOption = { value = "exclusive", label = "Fullscreen" },
+  })
+
+  luaunit.assertTrue(selectParent2:isSelectOpen())
+  luaunit.assertEquals(dropdownFrame2.visibility, "visible")
+  luaunit.assertEquals(dropdownFrame2.opacity, 1)
+
+  FlexLove.endFrame()
+end
+
+function TestSelectImmediateMode:test_select_value_persists_across_frames()
+  -- Frame 1: Create select and change value
+  FlexLove.beginFrame(1920, 1080)
+
+  local dropdownFrame = FlexLove.new({
+    id = "value_persist_frame",
+    width = 220,
+    height = 80,
+  })
+
+  local selectParent = FlexLove.new({
+    id = "value_persist_parent",
+    width = 220,
+    height = 40,
+    selectParent = {
+      value = "windowed",
+      selectFrame = dropdownFrame,
+    },
+  })
+
+  local option2 = FlexLove.new({
+    id = "value_persist_option",
+    parent = selectParent,
+    width = 220,
+    height = 30,
+    text = "Fullscreen",
+    selectOption = { value = "exclusive", label = "Fullscreen" },
+  })
+
+  selectParent:setSelectValue("exclusive", option2)
+  luaunit.assertEquals(selectParent:getSelectValue(), "exclusive")
+
+  FlexLove.endFrame()
+
+  -- Frame 2: Recreate - value should persist
+  FlexLove.beginFrame(1920, 1080)
+
+  local dropdownFrame2 = FlexLove.new({
+    id = "value_persist_frame",
+    width = 220,
+    height = 80,
+  })
+
+  local selectParent2 = FlexLove.new({
+    id = "value_persist_parent",
+    width = 220,
+    height = 40,
+    selectParent = {
+      value = "windowed",
+      selectFrame = dropdownFrame2,
+    },
+  })
+
+  luaunit.assertEquals(selectParent2:getSelectValue(), "exclusive")
+
+  FlexLove.endFrame()
+end
+
+function TestSelectImmediateMode:test_select_frame_layout_in_immediate_mode()
+  FlexLove.beginFrame(1920, 1080)
+
+  local row = FlexLove.new({
+    id = "select_row",
+    width = 800,
+    height = 40,
+    positioning = "flex",
+    flexDirection = "horizontal",
+    justifyContent = "space-between",
+    alignItems = "center",
+  })
+
+  local dropdownFrame = FlexLove.new({
+    id = "layout_select_frame",
+    width = "100%",
+    flexDirection = "vertical",
+    gap = 2,
+    padding = 4,
+  })
+
+  local selectBtn = FlexLove.new({
+    id = "layout_select_btn",
+    parent = row,
+    width = "30%",
+    height = 40,
+    selectParent = {
+      value = "windowed",
+      selectFrame = dropdownFrame,
+    },
+  })
+
+  FlexLove.new({
+    id = "layout_option_1",
+    parent = selectBtn,
+    width = "100%",
+    height = 40,
+    text = "Windowed",
+    selectOption = { value = "windowed", label = "Windowed" },
+  })
+
+  FlexLove.new({
+    id = "layout_option_2",
+    parent = selectBtn,
+    width = "100%",
+    height = 40,
+    text = "Fullscreen",
+    selectOption = { value = "exclusive", label = "Fullscreen" },
+  })
+
+  FlexLove.endFrame()
+
+  local anchor = selectBtn._selectState.selectAnchor
+
+  luaunit.assertNotNil(anchor)
+  luaunit.assertTrue(anchor.parent == selectBtn)
+  luaunit.assertTrue(dropdownFrame.parent == anchor)
+  luaunit.assertEquals(anchor.positioning, "absolute")
+  luaunit.assertEquals(anchor.top, selectBtn:getBorderBoxHeight())
+  luaunit.assertEquals(anchor.left, 0)
+  luaunit.assertEquals(dropdownFrame.positioning, "relative")
+  -- Options should be in the frame
+  luaunit.assertEquals(#dropdownFrame.children, 2)
 end
 
 -- Run tests

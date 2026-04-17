@@ -250,6 +250,23 @@ function Context.setFocused(element)
   Context._settingFocus = false
 end
 
+--- Recursively search for an element by id in an element tree
+---@param root Element The root element to start searching from
+---@param targetId string The id to search for
+---@return Element|nil The element with the matching id, or nil if not found
+local function findElementById(root, targetId)
+  if root.id == targetId then
+    return root
+  end
+  for _, child in ipairs(root.children or {}) do
+    local found = findElementById(child, targetId)
+    if found then
+      return found
+    end
+  end
+  return nil
+end
+
 --- Rehydrate _focusedElement from _focusedElementId by scanning live elements.
 --- Called at the start of getFocused() in immediate mode so stale references
 --- are always replaced with the current-frame object before use.
@@ -259,10 +276,20 @@ function Context._rehydrateFocus()
     return
   end
 
-  -- Search the live z-index ordered elements for a matching id
+  -- First, try a fast linear search through all registered elements
   for _, elem in ipairs(Context._zIndexOrderedElements) do
     if elem.id == Context._focusedElementId then
       Context._focusedElement = elem
+      return
+    end
+  end
+
+  -- If not found, recursively search from top-level elements
+  -- This handles cases where elements may not be in _zIndexOrderedElements
+  for _, topLevel in ipairs(Context.topElements or {}) do
+    local found = findElementById(topLevel, Context._focusedElementId)
+    if found then
+      Context._focusedElement = found
       return
     end
   end

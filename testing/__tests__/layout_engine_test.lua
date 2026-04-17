@@ -694,15 +694,28 @@ function TestLayoutEdgeCases:setUp()
   FlexLove.beginFrame()
   -- Capture warnings
   self.warnings = {}
-  self.originalWarn = ErrorHandler.warn
-  ErrorHandler.warn = function(module, message)
-    table.insert(self.warnings, { module = module, message = message })
+  self.errorHandler = FlexLove._ErrorHandler or ErrorHandler.getInstance()
+  self.originalWarn = rawget(self.errorHandler, "warn")
+  self.errorHandler.warn = function(_, module, code, details)
+    local message = tostring(code)
+    if type(details) == "table" and type(details.issue) == "string" then
+      message = details.issue
+    end
+
+    table.insert(self.warnings, {
+      module = module,
+      code = code,
+      details = details,
+      message = message,
+    })
   end
 end
 
 function TestLayoutEdgeCases:tearDown()
   -- Restore original warn function
-  ErrorHandler.warn = self.originalWarn
+  if self.errorHandler then
+    self.errorHandler.warn = self.originalWarn
+  end
   FlexLove.endFrame()
 end
 

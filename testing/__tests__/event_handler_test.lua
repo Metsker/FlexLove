@@ -25,6 +25,7 @@ local MockContext = {
   getContext = function()
     return {}
   end,
+  setFocused = function() end,
 }
 
 -- Helper to create EventHandler with dependencies
@@ -310,6 +311,31 @@ function TestEventHandler:test_processMouseEvents_release_and_click()
   luaunit.assertTrue(hasPress, "Should have press event")
   luaunit.assertTrue(hasClick, "Should have click event")
   luaunit.assertTrue(hasRelease, "Should have release event")
+
+  love.mouse.isDown = originalIsDown
+end
+
+function TestEventHandler:test_processMouseEvents_release_invokes_select_hook()
+  local handler = createEventHandler()
+  local element = createMockElement()
+  local selectReleaseCalls = 0
+
+  element._handleSelectRelease = function()
+    selectReleaseCalls = selectReleaseCalls + 1
+  end
+  element._selectState = { open = false }
+
+  local isButtonDown = true
+  local originalIsDown = love.mouse.isDown
+  love.mouse.isDown = function(button)
+    return button == 1 and isButtonDown
+  end
+
+  handler:processMouseEvents(element, 50, 50, true, true)
+  isButtonDown = false
+  handler:processMouseEvents(element, 50, 50, true, true)
+
+  luaunit.assertEquals(selectReleaseCalls, 1)
 
   love.mouse.isDown = originalIsDown
 end

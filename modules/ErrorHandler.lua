@@ -501,6 +501,24 @@ local ErrorCodes = {
       description = "Incompatible element configuration",
       suggestion = "passwordMode and multiline cannot be used together. Multiline will be disabled.",
     },
+    ELEM_007 = {
+      code = "FLEXLOVE_ELEM_007",
+      category = "VAL",
+      description = "Invalid select frame configuration",
+      suggestion = "Pass a fully instantiated Element as selectParent.selectFrame. Create it unattached so the owning select can adopt it safely.",
+    },
+    ELEM_008 = {
+      code = "FLEXLOVE_ELEM_008",
+      category = "VAL",
+      description = "Select frame was already parented before adoption",
+      suggestion = "Create the selectFrame without a parent, or explicitly accept that the select will reparent it during adoption.",
+    },
+    ELEM_009 = {
+      code = "FLEXLOVE_ELEM_009",
+      category = "VAL",
+      description = "Managed select frame was reparented unexpectedly",
+      suggestion = "Avoid moving a managed selectFrame outside its owning select after adoption. Let the select own the frame lifecycle.",
+    },
 
     -- Module Loader Warnings (MOD_001 - MOD_099)
     MOD_001 = {
