@@ -2508,12 +2508,14 @@ end
 ---@param frame Element
 function Element:_applyManagedSelectFrameLayout(frame)
   local anchor = self:_getOrCreateManagedSelectAnchor()
+  local triggerBorderBoxWidth = self:getBorderBoxWidth()
   anchor.left = 0
   anchor.top = self:getBorderBoxHeight()
-  anchor.width = self:getBorderBoxWidth()
+  anchor.width = triggerBorderBoxWidth
   anchor.units.left = { value = 0, unit = "px" }
   anchor.units.top = { value = self:getBorderBoxHeight(), unit = "px" }
-  anchor.units.width = { value = self:getBorderBoxWidth(), unit = "px" }
+  anchor.units.width = { value = triggerBorderBoxWidth, unit = "px" }
+  frame._managedSelectMinimumBorderBoxWidth = triggerBorderBoxWidth
 
   frame.positioning = frame.positioning or Element._utils.enums.Positioning.RELATIVE
   frame._explicitlyAbsolute = false
@@ -2524,6 +2526,17 @@ function Element:_applyManagedSelectFrameLayout(frame)
 
   if frame.parent ~= anchor then
     frame:setParent(anchor)
+  end
+
+  if frame.autosizing and frame.autosizing.width then
+    local contentWidth = frame:calculateAutoWidth()
+    frame._borderBoxWidth = contentWidth + frame.padding.left + frame.padding.right
+    frame.width = contentWidth
+  end
+
+  if frame.parent == anchor then
+    anchor.width = math.max(triggerBorderBoxWidth, frame:getBorderBoxWidth())
+    anchor.units.width = { value = anchor.width, unit = "px" }
   end
 
   self._selectState.expectedFrameParent = anchor
@@ -2593,12 +2606,23 @@ function Element:_ensureSelectFrameState()
   local frame = self._selectState.selectFrame
   local anchor = self._selectState.selectAnchor
   if anchor then
+    local triggerBorderBoxWidth = self:getBorderBoxWidth()
     anchor.left = 0
     anchor.top = self:getBorderBoxHeight()
-    anchor.width = self:getBorderBoxWidth()
+    anchor.width = triggerBorderBoxWidth
     anchor.units.left = { value = 0, unit = "px" }
     anchor.units.top = { value = self:getBorderBoxHeight(), unit = "px" }
-    anchor.units.width = { value = self:getBorderBoxWidth(), unit = "px" }
+    anchor.units.width = { value = triggerBorderBoxWidth, unit = "px" }
+    frame._managedSelectMinimumBorderBoxWidth = triggerBorderBoxWidth
+    if frame.autosizing and frame.autosizing.width then
+      local contentWidth = frame:calculateAutoWidth()
+      frame._borderBoxWidth = contentWidth + frame.padding.left + frame.padding.right
+      frame.width = contentWidth
+    end
+    if frame.parent == anchor then
+      anchor.width = math.max(triggerBorderBoxWidth, frame:getBorderBoxWidth())
+      anchor.units.width = { value = anchor.width, unit = "px" }
+    end
     if frame.parent == anchor then
       anchor:layoutChildren()
     end
@@ -2711,10 +2735,7 @@ function Element:_attachSelectOptionToManagedFrame()
 
     self:setParent(selectFrame)
     if not Element._Context._immediateMode then
-      selectFrame:layoutChildren()
-      if selectParent._selectState.selectAnchor then
-        selectParent._selectState.selectAnchor:layoutChildren()
-      end
+      selectParent:_ensureSelectFrameState()
     end
   end
 end

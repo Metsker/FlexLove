@@ -354,6 +354,68 @@ function TestElementCreation:test_managed_select_frame_options_stack_inside_fram
   luaunit.assertTrue(dropdownFrame:getBorderBoxHeight() >= third:getBorderBoxHeight())
 end
 
+function TestElementCreation:test_managed_select_frame_expands_for_wide_option_content()
+  local row = FlexLove.new({
+    id = "expanding_select_row",
+    width = 640,
+    height = 48,
+    positioning = "flex",
+    flexDirection = "horizontal",
+  })
+
+  local dropdownFrame = FlexLove.new({
+    id = "expanding_select_frame",
+    positioning = "flex",
+    flexDirection = "vertical",
+    gap = 2,
+    padding = 12,
+  })
+
+  local selectParent = FlexLove.new({
+    id = "expanding_select_parent",
+    parent = row,
+    width = 180,
+    height = 40,
+    textSize = 18,
+    selectParent = {
+      value = "windowed",
+      selectFrame = dropdownFrame,
+    },
+  })
+
+  FlexLove.new({
+    id = "expanding_select_option_short",
+    parent = selectParent,
+    width = "100%",
+    height = 40,
+    text = "Windowed",
+    textSize = 18,
+    selectOption = { value = "windowed", label = "Windowed" },
+  })
+
+  local longLabel = "Borderless Fullscreen Recommended for Most Displays"
+  local longOption = FlexLove.new({
+    id = "expanding_select_option_long",
+    parent = selectParent,
+    width = "100%",
+    height = 40,
+    text = longLabel,
+    textSize = 18,
+    selectOption = { value = "desktop", label = longLabel },
+  })
+
+  dropdownFrame:layoutChildren()
+
+  local triggerWidth = selectParent:getBorderBoxWidth()
+  local longIntrinsicBorderBoxWidth = longOption:calculateAutoWidth()
+    + longOption.padding.left
+    + longOption.padding.right
+
+  luaunit.assertTrue(longIntrinsicBorderBoxWidth > triggerWidth)
+  luaunit.assertTrue(longOption:getBorderBoxWidth() >= longIntrinsicBorderBoxWidth)
+  luaunit.assertTrue(dropdownFrame.width >= longIntrinsicBorderBoxWidth)
+end
+
 function TestElementCreation:test_managed_select_frame_reparent_warning_is_emitted()
   local warnings = {}
   local original_warn = FlexLove._ErrorHandler.warn
