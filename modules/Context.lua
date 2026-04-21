@@ -93,14 +93,20 @@ function Context.sortElementsByZIndex()
   -- We need to consider parent-child relationships and z-index
   table.sort(Context._zIndexOrderedElements, function(a, b)
     -- Calculate effective z-index considering parent hierarchy
+    -- The top-level (root) element's z-index is the most significant digit,
+    -- ensuring that entire trees stack above/below other trees correctly.
+    -- Depth ensures children are always sorted above their ancestors,
+    -- and an element's own z provides sibling ordering.
     local function getEffectiveZIndex(elem)
-      local z = elem.z or 0
-      local parent = elem.parent
-      while parent do
-        z = z + (parent.z or 0) * 1000 -- Parent z-index has much higher weight
-        parent = parent.parent
+      local rootZ = elem.z or 0
+      local current = elem.parent
+      while current do
+        rootZ = current.z or 0
+        current = current.parent
       end
-      return z
+      local depth = getElementDepth(elem)
+      local ownZ = elem.z or 0
+      return rootZ * 10000000000 + depth * 1000 + ownZ
     end
 
     local za = getEffectiveZIndex(a)
