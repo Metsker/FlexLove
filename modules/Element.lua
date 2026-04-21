@@ -257,7 +257,7 @@ function Element.new(props)
     self._themeManager = Element._Theme.Manager.new({
       theme = props.theme or Element._Context.defaultTheme,
       themeComponent = props.themeComponent or nil,
-      disabled = props.disabled or false,
+      disabled = props.isDisabled or props.disabled or false,
       active = props.active or false,
       disableHighlight = props.disableHighlight,
       themeStateLock = props.themeStateLock or false,
@@ -270,7 +270,7 @@ function Element.new(props)
     self._themeManager = {
       theme = nil,
       themeComponent = props.themeComponent or nil,
-      disabled = props.disabled or false,
+      disabled = props.isDisabled or props.disabled or false,
       active = props.active or false,
       scaleCorners = props.scaleCorners,
       scalingAlgorithm = props.scalingAlgorithm,
@@ -2808,6 +2808,10 @@ function Element:toggleSelect()
     return
   end
 
+  if self.disabled then
+    return
+  end
+
   if self._selectState.open then
     self:closeSelect()
   else
@@ -2860,6 +2864,10 @@ end
 ---@param optionElement Element?
 function Element:setSelectValue(value, optionElement)
   if not self._selectState then
+    return
+  end
+
+  if self.disabled then
     return
   end
 

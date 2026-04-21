@@ -173,8 +173,8 @@ function EventHandler:processMouseEvents(element, mx, my, isHovering, isActiveEl
     end
 
     -- Track hover state changes even when events can't be processed
-    -- Fire unhover event if we were hovering and now we're not
-    if self._hovered and not isHovering then
+    -- Fire unhover event if we were hovering and now we're not (but not if disabled)
+    if self._hovered and not isHovering and not element.disabled then
       self._hovered = false
       -- Fire unhover event if handler exists
       if self.onEvent then
@@ -189,6 +189,9 @@ function EventHandler:processMouseEvents(element, mx, my, isHovering, isActiveEl
         })
         self:_invokeCallback(element, unhoverEvent)
       end
+    elseif self._hovered and not isHovering then
+      -- Just clear hovered state without firing event when disabled
+      self._hovered = false
     end
 
     if EventHandler._Performance and EventHandler._Performance.enabled then

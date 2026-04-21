@@ -1931,6 +1931,19 @@ function TestElementState:test_element_with_disabled()
   luaunit.assertTrue(element.disabled)
 end
 
+function TestElementState:test_element_with_isDisabled()
+  local element = FlexLove.new({
+    id = "test",
+    x = 0,
+    y = 0,
+    width = 100,
+    height = 100,
+    isDisabled = true,
+  })
+
+  luaunit.assertTrue(element.disabled)
+end
+
 function TestElementState:test_element_with_active()
   local element = FlexLove.new({
     id = "test",
@@ -3778,6 +3791,61 @@ function TestSelectImmediateMode:test_select_frame_layout_in_immediate_mode()
   luaunit.assertEquals(dropdownFrame.positioning, "relative")
   -- Options should be in the frame
   luaunit.assertEquals(#dropdownFrame.children, 2)
+end
+
+TestSelectDisabled = {}
+
+function TestSelectDisabled:setUp()
+  FlexLove.setMode("immediate")
+  FlexLove.beginFrame(1920, 1080)
+end
+
+function TestSelectDisabled:tearDown()
+  FlexLove.endFrame()
+end
+
+function TestSelectDisabled:test_disabled_select_does_not_fire_toggle_event()
+  local eventsReceived = {}
+
+  local selectParent = FlexLove.new({
+    id = "disabled_select",
+    width = 220,
+    height = 40,
+    disabled = true,
+    selectParent = {
+      value = "windowed",
+    },
+    onEvent = function(el, event)
+      table.insert(eventsReceived, event)
+    end,
+  })
+
+  selectParent:toggleSelect()
+
+  luaunit.assertEquals(#eventsReceived, 0)
+  luaunit.assertFalse(selectParent:isSelectOpen())
+end
+
+function TestSelectDisabled:test_disabled_select_does_not_fire_change_event()
+  local eventsReceived = {}
+
+  local selectParent = FlexLove.new({
+    id = "disabled_select_change",
+    width = 220,
+    height = 40,
+    disabled = true,
+    selectParent = {
+      value = "windowed",
+    },
+    onEvent = function(el, event)
+      table.insert(eventsReceived, event)
+    end,
+  })
+
+  selectParent:setSelectValue("exclusive")
+
+  luaunit.assertEquals(#eventsReceived, 0)
+  luaunit.assertEquals(selectParent:getSelectValue(), "windowed")
 end
 
 -- Run tests

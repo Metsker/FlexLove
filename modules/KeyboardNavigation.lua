@@ -665,6 +665,10 @@ function KeyboardNavigation:activateElement()
     return false
   end
 
+  if focused.disabled then
+    return false
+  end
+
   -- Fire press and release events
   if focused.onEvent then
     local modifiers = KeyboardNavigation._utils.getModifiers()

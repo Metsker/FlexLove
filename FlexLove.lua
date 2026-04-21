@@ -1277,7 +1277,7 @@ end
 ---@param text string
 function flexlove.textinput(text)
   local focusedElement = Context.getFocused()
-  if focusedElement then
+  if focusedElement and not focusedElement.disabled then
     focusedElement:textinput(text)
   end
 end
@@ -1331,7 +1331,7 @@ function flexlove.keypressed(key, scancode, isrepeat)
 
   -- Forward to focused element for text input
   local focusedElement = Context.getFocused()
-  if focusedElement then
+  if focusedElement and not focusedElement.disabled then
     focusedElement:keypressed(key, scancode, isrepeat)
   end
 end
