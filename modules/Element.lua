@@ -261,6 +261,7 @@ function Element.new(props)
       active = props.active or false,
       disableHighlight = props.disableHighlight,
       themeStateLock = props.themeStateLock or false,
+      themeComponentDisabledStates = props.themeComponentDisabledStates,
       scaleCorners = props.scaleCorners,
       scalingAlgorithm = props.scalingAlgorithm,
     })
@@ -272,6 +273,7 @@ function Element.new(props)
       themeComponent = props.themeComponent or nil,
       disabled = props.isDisabled or props.disabled or false,
       active = props.active or false,
+      themeComponentDisabledStates = {},
       scaleCorners = props.scaleCorners,
       scalingAlgorithm = props.scalingAlgorithm,
       validateThemeStateLock = function() end,

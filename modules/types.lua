@@ -148,6 +148,7 @@ local Transform = {}
 ---@field active boolean? -- Whether the element is active/focused (for inputs, default: false)
 ---@field disableHighlight boolean? -- Whether to disable the pressed state highlight overlay (default: false, or true when using themeComponent)
 ---@field themeStateLock boolean|string? -- Lock theme state: true/"default" = lock to base state, false = normal behavior, string = specific state ("hover", "pressed", "active", "disabled") (default: false)
+---@field themeComponentDisabledStates string[]? -- List of theme states to suppress visually (e.g. {"hover", "pressed"}). Interaction logic still fires.
 ---@field contentAutoSizingMultiplier {width:number?, height:number?}? -- Multiplier for auto-sized content dimensions (default: sourced from theme or {1, 1})
 ---@field scaleCorners number? -- Scale multiplier for 9-patch corners/edges. E.g., 2 = 2x size (overrides theme setting)
 ---@field scalingAlgorithm "nearest"|"bilinear"? -- Scaling algorithm for 9-patch corners: "nearest" (sharp/pixelated) or "bilinear" (smooth) (overrides theme setting)
@@ -419,6 +420,7 @@ local ColorModule = {}
 ---@field active boolean? -- Force active theme state
 ---@field disableHighlight boolean? -- Disable pressed highlight overlay
 ---@field themeStateLock boolean|string? -- Lock the theme state to base/default or a named state
+---@field themeComponentDisabledStates string[]? -- List of theme states to suppress visually
 ---@field scaleCorners number? -- Scale multiplier for 9-patch corners and edges
 ---@field scalingAlgorithm "nearest"|"bilinear"? -- Scaling algorithm for non-stretched theme regions
 local ThemeManagerConfig = {}
@@ -468,6 +470,7 @@ local ThemeDefinition = {}
 ---@field active boolean
 ---@field disableHighlight boolean?
 ---@field themeStateLock boolean|string?
+---@field themeComponentDisabledStates table<string, boolean>
 ---@field scaleCorners number?
 ---@field scalingAlgorithm "nearest"|"bilinear"?
 ---@field updateState fun(self:ThemeManager, isHovered:boolean, isPressed:boolean, isFocused:boolean, isDisabled:boolean): string

@@ -2763,7 +2763,7 @@ function TestElementTheme:test_children_shift_uses_corner_scaling_not_full_stret
   luaunit.assertTrue(math.abs(offsetY - 2) < 0.001)
 end
 
-function TestElementTheme:test_hover_state_uses_normal_content_padding()
+function TestElementTheme:test_hover_state_uses_hover_content_padding()
   local atlas = love.graphics.newImage(love.image.newImageData(100, 100))
   local previousTheme = FlexLove.Theme.getActive()
   local preloadKey = "modules.themes.hover_padding_stability_test"
@@ -2810,9 +2810,6 @@ function TestElementTheme:test_hover_state_uses_normal_content_padding()
     parent._renderer:setThemeState("hover")
   end
 
-  local borderBoxWidth = parent._borderBoxWidth or (parent.width + parent.padding.left + parent.padding.right)
-  local borderBoxHeight = parent._borderBoxHeight or (parent.height + parent.padding.top + parent.padding.bottom)
-  local normalPadding = parent._themeManager:getScaledContentPaddingForState("normal", borderBoxWidth, borderBoxHeight)
   local hoverPadding = parent:getScaledContentPadding()
   local offsetX, offsetY = parent:getContentStateOffset()
 
@@ -2822,12 +2819,128 @@ function TestElementTheme:test_hover_state_uses_normal_content_padding()
   end
 
   luaunit.assertNotNil(hoverPadding)
-  luaunit.assertEquals(hoverPadding.left, normalPadding.left)
-  luaunit.assertEquals(hoverPadding.top, normalPadding.top)
-  luaunit.assertEquals(hoverPadding.right, normalPadding.right)
-  luaunit.assertEquals(hoverPadding.bottom, normalPadding.bottom)
-  luaunit.assertTrue(math.abs(offsetX) < 0.001)
-  luaunit.assertTrue(math.abs(offsetY) < 0.001)
+  luaunit.assertEquals(hoverPadding.left, 16)
+  luaunit.assertEquals(hoverPadding.top, 9.6)
+  luaunit.assertEquals(hoverPadding.right, 4)
+  luaunit.assertEquals(hoverPadding.bottom, 2.4)
+  luaunit.assertTrue(math.abs(offsetX - 6) < 0.001)
+  luaunit.assertTrue(math.abs(offsetY - 3.6) < 0.001)
+end
+
+function TestElementTheme:test_themeComponentDisabledStates_suppresses_hover()
+  local element = FlexLove.new({
+    id = "disabled_hover",
+    x = 0,
+    y = 0,
+    width = 100,
+    height = 50,
+    themeComponent = "button",
+    themeComponentDisabledStates = { "hover" },
+  })
+
+  local state = element._themeManager:updateState(true, false, false, false)
+  luaunit.assertEquals(state, "normal", "hover should be suppressed")
+end
+
+function TestElementTheme:test_themeComponentDisabledStates_suppresses_pressed()
+  local element = FlexLove.new({
+    id = "disabled_pressed",
+    x = 0,
+    y = 0,
+    width = 100,
+    height = 50,
+    themeComponent = "button",
+    themeComponentDisabledStates = { "pressed" },
+  })
+
+  local state = element._themeManager:updateState(true, true, false, false)
+  luaunit.assertEquals(state, "hover", "pressed should fall through to hover")
+end
+
+function TestElementTheme:test_themeComponentDisabledStates_suppresses_pressed_and_hover()
+  local element = FlexLove.new({
+    id = "disabled_pressed_hover",
+    x = 0,
+    y = 0,
+    width = 100,
+    height = 50,
+    themeComponent = "button",
+    themeComponentDisabledStates = { "pressed", "hover" },
+  })
+
+  local state = element._themeManager:updateState(true, true, false, false)
+  luaunit.assertEquals(state, "normal", "both pressed and hover suppressed")
+end
+
+function TestElementTheme:test_themeComponentDisabledStates_suppresses_active()
+  local element = FlexLove.new({
+    id = "disabled_active",
+    x = 0,
+    y = 0,
+    width = 100,
+    height = 50,
+    themeComponent = "button",
+    active = true,
+    themeComponentDisabledStates = { "active" },
+  })
+
+  local state = element._themeManager:updateState(false, false, false, false)
+  luaunit.assertEquals(state, "normal", "active should fall through to normal")
+end
+
+function TestElementTheme:test_themeComponentDisabledStates_suppresses_disabled()
+  local element = FlexLove.new({
+    id = "disabled_disabled",
+    x = 0,
+    y = 0,
+    width = 100,
+    height = 50,
+    themeComponent = "button",
+    disabled = true,
+    themeComponentDisabledStates = { "disabled" },
+  })
+
+  local state = element._themeManager:updateState(false, false, false, true)
+  luaunit.assertEquals(state, "normal", "disabled visual state should be suppressed")
+end
+
+function TestElementTheme:test_themeComponentDisabledStates_falls_through_priority_chain()
+  local element = FlexLove.new({
+    id = "disabled_chain",
+    x = 0,
+    y = 0,
+    width = 100,
+    height = 50,
+    themeComponent = "button",
+    active = true,
+    themeComponentDisabledStates = { "active", "hover" },
+  })
+
+  -- active suppressed, not hovered → normal
+  local state = element._themeManager:updateState(false, false, false, false)
+  luaunit.assertEquals(state, "normal")
+
+  -- active suppressed, hovered → pressed would not apply, hover suppressed → normal
+  element._themeManager.active = false
+  state = element._themeManager:updateState(true, true, false, false)
+  luaunit.assertEquals(state, "pressed", "pressed should show when hover is suppressed but pressed applies")
+end
+
+function TestElementTheme:test_themeComponentDisabledStates_with_themeStateLock()
+  local element = FlexLove.new({
+    id = "disabled_lock",
+    x = 0,
+    y = 0,
+    width = 100,
+    height = 50,
+    themeComponentDisabledStates = { "pressed" },
+  })
+
+  -- Set lock directly on ThemeManager to bypass validation (no theme component with states)
+  element._themeManager.themeStateLock = "pressed"
+
+  local state = element._themeManager:updateState(true, true, false, false)
+  luaunit.assertEquals(state, "pressed", "themeStateLock should override themeComponentDisabledStates")
 end
 
 -- ============================================================================

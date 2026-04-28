@@ -843,7 +843,7 @@ local ThemeManager = {}
 ThemeManager.__index = ThemeManager
 
 ---Create a new ThemeManager instance
----@param config table Configuration options {theme: string?, themeComponent: string?, disabled: boolean?, active: boolean?, disableHighlight: boolean?, themeStateLock: boolean|string?, scaleCorners: number?, scalingAlgorithm: string?}
+---@param config table Configuration options {theme: string?, themeComponent: string?, disabled: boolean?, active: boolean?, disableHighlight: boolean?, themeStateLock: boolean|string?, themeComponentDisabledStates: string[]?, scaleCorners: number?, scalingAlgorithm: string?}
 ---@return ThemeManager manager The new ThemeManager instance
 function ThemeManager.new(config)
   local self = setmetatable({}, ThemeManager)
@@ -856,6 +856,16 @@ function ThemeManager.new(config)
   self.themeStateLock = config.themeStateLock or false
   self.scaleCorners = config.scaleCorners
   self.scalingAlgorithm = config.scalingAlgorithm
+
+  -- Normalize themeComponentDisabledStates to a lookup set for O(1) checks
+  self.themeComponentDisabledStates = {}
+  if config.themeComponentDisabledStates then
+    for _, state in ipairs(config.themeComponentDisabledStates) do
+      if type(state) == "string" then
+        self.themeComponentDisabledStates[state] = true
+      end
+    end
+  end
 
   -- Set initial state based on themeStateLock
   if self.themeStateLock == true or self.themeStateLock == "default" then
@@ -903,16 +913,20 @@ function ThemeManager:updateState(isHovered, isPressed, isFocused, isDisabled)
   -- Normal behavior: calculate state based on interaction
   -- Keyboard focus reuses the hover state so themes only need one visual variant.
   -- Priority: disabled > active > pressed > hover/focus > normal
-  local newState = "normal"
+  -- If a state is in themeComponentDisabledStates, fall through to the next lower-priority state.
+  local candidates = {
+    { state = "disabled", condition = isDisabled or self.disabled },
+    { state = "active", condition = self.active },
+    { state = "pressed", condition = isPressed },
+    { state = "hover", condition = isHovered or isFocused },
+  }
 
-  if isDisabled or self.disabled then
-    newState = "disabled"
-  elseif self.active then
-    newState = "active"
-  elseif isPressed then
-    newState = "pressed"
-  elseif isHovered or isFocused then
-    newState = "hover"
+  local newState = "normal"
+  for _, candidate in ipairs(candidates) do
+    if candidate.condition and not self.themeComponentDisabledStates[candidate.state] then
+      newState = candidate.state
+      break
+    end
   end
 
   self._themeState = newState
@@ -1150,9 +1164,6 @@ end
 ---@return table? padding Table with {left, top, right, bottom}, or nil if no contentPadding
 function ThemeManager:getScaledContentPadding(borderBoxWidth, borderBoxHeight)
   local state = self._themeState or "normal"
-  if state ~= "pressed" then
-    state = "normal"
-  end
   return self:getScaledContentPaddingForState(state, borderBoxWidth, borderBoxHeight)
 end
 
