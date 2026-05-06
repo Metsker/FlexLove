@@ -137,6 +137,7 @@ function Element.new(props)
   end
 
   self.children = {}
+  self._deferredMethods = {}
   self.onEvent = props.onEvent
 
   -- Track whether ID was auto-generated (before ID assignment)
@@ -2262,12 +2263,18 @@ end
 
 --- Scroll content by a relative amount for smooth scrolling animations or gesture-based scrolling
 --- Use this to implement custom scroll controls or smooth scroll transitions
+--- In immediate mode, defers until layout has calculated scroll bounds.
 ---@param dx number? -- X delta (nil for no change)
 ---@param dy number? -- Y delta (nil for no change)
 function Element:scrollBy(dx, dy)
   if self._scrollManager then
-    self._scrollManager:scrollBy(dx, dy)
-    self:_syncScrollManagerState()
+    local maxScrollX, maxScrollY = self._scrollManager:getMaxScroll()
+    if (dx ~= nil and maxScrollX == 0) or (dy ~= nil and maxScrollY == 0) then
+      self:_deferMethod("scrollBy", dx, dy)
+    else
+      self._scrollManager:scrollBy(dx, dy)
+      self:_syncScrollManagerState()
+    end
   end
 end
 
@@ -2277,11 +2284,31 @@ function Element:scrollToTop()
   self:setScrollPosition(nil, 0)
 end
 
+--- Mark a method for deferred retry during the update phase.
+--- Methods that depend on layout calculations (e.g., scroll, sizing)
+--- can defer themselves when preconditions aren't met. They'll be
+--- retried automatically each frame in update() until they succeed.
+---@param methodName string The method name to retry
+---@param ... any? Arguments to forward on retry
+function Element:_deferMethod(methodName, ...)
+  local args = { ... }
+  local argc = select("#", ...)
+  table.insert(self._deferredMethods, function()
+    self[methodName](self, unpack(args, 1, argc))
+  end)
+end
+
 --- Scroll to bottom
+--- In immediate mode, scroll position is saved after the update phase,
+--- so we defer the scroll if layout hasn't happened yet.
 function Element:scrollToBottom()
   if self._scrollManager then
     local _, maxScrollY = self._scrollManager:getMaxScroll()
-    self:setScrollPosition(nil, maxScrollY)
+    if maxScrollY > 0 then
+      self:setScrollPosition(nil, maxScrollY)
+    else
+      self:_deferMethod("scrollToBottom")
+    end
   end
 end
 
@@ -2292,10 +2319,15 @@ end
 
 --- Jump to the rightmost position of horizontally scrollable content
 --- Use this to navigate to the end of horizontal lists or carousels
+--- In immediate mode, defers until layout has calculated scroll bounds.
 function Element:scrollToRight()
   if self._scrollManager then
     local maxScrollX, _ = self._scrollManager:getMaxScroll()
-    self:setScrollPosition(maxScrollX, nil)
+    if maxScrollX > 0 then
+      self:setScrollPosition(maxScrollX, nil)
+    else
+      self:_deferMethod("scrollToRight")
+    end
   end
 end
 
@@ -3712,6 +3744,16 @@ function Element:update(dt)
 
     -- Process touch events through EventHandler
     self._eventHandler:processTouchEvents(self)
+  end
+
+  -- Retry any deferred methods (methods that deferred their execution
+  -- because preconditions weren't met, e.g. scroll before layout)
+  if #self._deferredMethods > 0 then
+    local pending = self._deferredMethods
+    self._deferredMethods = {}
+    for _, fn in ipairs(pending) do
+      fn()
+    end
   end
 end
 
