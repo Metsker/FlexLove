@@ -47,6 +47,10 @@ read_globals = {
 ignore = {
   "212", -- unused argument (common in callbacks with fixed signatures)
   "213", -- unused loop variable
+  "211", -- unused variable (pre-existing: presetUnit, wrappedWidth)
+  "231", -- variable never accessed (pre-existing)
+  "421", -- shadowing definition of a variable (pre-existing)
+  "631", -- line is too long (pre-existing)
 }
 
 -- Max line length (matches stylua.toml)

@@ -898,7 +898,7 @@ function Element.new(props)
 
   -- Handle width (both w and width properties, prefer w if both exist)
   local widthProp = props.width
-  local tempWidth = 0 -- Temporary width for padding resolution
+  local tempWidth -- Temporary width for padding resolution
   if widthProp then
     -- Check if it's a CalcObject (table with _isCalc marker)
     local isCalc = Element._Calc and Element._Calc.isCalc(widthProp)
@@ -939,7 +939,7 @@ function Element.new(props)
 
   -- Handle height (both h and height properties, prefer h if both exist)
   local heightProp = props.height
-  local tempHeight = 0 -- Temporary height for padding resolution
+  local tempHeight -- Temporary height for padding resolution
   if heightProp then
     -- Check if it's a CalcObject (table with _isCalc marker)
     local isCalc = Element._Calc and Element._Calc.isCalc(heightProp)
@@ -3298,6 +3298,46 @@ function Element:destroy()
   -- Clear touch callbacks to prevent closure leaks
   self.onTouchEvent = nil
   self.onGesture = nil
+
+  -- Clean up managed select frame resources
+  if self._selectState then
+    local frame = self._selectState.selectFrame
+    local anchor = self._selectState.selectAnchor
+    if frame then
+      frame._managedSelectOwner = nil
+      frame._managedSelectFrame = nil
+      frame._managedSelectBaseOpacity = nil
+      frame._managedSelectBaseVisibility = nil
+      frame._managedSelectBaseDisabled = nil
+    end
+    if anchor then
+      anchor._managedSelectOwner = nil
+      anchor._managedSelectAnchor = nil
+    end
+    self._selectState = nil
+  end
+  if self._managedSelectFrame and self._managedSelectOwner then
+    if self._managedSelectOwner._selectState then
+      self._managedSelectOwner._selectState.selectFrame = nil
+      self._managedSelectOwner._selectState.expectedFrameParent = nil
+      self._managedSelectOwner._selectState.frameAdopted = false
+    end
+    self._managedSelectOwner = nil
+    self._managedSelectFrame = nil
+    self._managedSelectBaseOpacity = nil
+    self._managedSelectBaseVisibility = nil
+    self._managedSelectBaseDisabled = nil
+  end
+  if self._managedSelectAnchor and self._managedSelectOwner then
+    if self._managedSelectOwner._selectState then
+      self._managedSelectOwner._selectState.selectAnchor = nil
+    end
+    self._managedSelectOwner = nil
+    self._managedSelectAnchor = nil
+  end
+  if self.selectParent then
+    self.selectParent.onChange = nil
+  end
 end
 
 --- Draw element and its children
@@ -3394,10 +3434,10 @@ function Element:draw(backdropCanvas)
     if hasRoundedCorners and #sortedChildren > 0 then
       -- Use stencil to clip children to rounded rectangle
       -- BORDER-BOX MODEL: Use stored border-box dimensions for clipping
-      local borderBoxWidth = self._borderBoxWidth or (self.width + self.padding.left + self.padding.right)
-      local borderBoxHeight = self._borderBoxHeight or (self.height + self.padding.top + self.padding.bottom)
+      local roundedBoxWidth = self._borderBoxWidth or (self.width + self.padding.left + self.padding.right)
+      local roundedBoxHeight = self._borderBoxHeight or (self.height + self.padding.top + self.padding.bottom)
       local stencilFunc =
-        Element._RoundedRect.stencilFunction(self.x, self.y, borderBoxWidth, borderBoxHeight, self.cornerRadius)
+        Element._RoundedRect.stencilFunction(self.x, self.y, roundedBoxWidth, roundedBoxHeight, self.cornerRadius)
 
       -- Temporarily disable canvas for stencil operation (LÖVE 11.5 workaround)
       local currentCanvas = love.graphics.getCanvas()
@@ -5032,8 +5072,14 @@ function Element:_cleanup()
     self.selectParent.onChange = nil
   end
   if self._selectState then
-    self._selectState.onChange = nil
+    self._selectState = nil
   end
+  self._managedSelectOwner = nil
+  self._managedSelectFrame = nil
+  self._managedSelectAnchor = nil
+  self._managedSelectBaseOpacity = nil
+  self._managedSelectBaseVisibility = nil
+  self._managedSelectBaseDisabled = nil
 end
 
 -- ====================

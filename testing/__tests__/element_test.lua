@@ -3903,6 +3903,104 @@ function TestElementEdgeCases:test_max_length_negative()
 end
 
 -- ============================================================================
+-- Managed Select Frame Cleanup on Destroy
+-- ============================================================================
+
+function TestElementEdgeCases:test_destroy_select_parent_cleans_up_select_state()
+  local frame = FlexLove.new({ id = "ss_frame", width = 200, height = 80 })
+  local parent = FlexLove.new({
+    id = "ss_parent",
+    width = 200,
+    height = 40,
+    selectParent = { value = "a", selectFrame = frame },
+  })
+  local anchor = parent._selectState.selectAnchor
+
+  luaunit.assertNotNil(parent._selectState)
+  luaunit.assertNotNil(frame._managedSelectOwner)
+  luaunit.assertNotNil(frame._managedSelectFrame)
+  luaunit.assertNotNil(anchor._managedSelectOwner)
+  luaunit.assertNotNil(anchor._managedSelectAnchor)
+
+  parent:destroy()
+
+  luaunit.assertNil(parent._selectState)
+  luaunit.assertNil(frame._managedSelectOwner)
+  luaunit.assertNil(frame._managedSelectFrame)
+  luaunit.assertNil(frame._managedSelectBaseOpacity)
+  luaunit.assertNil(frame._managedSelectBaseVisibility)
+  luaunit.assertNil(frame._managedSelectBaseDisabled)
+  luaunit.assertNil(anchor._managedSelectOwner)
+  luaunit.assertNil(anchor._managedSelectAnchor)
+end
+
+function TestElementEdgeCases:test_destroy_managed_frame_clears_owner_reference()
+  local frame = FlexLove.new({ id = "mf_frame", width = 200, height = 80 })
+  local parent = FlexLove.new({
+    id = "mf_parent",
+    width = 200,
+    height = 40,
+    selectParent = { value = "a", selectFrame = frame },
+  })
+
+  luaunit.assertTrue(parent._selectState.selectFrame == frame)
+  luaunit.assertTrue(parent._selectState.frameAdopted)
+
+  frame:destroy()
+
+  luaunit.assertNil(parent._selectState.selectFrame)
+  luaunit.assertNil(parent._selectState.expectedFrameParent)
+  luaunit.assertFalse(parent._selectState.frameAdopted)
+  luaunit.assertNil(frame._managedSelectOwner)
+  luaunit.assertNil(frame._managedSelectFrame)
+end
+
+function TestElementEdgeCases:test_destroy_select_parent_cleans_up_onChange()
+  local onChangeCalled = false
+  local frame = FlexLove.new({ id = "oc_frame", width = 200, height = 80 })
+  local parent = FlexLove.new({
+    id = "oc_parent",
+    width = 200,
+    height = 40,
+    selectParent = {
+      value = "a",
+      selectFrame = frame,
+      onChange = function()
+        onChangeCalled = true
+      end,
+    },
+  })
+
+  luaunit.assertNotNil(parent.selectParent)
+  luaunit.assertNotNil(parent.selectParent.onChange)
+
+  parent:destroy()
+
+  luaunit.assertNil(parent.selectParent.onChange)
+end
+
+function TestElementEdgeCases:test_destroy_managed_anchor_clears_owner_reference()
+  local frame = FlexLove.new({ id = "ma_frame", width = 200, height = 80 })
+  local parent = FlexLove.new({
+    id = "ma_parent",
+    width = 200,
+    height = 40,
+    selectParent = { value = "a", selectFrame = frame },
+  })
+  local anchor = parent._selectState.selectAnchor
+
+  luaunit.assertTrue(parent._selectState.selectAnchor == anchor)
+  luaunit.assertNotNil(anchor._managedSelectOwner)
+  luaunit.assertNotNil(anchor._managedSelectAnchor)
+
+  anchor:destroy()
+
+  luaunit.assertNil(parent._selectState.selectAnchor)
+  luaunit.assertNil(anchor._managedSelectOwner)
+  luaunit.assertNil(anchor._managedSelectAnchor)
+end
+
+-- ============================================================================
 -- Select State Persistence in Immediate Mode
 -- ============================================================================
 
