@@ -47,7 +47,7 @@ local ErrorCodes = {
       code = "FLEXLOVE_VAL_006",
       category = "VAL",
       description = "Invalid calc() expression or calculation error",
-      suggestion = "Check calc() syntax and ensure no division by zero. Format: calc('value1 operator value2') with operators: +, -, *, / and units: px, %, vw, vh, ew, eh",
+      suggestion = "Check calc() syntax and ensure no division by zero. Format: calc('value1 operator value2') with operators: +, -, *, / and units: px, %, vw, vh",
     },
     VAL_007 = {
       code = "FLEXLOVE_VAL_007",
@@ -487,7 +487,7 @@ local ErrorCodes = {
       code = "FLEXLOVE_ELEM_002",
       category = "VAL",
       description = "Invalid text size unit",
-      suggestion = "textSize unit must be one of: px, %, vw, vh, ew, eh, or presets: xs, sm, md, lg, xl, xxl, 2xl, 3xl, 4xl",
+      suggestion = "textSize unit must be one of: px, %, vw, vh, or presets: xs, sm, md, lg, xl, xxl, 2xl, 3xl, 4xl",
     },
     ELEM_003 = {
       code = "FLEXLOVE_ELEM_003",

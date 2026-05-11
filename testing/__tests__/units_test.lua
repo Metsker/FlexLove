@@ -64,18 +64,6 @@ function TestUnitsParse:testParseViewportHeight()
   luaunit.assertEquals(unit, "vh")
 end
 
-function TestUnitsParse:testParseElementWidth()
-  local value, unit = Units.parse("15ew")
-  luaunit.assertEquals(value, 15)
-  luaunit.assertEquals(unit, "ew")
-end
-
-function TestUnitsParse:testParseElementHeight()
-  local value, unit = Units.parse("25eh")
-  luaunit.assertEquals(value, 25)
-  luaunit.assertEquals(unit, "eh")
-end
-
 function TestUnitsParse:testParseDecimal()
   local value, unit = Units.parse("10.5px")
   luaunit.assertEquals(value, 10.5)
@@ -223,14 +211,6 @@ end
 
 function TestUnitsIsValid:testIsValidViewportHeight()
   luaunit.assertTrue(Units.isValid("20vh"))
-end
-
-function TestUnitsIsValid:testIsValidElementWidth()
-  luaunit.assertTrue(Units.isValid("15ew"))
-end
-
-function TestUnitsIsValid:testIsValidElementHeight()
-  luaunit.assertTrue(Units.isValid("25eh"))
 end
 
 function TestUnitsIsValid:testIsValidNumber()

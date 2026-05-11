@@ -1325,12 +1325,6 @@ function LayoutEngine:recalculateUnits(newViewportWidth, newViewportHeight)
     elseif unit == "vw" then
       -- vw is relative to viewport width
       self.element.textSize = Units.resolve(value, unit, newViewportWidth, newViewportHeight, newViewportWidth)
-    elseif unit == "ew" then
-      -- Element width relative
-      self.element.textSize = (value / 100) * self.element.width
-    elseif unit == "eh" then
-      -- Element height relative
-      self.element.textSize = (value / 100) * self.element.height
     else
       self.element.textSize = Units.resolve(value, unit, newViewportWidth, newViewportHeight, nil)
     end

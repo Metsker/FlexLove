@@ -596,7 +596,7 @@ local FlexLove = {}
 ---@class CalcToken
 ---@field type string -- Token type: "NUMBER", "UNIT", "PLUS", "MINUS", "MULTIPLY", "DIVIDE", "LPAREN", "RPAREN", "EOF"
 ---@field value number? -- Numeric value (for NUMBER tokens)
----@field unit string? -- Unit type: "px", "%", "vw", "vh", "ew", "eh" (for NUMBER tokens)
+---@field unit string? -- Unit type: "px", "%", "vw", "vh" (for NUMBER tokens)
 
 ---@class CalcASTNode
 ---@field type string -- Node type: "number", "add", "subtract", "multiply", "divide"

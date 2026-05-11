@@ -16,12 +16,16 @@ local FlexLove = require("FlexLove")
 TestGridLayout = {}
 
 function TestGridLayout:setUp()
+  -- Save viewport and reset to known state for viewport-dependent tests
+  self._savedViewportW, self._savedViewportH = love.graphics.getDimensions()
+  love.window.setMode(800, 600)
   FlexLove.init()
   FlexLove.beginFrame()
 end
 
 function TestGridLayout:tearDown()
   FlexLove.endFrame()
+  love.window.setMode(self._savedViewportW, self._savedViewportH)
 end
 
 -- Test basic grid layout with default 1x1 grid
@@ -986,6 +990,184 @@ function TestGridLayout:test_guard_extreme_overflow()
 
   luaunit.assertTrue(child.width >= 0, "Child width should never be negative, got " .. tostring(child.width))
   luaunit.assertTrue(child.height >= 0, "Child height should never be negative, got " .. tostring(child.height))
+end
+
+-- ======================================== --
+-- Unit Resolution Pipeline Tests          --
+-- ======================================== --
+
+-- Test vw units in gridTemplateColumns
+function TestGridLayout:test_units_vw_columns()
+  local container = FlexLove.new({
+    id = "grid",
+    x = 0,
+    y = 0,
+    width = 1000,
+    height = 400,
+    positioning = "grid",
+    gridTemplateColumns = { "25vw", "1fr" },
+    gridTemplateRows = { "1fr" },
+    columnGap = 0,
+  })
+
+  local children = {}
+  for i = 1, 2 do
+    children[i] = FlexLove.new({ id = "child" .. i, parent = container })
+  end
+
+  FlexLove.endFrame()
+  FlexLove.beginFrame()
+
+  -- Viewport is 800x600 from loveStub, so 25vw = 200px
+  -- Available width: 1000, col1 = 200, remaining = 800, col2 = 1fr = 800
+  luaunit.assertEquals(children[1].width, 200, "25vw col should be 200px")
+  luaunit.assertEquals(children[2].width, 800, "1fr col should fill remaining 800px")
+  luaunit.assertEquals(children[2].x, 200, "1fr col starts after 25vw col")
+end
+
+-- Test vh units in gridTemplateRows
+function TestGridLayout:test_units_vh_rows()
+  local container = FlexLove.new({
+    id = "grid",
+    x = 0,
+    y = 0,
+    width = 400,
+    height = 1000,
+    positioning = "grid",
+    gridTemplateColumns = { "1fr" },
+    gridTemplateRows = { "50vh", "1fr" },
+    rowGap = 0,
+  })
+
+  local children = {}
+  for i = 1, 2 do
+    children[i] = FlexLove.new({ id = "child" .. i, parent = container })
+  end
+
+  FlexLove.endFrame()
+  FlexLove.beginFrame()
+
+  -- Viewport is 800x600 from loveStub, so 50vh = 300px
+  -- Available height: 1000, row1 = 300, remaining = 700, row2 = 1fr = 700
+  luaunit.assertEquals(children[1].height, 300, "50vh row should be 300px")
+  luaunit.assertEquals(children[2].height, 700, "1fr row should fill remaining 700px")
+  luaunit.assertEquals(children[2].y, 300, "1fr row starts after 50vh row")
+end
+
+-- Test mixed vw/vh in both axes
+function TestGridLayout:test_units_vw_vh_mixed()
+  local container = FlexLove.new({
+    id = "grid",
+    x = 0,
+    y = 0,
+    width = 800,
+    height = 600,
+    positioning = "grid",
+    gridTemplateColumns = { "10vw", "20vw" },
+    gridTemplateRows = { "10vh" },
+    columnGap = 0,
+    rowGap = 0,
+  })
+
+  local children = {}
+  for i = 1, 2 do
+    children[i] = FlexLove.new({ id = "child" .. i, parent = container })
+  end
+
+  FlexLove.endFrame()
+  FlexLove.beginFrame()
+
+  -- 10vw = 80px, 20vw = 160px, 10vh = 60px
+  luaunit.assertEquals(children[1].width, 80, "10vw col should be 80px")
+  luaunit.assertEquals(children[1].height, 60, "10vh row should be 60px")
+  luaunit.assertEquals(children[2].width, 160, "20vw col should be 160px")
+  luaunit.assertEquals(children[2].x, 80, "2nd col starts after 10vw col")
+end
+
+-- Test calc() with viewport units in gridTemplateColumns
+function TestGridLayout:test_units_calc_vw_columns()
+  local container = FlexLove.new({
+    id = "grid",
+    x = 0,
+    y = 0,
+    width = 1000,
+    height = 200,
+    positioning = "grid",
+    gridTemplateColumns = { FlexLove.calc("10vw + 50px"), "1fr" },
+    gridTemplateRows = { "1fr" },
+    columnGap = 0,
+  })
+
+  local children = {}
+  for i = 1, 2 do
+    children[i] = FlexLove.new({ id = "child" .. i, parent = container })
+  end
+
+  FlexLove.endFrame()
+  FlexLove.beginFrame()
+
+  -- Viewport = 800x600, so 10vw = 80px, calc(80 + 50) = 130px
+  -- col1 = 130, remaining = 870, col2 = 1fr = 870
+  luaunit.assertEquals(children[1].width, 130, "calc(10vw + 50px) col should be 130px")
+  luaunit.assertEquals(children[2].width, 870, "1fr col should fill remaining 870px")
+  luaunit.assertEquals(children[2].x, 130, "1fr col starts after calc col")
+end
+
+-- Test calc() with percentage in gridTemplateColumns
+function TestGridLayout:test_units_calc_percent_columns()
+  local container = FlexLove.new({
+    id = "grid",
+    x = 0,
+    y = 0,
+    width = 400,
+    height = 200,
+    positioning = "grid",
+    gridTemplateColumns = { FlexLove.calc("50% - 20px"), "1fr" },
+    gridTemplateRows = { "1fr" },
+    columnGap = 0,
+  })
+
+  local children = {}
+  for i = 1, 2 do
+    children[i] = FlexLove.new({ id = "child" .. i, parent = container })
+  end
+
+  FlexLove.endFrame()
+  FlexLove.beginFrame()
+
+  -- col1: 50% of availableWidth(400) = 200, minus 20px = 180
+  -- remaining = 400 - 180 = 220, col2 = 1fr = 220
+  luaunit.assertEquals(children[1].width, 180, "calc(50% - 20px) col should be 180px")
+  luaunit.assertEquals(children[2].width, 220, "1fr col should fill remaining 220px")
+  luaunit.assertEquals(children[2].x, 180, "1fr col starts after calc col")
+end
+
+-- Test vw column combined with columnGap
+function TestGridLayout:test_units_vw_with_gap()
+  local container = FlexLove.new({
+    id = "grid",
+    x = 0,
+    y = 0,
+    width = 500,
+    height = 200,
+    positioning = "grid",
+    gridTemplateColumns = { "10vw", "1fr" },
+    gridTemplateRows = { "1fr" },
+    columnGap = 20,
+  })
+
+  local children = {}
+  for i = 1, 2 do
+    children[i] = FlexLove.new({ id = "child" .. i, parent = container })
+  end
+
+  FlexLove.endFrame()
+  FlexLove.beginFrame()
+
+  -- 10vw = 80px, gap = 20, remaining = 500 - 80 - 20 = 400, col2 = 400
+  luaunit.assertEquals(children[1].width, 80, "10vw col should be 80px with gap")
+  luaunit.assertEquals(children[2].width, 400, "1fr col should be 400px with gap")
+  luaunit.assertEquals(children[2].x, 100, "1fr col starts after vw col + gap")
 end
 
 if not _G.RUNNING_ALL_TESTS then

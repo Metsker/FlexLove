@@ -1,5 +1,5 @@
 --- Utility module for parsing and evaluating CSS-like calc() expressions
---- Supports arithmetic operations (+, -, *, /) with mixed units (px, %, vw, vh, ew, eh)
+--- Supports arithmetic operations (+, -, *, /) with mixed units (px, %, vw, vh)
 ---@class Calc
 local Calc = {}
 
@@ -65,7 +65,7 @@ local function tokenize(expr)
       end
 
       -- Validate unit
-      local validUnits = { px = true, ["%"] = true, vw = true, vh = true, ew = true, eh = true }
+      local validUnits = { px = true, ["%"] = true, vw = true, vh = true }
       if not validUnits[unitStr] then
         return nil, "Invalid unit: " .. unitStr
       end
@@ -119,7 +119,7 @@ local function tokenize(expr)
         end
 
         -- Validate unit
-        local validUnits = { px = true, ["%"] = true, vw = true, vh = true, ew = true, eh = true }
+        local validUnits = { px = true, ["%"] = true, vw = true, vh = true }
         if not validUnits[unitStr] then
           return nil, "Invalid unit: " .. unitStr
         end
@@ -320,10 +320,8 @@ end
 ---@param viewportWidth number Viewport width in pixels
 ---@param viewportHeight number Viewport height in pixels
 ---@param parentSize number? Parent dimension for percentage units
----@param elementWidth number? Element width for ew units
----@param elementHeight number? Element height for eh units
 ---@return number resolvedValue Resolved pixel value
-function Calc.resolve(calcObj, viewportWidth, viewportHeight, parentSize, elementWidth, elementHeight)
+function Calc.resolve(calcObj, viewportWidth, viewportHeight, parentSize)
   if not calcObj._ast then
     -- Error during parsing, return 0
     return 0
@@ -355,28 +353,6 @@ function Calc.resolve(calcObj, viewportWidth, viewportHeight, parentSize, elemen
         return (value / 100) * viewportWidth
       elseif unit == "vh" then
         return (value / 100) * viewportHeight
-      elseif unit == "ew" then
-        if not elementWidth then
-          if Calc._ErrorHandler then
-            Calc._ErrorHandler:warn("Calc", "LAY_003", {
-              unit = "ew",
-              issue = "element width not available",
-            })
-          end
-          return 0
-        end
-        return (value / 100) * elementWidth
-      elseif unit == "eh" then
-        if not elementHeight then
-          if Calc._ErrorHandler then
-            Calc._ErrorHandler:warn("Calc", "LAY_003", {
-              unit = "eh",
-              issue = "element height not available",
-            })
-          end
-          return 0
-        end
-        return (value / 100) * elementHeight
       else
         return 0
       end

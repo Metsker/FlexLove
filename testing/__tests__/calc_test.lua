@@ -32,7 +32,7 @@ end
 function TestCalc:testBasicAddition()
   local calcObj = Calc.new("100px + 50px")
   luaunit.assertTrue(Calc.isCalc(calcObj))
-  local result = Calc.resolve(calcObj, 1920, 1080, nil, nil, nil)
+  local result = Calc.resolve(calcObj, 1920, 1080, nil)
   luaunit.assertEquals(result, 150)
 end
 
@@ -40,7 +40,7 @@ end
 function TestCalc:testBasicSubtraction()
   local calcObj = Calc.new("100px - 30px")
   luaunit.assertTrue(Calc.isCalc(calcObj))
-  local result = Calc.resolve(calcObj, 1920, 1080, nil, nil, nil)
+  local result = Calc.resolve(calcObj, 1920, 1080, nil)
   luaunit.assertEquals(result, 70)
 end
 
@@ -48,7 +48,7 @@ end
 function TestCalc:testBasicMultiplication()
   local calcObj = Calc.new("10px * 5")
   luaunit.assertTrue(Calc.isCalc(calcObj))
-  local result = Calc.resolve(calcObj, 1920, 1080, nil, nil, nil)
+  local result = Calc.resolve(calcObj, 1920, 1080, nil)
   luaunit.assertEquals(result, 50)
 end
 
@@ -56,7 +56,7 @@ end
 function TestCalc:testBasicDivision()
   local calcObj = Calc.new("100px / 4")
   luaunit.assertTrue(Calc.isCalc(calcObj))
-  local result = Calc.resolve(calcObj, 1920, 1080, nil, nil, nil)
+  local result = Calc.resolve(calcObj, 1920, 1080, nil)
   luaunit.assertEquals(result, 25)
 end
 
@@ -64,7 +64,7 @@ end
 function TestCalc:testNegativeNumbers()
   local calcObj = Calc.new("-50px + 100px")
   luaunit.assertTrue(Calc.isCalc(calcObj))
-  local result = Calc.resolve(calcObj, 1920, 1080, nil, nil, nil)
+  local result = Calc.resolve(calcObj, 1920, 1080, nil)
   luaunit.assertEquals(result, 50)
 end
 
@@ -72,7 +72,7 @@ end
 function TestCalc:testDecimalNumbers()
   local calcObj = Calc.new("10.5px + 5.5px")
   luaunit.assertTrue(Calc.isCalc(calcObj))
-  local result = Calc.resolve(calcObj, 1920, 1080, nil, nil, nil)
+  local result = Calc.resolve(calcObj, 1920, 1080, nil)
   luaunit.assertEquals(result, 16)
 end
 
@@ -80,7 +80,7 @@ end
 function TestCalc:testPercentageUnits()
   local calcObj = Calc.new("50% + 25%")
   luaunit.assertTrue(Calc.isCalc(calcObj))
-  local result = Calc.resolve(calcObj, 1920, 1080, 1000, nil, nil) -- parent size = 1000
+  local result = Calc.resolve(calcObj, 1920, 1080, 1000) -- parent size = 1000
   luaunit.assertEquals(result, 750) -- 50% of 1000 + 25% of 1000 = 500 + 250
 end
 
@@ -88,7 +88,7 @@ end
 function TestCalc:testViewportWidthUnits()
   local calcObj = Calc.new("50vw - 10vw")
   luaunit.assertTrue(Calc.isCalc(calcObj))
-  local result = Calc.resolve(calcObj, 1920, 1080, nil, nil, nil)
+  local result = Calc.resolve(calcObj, 1920, 1080, nil)
   luaunit.assertEquals(result, 768) -- 40% of 1920 = 768
 end
 
@@ -96,7 +96,7 @@ end
 function TestCalc:testViewportHeightUnits()
   local calcObj = Calc.new("50vh + 10vh")
   luaunit.assertTrue(Calc.isCalc(calcObj))
-  local result = Calc.resolve(calcObj, 1920, 1080, nil, nil, nil)
+  local result = Calc.resolve(calcObj, 1920, 1080, nil)
   luaunit.assertEquals(result, 648) -- 60% of 1080 = 648
 end
 
@@ -104,7 +104,7 @@ end
 function TestCalc:testMixedUnits()
   local calcObj = Calc.new("50% - 10vw")
   luaunit.assertTrue(Calc.isCalc(calcObj))
-  local result = Calc.resolve(calcObj, 1920, 1080, 1000, nil, nil)
+  local result = Calc.resolve(calcObj, 1920, 1080, 1000)
   luaunit.assertEquals(result, 308) -- 50% of 1000 - 10% of 1920 = 500 - 192 = 308
 end
 
@@ -112,7 +112,7 @@ end
 function TestCalc:testComplexExpression()
   local calcObj = Calc.new("100px + 50px - 20px")
   luaunit.assertTrue(Calc.isCalc(calcObj))
-  local result = Calc.resolve(calcObj, 1920, 1080, nil, nil, nil)
+  local result = Calc.resolve(calcObj, 1920, 1080, nil)
   luaunit.assertEquals(result, 130)
 end
 
@@ -120,7 +120,7 @@ end
 function TestCalc:testParentheses()
   local calcObj = Calc.new("(100px + 50px) * 2")
   luaunit.assertTrue(Calc.isCalc(calcObj))
-  local result = Calc.resolve(calcObj, 1920, 1080, nil, nil, nil)
+  local result = Calc.resolve(calcObj, 1920, 1080, nil)
   luaunit.assertEquals(result, 300)
 end
 
@@ -128,7 +128,7 @@ end
 function TestCalc:testNestedParentheses()
   local calcObj = Calc.new("((100px + 50px) / 3) * 2")
   luaunit.assertTrue(Calc.isCalc(calcObj))
-  local result = Calc.resolve(calcObj, 1920, 1080, nil, nil, nil)
+  local result = Calc.resolve(calcObj, 1920, 1080, nil)
   luaunit.assertEquals(result, 100) -- (150 / 3) * 2 = 50 * 2 = 100
 end
 
@@ -136,7 +136,7 @@ end
 function TestCalc:testOperatorPrecedence()
   local calcObj = Calc.new("100px + 50px * 2")
   luaunit.assertTrue(Calc.isCalc(calcObj))
-  local result = Calc.resolve(calcObj, 1920, 1080, nil, nil, nil)
+  local result = Calc.resolve(calcObj, 1920, 1080, nil)
   luaunit.assertEquals(result, 200) -- 100 + (50 * 2) = 100 + 100 = 200
 end
 
@@ -146,31 +146,15 @@ function TestCalc:testCenteringUseCase()
   luaunit.assertTrue(Calc.isCalc(calcObj))
   -- Assuming element width is 20vw (384px) and parent width is 1920px
   -- 50% of parent - 10vw should center it
-  local result = Calc.resolve(calcObj, 1920, 1080, 1920, nil, nil)
+  local result = Calc.resolve(calcObj, 1920, 1080, 1920)
   luaunit.assertEquals(result, 768) -- 50% of 1920 - 10% of 1920 = 960 - 192 = 768
-end
-
---- Test element width units (ew)
-function TestCalc:testElementWidthUnits()
-  local calcObj = Calc.new("100ew - 20ew")
-  luaunit.assertTrue(Calc.isCalc(calcObj))
-  local result = Calc.resolve(calcObj, 1920, 1080, nil, 500, nil) -- element width = 500
-  luaunit.assertEquals(result, 400) -- 80% of 500 = 400
-end
-
---- Test element height units (eh)
-function TestCalc:testElementHeightUnits()
-  local calcObj = Calc.new("50eh + 25eh")
-  luaunit.assertTrue(Calc.isCalc(calcObj))
-  local result = Calc.resolve(calcObj, 1920, 1080, nil, nil, 300) -- element height = 300
-  luaunit.assertEquals(result, 225) -- 75% of 300 = 225
 end
 
 --- Test whitespace handling
 function TestCalc:testWhitespaceHandling()
   local calcObj = Calc.new("  100px  +  50px  ")
   luaunit.assertTrue(Calc.isCalc(calcObj))
-  local result = Calc.resolve(calcObj, 1920, 1080, nil, nil, nil)
+  local result = Calc.resolve(calcObj, 1920, 1080, nil)
   luaunit.assertEquals(result, 150)
 end
 
@@ -178,7 +162,7 @@ end
 function TestCalc:testZeroValuaunite()
   local calcObj = Calc.new("100px - 100px")
   luaunit.assertTrue(Calc.isCalc(calcObj))
-  local result = Calc.resolve(calcObj, 1920, 1080, nil, nil, nil)
+  local result = Calc.resolve(calcObj, 1920, 1080, nil)
   luaunit.assertEquals(result, 0)
 end
 
@@ -186,7 +170,7 @@ end
 function TestCalc:testSingleValuaunite()
   local calcObj = Calc.new("100px")
   luaunit.assertTrue(Calc.isCalc(calcObj))
-  local result = Calc.resolve(calcObj, 1920, 1080, nil, nil, nil)
+  local result = Calc.resolve(calcObj, 1920, 1080, nil)
   luaunit.assertEquals(result, 100)
 end
 
@@ -202,7 +186,7 @@ end
 function TestCalc:testDivisionByZeroHandling()
   local calcObj = Calc.new("100px / 0")
   luaunit.assertTrue(Calc.isCalc(calcObj))
-  local result = Calc.resolve(calcObj, 1920, 1080, nil, nil, nil)
+  local result = Calc.resolve(calcObj, 1920, 1080, nil)
   luaunit.assertEquals(result, 0) -- Should return 0 on division by zero error
 end
 
@@ -211,7 +195,7 @@ function TestCalc:testInvalidExpressionHandling()
   local calcObj = Calc.new("100px +") -- Incomplete expression
   luaunit.assertTrue(Calc.isCalc(calcObj))
   -- Should return 0 for invalid expressions
-  local result = Calc.resolve(calcObj, 1920, 1080, nil, nil, nil)
+  local result = Calc.resolve(calcObj, 1920, 1080, nil)
   luaunit.assertEquals(result, 0)
 end
 
@@ -219,7 +203,7 @@ end
 function TestCalc:testRealWorldCentering()
   -- Button with 20vw width, centered at 50% - 10vw
   local xCalc = Calc.new("50% - 10vw")
-  local result = Calc.resolve(xCalc, 1920, 1080, 1920, nil, nil)
+  local result = Calc.resolve(xCalc, 1920, 1080, 1920)
   -- Expected: 50% of 1920 - 10% of 1920 = 960 - 192 = 768
   luaunit.assertEquals(result, 768)
 end
@@ -233,7 +217,7 @@ function TestCalc:testDeeplyNested3Levels()
   local calcObj = Calc.new("(((100px + 50px) * 2) - 100px) / 2")
   luaunit.assertTrue(Calc.isCalc(calcObj))
   -- (((150) * 2) - 100) / 2 = (300 - 100) / 2 = 200 / 2 = 100
-  local result = Calc.resolve(calcObj, 1920, 1080, nil, nil, nil)
+  local result = Calc.resolve(calcObj, 1920, 1080, nil)
   luaunit.assertEquals(result, 100)
 end
 
@@ -246,7 +230,7 @@ function TestCalc:testDeeplyNested5Levels()
   -- (((40) * 2) - 20) / 2
   -- ((80) - 20) / 2
   -- (60) / 2 = 30
-  local result = Calc.resolve(calcObj, 1920, 1080, nil, nil, nil)
+  local result = Calc.resolve(calcObj, 1920, 1080, nil)
   luaunit.assertEquals(result, 30)
 end
 
@@ -255,7 +239,7 @@ function TestCalc:testDeeplyNested10Levels()
   local calcObj = Calc.new("((((((((((2px * 2) * 2) * 2) * 2) * 2) * 2) * 2) * 2) * 2) * 2)")
   luaunit.assertTrue(Calc.isCalc(calcObj))
   -- 2 * 2^10 = 2 * 1024 = 2048
-  local result = Calc.resolve(calcObj, 1920, 1080, nil, nil, nil)
+  local result = Calc.resolve(calcObj, 1920, 1080, nil)
   luaunit.assertEquals(result, 2048)
 end
 
@@ -265,7 +249,7 @@ function TestCalc:testComplexMultiOperationAllOperators()
   luaunit.assertTrue(Calc.isCalc(calcObj))
   -- Precedence: 20 * 2 = 40, 40 / 4 = 10
   -- Then: 100 + 50 - 10 + 30 = 170
-  local result = Calc.resolve(calcObj, 1920, 1080, nil, nil, nil)
+  local result = Calc.resolve(calcObj, 1920, 1080, nil)
   luaunit.assertEquals(result, 170)
 end
 
@@ -275,7 +259,7 @@ function TestCalc:testComplexMixedUnitsAllOperators()
   luaunit.assertTrue(Calc.isCalc(calcObj))
   -- 50% = 500 (parent 1000), 10vw = 192, 5vh = 54, 54 * 2 = 108, 108 / 4 = 27
   -- 500 + 192 - 27 = 665
-  local result = Calc.resolve(calcObj, 1920, 1080, 1000, nil, nil)
+  local result = Calc.resolve(calcObj, 1920, 1080, 1000)
   luaunit.assertEquals(result, 665)
 end
 
@@ -284,7 +268,7 @@ function TestCalc:testNestedParenthesesMixedOperations()
   local calcObj = Calc.new("((100px + 50px) * (200px - 100px)) / 50px")
   luaunit.assertTrue(Calc.isCalc(calcObj))
   -- (150 * 100) / 50 = 15000 / 50 = 300
-  local result = Calc.resolve(calcObj, 1920, 1080, nil, nil, nil)
+  local result = Calc.resolve(calcObj, 1920, 1080, nil)
   luaunit.assertEquals(result, 300)
 end
 
@@ -294,7 +278,7 @@ function TestCalc:testExtremelyLongExpression()
   luaunit.assertTrue(Calc.isCalc(calcObj))
   -- 15 * 2 / 3 = 30 / 3 = 10
   -- 10 + 20 + 30 + 40 + 50 - 5 - 10 - 10 + 100 = 225
-  local result = Calc.resolve(calcObj, 1920, 1080, nil, nil, nil)
+  local result = Calc.resolve(calcObj, 1920, 1080, nil)
   luaunit.assertEquals(result, 225)
 end
 
@@ -303,7 +287,7 @@ function TestCalc:testAlternatingOperationsWithParentheses()
   local calcObj = Calc.new("(50px + 50px) * (100px - 50px) / (25px + 25px)")
   luaunit.assertTrue(Calc.isCalc(calcObj))
   -- (100) * (50) / (50) = 5000 / 50 = 100
-  local result = Calc.resolve(calcObj, 1920, 1080, nil, nil, nil)
+  local result = Calc.resolve(calcObj, 1920, 1080, nil)
   luaunit.assertEquals(result, 100)
 end
 
@@ -312,7 +296,7 @@ function TestCalc:testVeryLargeNumbers()
   local calcObj = Calc.new("10000px + 50000px * 2")
   luaunit.assertTrue(Calc.isCalc(calcObj))
   -- 50000 * 2 = 100000, 10000 + 100000 = 110000
-  local result = Calc.resolve(calcObj, 1920, 1080, nil, nil, nil)
+  local result = Calc.resolve(calcObj, 1920, 1080, nil)
   luaunit.assertEquals(result, 110000)
 end
 
@@ -320,7 +304,7 @@ end
 function TestCalc:testVerySmallDecimals()
   local calcObj = Calc.new("0.1px + 0.2px + 0.3px")
   luaunit.assertTrue(Calc.isCalc(calcObj))
-  local result = Calc.resolve(calcObj, 1920, 1080, nil, nil, nil)
+  local result = Calc.resolve(calcObj, 1920, 1080, nil)
   luaunit.assertAlmostEquals(result, 0.6, 0.0001)
 end
 
@@ -329,7 +313,7 @@ function TestCalc:testNegativeNumbersInComplexExpression()
   local calcObj = Calc.new("(-50px + 100px) * (-2px + 5px)")
   luaunit.assertTrue(Calc.isCalc(calcObj))
   -- (50) * (3) = 150
-  local result = Calc.resolve(calcObj, 1920, 1080, nil, nil, nil)
+  local result = Calc.resolve(calcObj, 1920, 1080, nil)
   luaunit.assertEquals(result, 150)
 end
 
@@ -338,7 +322,7 @@ function TestCalc:testMultipleNegativeNumbers()
   local calcObj = Calc.new("-50px - 30px - 20px")
   luaunit.assertTrue(Calc.isCalc(calcObj))
   -- -50 - 30 - 20 = -100
-  local result = Calc.resolve(calcObj, 1920, 1080, nil, nil, nil)
+  local result = Calc.resolve(calcObj, 1920, 1080, nil)
   luaunit.assertEquals(result, -100)
 end
 
@@ -346,18 +330,18 @@ end
 function TestCalc:testNegativeResultFromSubtraction()
   local calcObj = Calc.new("50px - 100px")
   luaunit.assertTrue(Calc.isCalc(calcObj))
-  local result = Calc.resolve(calcObj, 1920, 1080, nil, nil, nil)
+  local result = Calc.resolve(calcObj, 1920, 1080, nil)
   luaunit.assertEquals(result, -50)
 end
 
 --- Test all unit types in single expression
-function TestCalc:testAlluaunitnitTypesInSingleExpression()
-  local calcObj = Calc.new("100px + 10% + 5vw + 5vh + 10ew + 10eh")
+function TestCalc:testAllUnitTypesInSingleExpression()
+  local calcObj = Calc.new("100px + 10% + 5vw + 5vh")
   luaunit.assertTrue(Calc.isCalc(calcObj))
-  -- 100 + 100 (10% of 1000) + 96 (5% of 1920) + 54 (5% of 1080) + 50 (10% of 500) + 30 (10% of 300)
-  -- = 100 + 100 + 96 + 54 + 50 + 30 = 430
-  local result = Calc.resolve(calcObj, 1920, 1080, 1000, 500, 300)
-  luaunit.assertEquals(result, 430)
+  -- 100 + 100 (10% of 1000) + 96 (5% of 1920) + 54 (5% of 1080)
+  -- = 100 + 100 + 96 + 54 = 350
+  local result = Calc.resolve(calcObj, 1920, 1080, 1000)
+  luaunit.assertEquals(result, 350)
 end
 
 --- Test precedence with multiple levels
@@ -366,7 +350,7 @@ function TestCalc:testPrecedenceWithMultipleLevels()
   luaunit.assertTrue(Calc.isCalc(calcObj))
   -- 50 * 2 = 100, 30 / 3 = 10
   -- 100 + 100 - 10 = 190
-  local result = Calc.resolve(calcObj, 1920, 1080, nil, nil, nil)
+  local result = Calc.resolve(calcObj, 1920, 1080, nil)
   luaunit.assertEquals(result, 190)
 end
 
@@ -375,7 +359,7 @@ function TestCalc:testParenthesesOverridingPrecedenceComplex()
   local calcObj = Calc.new("(100px + 50px) * (2px + 3px) - (30px + 20px) / (5px - 3px)")
   luaunit.assertTrue(Calc.isCalc(calcObj))
   -- (150) * (5) - (50) / (2) = 750 - 25 = 725
-  local result = Calc.resolve(calcObj, 1920, 1080, nil, nil, nil)
+  local result = Calc.resolve(calcObj, 1920, 1080, nil)
   luaunit.assertEquals(result, 725)
 end
 
@@ -384,16 +368,16 @@ function TestCalc:testPercentageWithZeroParent()
   local calcObj = Calc.new("50% + 100px")
   luaunit.assertTrue(Calc.isCalc(calcObj))
   -- 50% of 0 = 0, 0 + 100 = 100
-  local result = Calc.resolve(calcObj, 1920, 1080, 0, nil, nil)
+  local result = Calc.resolve(calcObj, 1920, 1080, 0)
   luaunit.assertEquals(result, 100)
 end
 
---- Test element units without element dimensions
-function TestCalc:testElementUnitsWithoutDimensions()
-  local calcObj = Calc.new("100ew + 50eh")
+--- Test unknown unit falls through to else branch
+function TestCalc:testUnknownUnitReturnsZero()
+  local calcObj = Calc.new("100ew")
   luaunit.assertTrue(Calc.isCalc(calcObj))
-  -- Should return 0 + 0 = 0 due to missing dimensions
-  local result = Calc.resolve(calcObj, 1920, 1080, nil, nil, nil)
+  -- unknown unit should return 0
+  local result = Calc.resolve(calcObj, 1920, 1080)
   luaunit.assertEquals(result, 0)
 end
 
@@ -402,7 +386,7 @@ function TestCalc:testMixedParenthesesDifferentLevels()
   local calcObj = Calc.new("((100px + 50px) * 2) + (200px / (10px + 10px))")
   luaunit.assertTrue(Calc.isCalc(calcObj))
   -- ((150) * 2) + (200 / (20)) = 300 + 10 = 310
-  local result = Calc.resolve(calcObj, 1920, 1080, nil, nil, nil)
+  local result = Calc.resolve(calcObj, 1920, 1080, nil)
   luaunit.assertEquals(result, 310)
 end
 
@@ -411,7 +395,7 @@ function TestCalc:testChainMultiplication()
   local calcObj = Calc.new("2px * 3 * 4 * 5")
   luaunit.assertTrue(Calc.isCalc(calcObj))
   -- 2 * 3 * 4 * 5 = 120
-  local result = Calc.resolve(calcObj, 1920, 1080, nil, nil, nil)
+  local result = Calc.resolve(calcObj, 1920, 1080, nil)
   luaunit.assertEquals(result, 120)
 end
 
@@ -420,7 +404,7 @@ function TestCalc:testChainDivision()
   local calcObj = Calc.new("1000px / 2 / 5 / 10")
   luaunit.assertTrue(Calc.isCalc(calcObj))
   -- 1000 / 2 / 5 / 10 = 500 / 5 / 10 = 100 / 10 = 10
-  local result = Calc.resolve(calcObj, 1920, 1080, nil, nil, nil)
+  local result = Calc.resolve(calcObj, 1920, 1080, nil)
   luaunit.assertEquals(result, 10)
 end
 
@@ -428,7 +412,7 @@ end
 function TestCalc:testFractionalResults()
   local calcObj = Calc.new("100px / 3")
   luaunit.assertTrue(Calc.isCalc(calcObj))
-  local result = Calc.resolve(calcObj, 1920, 1080, nil, nil, nil)
+  local result = Calc.resolve(calcObj, 1920, 1080, nil)
   luaunit.assertAlmostEquals(result, 33.333333333, 0.0001)
 end
 
@@ -438,7 +422,7 @@ function TestCalc:testComplexViewportBasedLayout()
   local calcObj = Calc.new("(100vw - 30vw) / 2")
   luaunit.assertTrue(Calc.isCalc(calcObj))
   -- (1920 - 576) / 2 = 1344 / 2 = 672
-  local result = Calc.resolve(calcObj, 1920, 1080, nil, nil, nil)
+  local result = Calc.resolve(calcObj, 1920, 1080, nil)
   luaunit.assertEquals(result, 672)
 end
 
@@ -448,7 +432,7 @@ function TestCalc:testComplexResponsiveSizing()
   local calcObj = Calc.new("100% - 40px - 10vw")
   luaunit.assertTrue(Calc.isCalc(calcObj))
   -- 100% of 1000 - 40 - 10% of 1920 = 1000 - 40 - 192 = 768
-  local result = Calc.resolve(calcObj, 1920, 1080, 1000, nil, nil)
+  local result = Calc.resolve(calcObj, 1920, 1080, 1000)
   luaunit.assertEquals(result, 768)
 end
 
@@ -457,7 +441,7 @@ function TestCalc:testLeadingNegativeInParentheses()
   local calcObj = Calc.new("100px + (-50px * 2)")
   luaunit.assertTrue(Calc.isCalc(calcObj))
   -- 100 + (-100) = 0
-  local result = Calc.resolve(calcObj, 1920, 1080, nil, nil, nil)
+  local result = Calc.resolve(calcObj, 1920, 1080, nil)
   luaunit.assertEquals(result, 0)
 end
 
@@ -466,7 +450,7 @@ function TestCalc:testMultipleParenthesesGroupsSameLevel()
   local calcObj = Calc.new("(100px + 50px) + (200px - 100px) + (300px / 3)")
   luaunit.assertTrue(Calc.isCalc(calcObj))
   -- 150 + 100 + 100 = 350
-  local result = Calc.resolve(calcObj, 1920, 1080, nil, nil, nil)
+  local result = Calc.resolve(calcObj, 1920, 1080, nil)
   luaunit.assertEquals(result, 350)
 end
 
@@ -474,7 +458,7 @@ end
 function TestCalc:testNearZeroDivisionResult()
   local calcObj = Calc.new("1px / 1000")
   luaunit.assertTrue(Calc.isCalc(calcObj))
-  local result = Calc.resolve(calcObj, 1920, 1080, nil, nil, nil)
+  local result = Calc.resolve(calcObj, 1920, 1080, nil)
   luaunit.assertAlmostEquals(result, 0.001, 0.0001)
 end
 
@@ -483,7 +467,7 @@ function TestCalc:testOnlyMultiplicationAndDivision()
   local calcObj = Calc.new("100px * 2 / 4 * 3 / 5")
   luaunit.assertTrue(Calc.isCalc(calcObj))
   -- 100 * 2 / 4 * 3 / 5 = 200 / 4 * 3 / 5 = 50 * 3 / 5 = 150 / 5 = 30
-  local result = Calc.resolve(calcObj, 1920, 1080, nil, nil, nil)
+  local result = Calc.resolve(calcObj, 1920, 1080, nil)
   luaunit.assertEquals(result, 30)
 end
 
@@ -492,7 +476,7 @@ function TestCalc:testDecimalPercentages()
   local calcObj = Calc.new("12.5% + 37.5%")
   luaunit.assertTrue(Calc.isCalc(calcObj))
   -- 12.5% + 37.5% = 50% of 1000 = 500
-  local result = Calc.resolve(calcObj, 1920, 1080, 1000, nil, nil)
+  local result = Calc.resolve(calcObj, 1920, 1080, 1000)
   luaunit.assertEquals(result, 500)
 end
 
@@ -501,7 +485,7 @@ function TestCalc:testUnitlessNumbersInMultDiv()
   local calcObj = Calc.new("100px * 2.5 / 0.5")
   luaunit.assertTrue(Calc.isCalc(calcObj))
   -- 100 * 2.5 / 0.5 = 250 / 0.5 = 500
-  local result = Calc.resolve(calcObj, 1920, 1080, nil, nil, nil)
+  local result = Calc.resolve(calcObj, 1920, 1080, nil)
   luaunit.assertEquals(result, 500)
 end
 
@@ -510,7 +494,7 @@ function TestCalc:testDeeplyNestedWithNegatives()
   local calcObj = Calc.new("((-100px + 200px) * (-2px + 5px)) / (10px - 5px)")
   luaunit.assertTrue(Calc.isCalc(calcObj))
   -- ((100) * (3)) / (5) = 300 / 5 = 60
-  local result = Calc.resolve(calcObj, 1920, 1080, nil, nil, nil)
+  local result = Calc.resolve(calcObj, 1920, 1080, nil)
   luaunit.assertEquals(result, 60)
 end
 
@@ -519,7 +503,7 @@ function TestCalc:testAsymmetricNestedParentheses()
   local calcObj = Calc.new("((100px + 50px) * 2) + 200px / 4")
   luaunit.assertTrue(Calc.isCalc(calcObj))
   -- (150 * 2) + (200 / 4) = 300 + 50 = 350
-  local result = Calc.resolve(calcObj, 1920, 1080, nil, nil, nil)
+  local result = Calc.resolve(calcObj, 1920, 1080, nil)
   luaunit.assertEquals(result, 350)
 end
 
@@ -528,7 +512,7 @@ function TestCalc:testMaximumNestingAllOperations()
   local calcObj = Calc.new("((((100px + 50px) - 30px) * 2) / 4)")
   luaunit.assertTrue(Calc.isCalc(calcObj))
   -- ((((150) - 30) * 2) / 4) = (((120) * 2) / 4) = ((240) / 4) = 60
-  local result = Calc.resolve(calcObj, 1920, 1080, nil, nil, nil)
+  local result = Calc.resolve(calcObj, 1920, 1080, nil)
   luaunit.assertEquals(result, 60)
 end
 
@@ -537,7 +521,7 @@ function TestCalc:testWhitespaceInComplexExpression()
   local calcObj = Calc.new("  (  100px  +  50px  )  *  (  2px  +  3px  )  ")
   luaunit.assertTrue(Calc.isCalc(calcObj))
   -- (150) * (5) = 750
-  local result = Calc.resolve(calcObj, 1920, 1080, nil, nil, nil)
+  local result = Calc.resolve(calcObj, 1920, 1080, nil)
   luaunit.assertEquals(result, 750)
 end
 
@@ -550,7 +534,7 @@ function TestCalc:testMismatchedParenthesesMissingClosing()
   local calcObj = Calc.new("((100px + 50px) * 2")
   luaunit.assertTrue(Calc.isCalc(calcObj))
   -- Should handle gracefully and return 0
-  local result = Calc.resolve(calcObj, 1920, 1080, nil, nil, nil)
+  local result = Calc.resolve(calcObj, 1920, 1080, nil)
   luaunit.assertEquals(result, 0)
 end
 
@@ -559,7 +543,7 @@ function TestCalc:testMismatchedParenthesesMissingOpening()
   local calcObj = Calc.new("100px + 50px) * 2")
   luaunit.assertTrue(Calc.isCalc(calcObj))
   -- Should handle gracefully and return 0
-  local result = Calc.resolve(calcObj, 1920, 1080, nil, nil, nil)
+  local result = Calc.resolve(calcObj, 1920, 1080, nil)
   luaunit.assertEquals(result, 0)
 end
 
@@ -568,7 +552,7 @@ function TestCalc:testEmptyParentheses()
   local calcObj = Calc.new("100px + ()")
   luaunit.assertTrue(Calc.isCalc(calcObj))
   -- Should handle gracefully and return 0
-  local result = Calc.resolve(calcObj, 1920, 1080, nil, nil, nil)
+  local result = Calc.resolve(calcObj, 1920, 1080, nil)
   luaunit.assertEquals(result, 0)
 end
 
@@ -577,7 +561,7 @@ function TestCalc:testConsecutiveOperators()
   local calcObj = Calc.new("100px ++ 50px")
   luaunit.assertTrue(Calc.isCalc(calcObj))
   -- Should handle gracefully and return 0
-  local result = Calc.resolve(calcObj, 1920, 1080, nil, nil, nil)
+  local result = Calc.resolve(calcObj, 1920, 1080, nil)
   luaunit.assertEquals(result, 0)
 end
 
@@ -586,7 +570,7 @@ function TestCalc:testTrailingOperator()
   local calcObj = Calc.new("100px + 50px *")
   luaunit.assertTrue(Calc.isCalc(calcObj))
   -- Should handle gracefully and return 0
-  local result = Calc.resolve(calcObj, 1920, 1080, nil, nil, nil)
+  local result = Calc.resolve(calcObj, 1920, 1080, nil)
   luaunit.assertEquals(result, 0)
 end
 
@@ -595,7 +579,7 @@ function TestCalc:testLeadingOperatorNonNegative()
   local calcObj = Calc.new("+ 100px")
   luaunit.assertTrue(Calc.isCalc(calcObj))
   -- Should handle gracefully and return 0
-  local result = Calc.resolve(calcObj, 1920, 1080, nil, nil, nil)
+  local result = Calc.resolve(calcObj, 1920, 1080, nil)
   luaunit.assertEquals(result, 0)
 end
 
@@ -604,7 +588,7 @@ function TestCalc:testInvalidUnit()
   local calcObj = Calc.new("100xyz + 50px")
   luaunit.assertTrue(Calc.isCalc(calcObj))
   -- Should handle gracefully and return 0
-  local result = Calc.resolve(calcObj, 1920, 1080, nil, nil, nil)
+  local result = Calc.resolve(calcObj, 1920, 1080, nil)
   luaunit.assertEquals(result, 0)
 end
 
@@ -613,7 +597,7 @@ function TestCalc:testMixedInvalidSyntax()
   local calcObj = Calc.new("100px + * 50px")
   luaunit.assertTrue(Calc.isCalc(calcObj))
   -- Should handle gracefully and return 0
-  local result = Calc.resolve(calcObj, 1920, 1080, nil, nil, nil)
+  local result = Calc.resolve(calcObj, 1920, 1080, nil)
   luaunit.assertEquals(result, 0)
 end
 
@@ -622,7 +606,7 @@ function TestCalc:testSpecialCharacters()
   local calcObj = Calc.new("100px + 50px @ 20px")
   luaunit.assertTrue(Calc.isCalc(calcObj))
   -- Should handle gracefully and return 0
-  local result = Calc.resolve(calcObj, 1920, 1080, nil, nil, nil)
+  local result = Calc.resolve(calcObj, 1920, 1080, nil)
   luaunit.assertEquals(result, 0)
 end
 
@@ -631,7 +615,7 @@ function TestCalc:testExtremelyLongInvalidExpression()
   local calcObj = Calc.new("100px + + + + + + + + + + 50px")
   luaunit.assertTrue(Calc.isCalc(calcObj))
   -- Should handle gracefully and return 0
-  local result = Calc.resolve(calcObj, 1920, 1080, nil, nil, nil)
+  local result = Calc.resolve(calcObj, 1920, 1080, nil)
   luaunit.assertEquals(result, 0)
 end
 
@@ -640,7 +624,7 @@ function TestCalc:testDivisionByCalculatedZero()
   local calcObj = Calc.new("100px / (50px - 50px)")
   luaunit.assertTrue(Calc.isCalc(calcObj))
   -- Should handle division by zero and return 0
-  local result = Calc.resolve(calcObj, 1920, 1080, nil, nil, nil)
+  local result = Calc.resolve(calcObj, 1920, 1080, nil)
   luaunit.assertEquals(result, 0)
 end
 
@@ -649,7 +633,7 @@ function TestCalc:testNestedDivisionByZero()
   local calcObj = Calc.new("((100px + 50px) / 0) * 2")
   luaunit.assertTrue(Calc.isCalc(calcObj))
   -- Should handle division by zero and return 0
-  local result = Calc.resolve(calcObj, 1920, 1080, nil, nil, nil)
+  local result = Calc.resolve(calcObj, 1920, 1080, nil)
   luaunit.assertEquals(result, 0)
 end
 

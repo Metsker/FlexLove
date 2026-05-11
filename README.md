@@ -862,8 +862,7 @@ local panel = FlexLove.new({
 ```
 
 **Supported operations:** `+`, `-`, `*`, `/`  
-**Supported units:** `px`, `%`, `vw`, `vh`, `ew`, `eh`  
-**Note:** Element width/height units (`ew`, `eh`) cannot be used in position calculations (`x`, `y`) due to circular dependencies.
+**Supported units:** `px`, `%`, `vw`, `vh`
 
 ### Animations
 

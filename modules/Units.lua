@@ -1,4 +1,4 @@
---- Utility module for parsing and resolving CSS-like units (px, %, vw, vh, ew, eh)
+--- Utility module for parsing and resolving CSS-like units (px, %, vw, vh)
 --- Provides unit parsing, validation, and conversion to pixel values
 ---@class Units
 ---@field _Context table? Context module dependency
@@ -15,10 +15,10 @@ function Units.init(deps)
 end
 
 --- Parse a unit value into numeric value and unit type
---- Supports: px (pixels), % (percentage), vw/vh (viewport), ew/eh (element), and calc() expressions
+--- Supports: px (pixels), % (percentage), vw/vh (viewport), and calc() expressions
 ---@param value string|number|table The value to parse (e.g., "50px", "10%", "2vw", 100, or calc object)
 ---@return number|table numericValue The numeric portion of the value or calc object
----@return string unitType The unit type ("px", "%", "vw", "vh", "ew", "eh", "calc")
+---@return string unitType The unit type ("px", "%", "vw", "vh", "calc")
 function Units.parse(value)
   -- Check if value is a calc expression
   if Units._Calc and Units._Calc.isCalc(value) then
@@ -39,7 +39,7 @@ function Units.parse(value)
   end
 
   -- Check for unit-only input (e.g., "px", "%", "vw" without a number)
-  local validUnits = { px = true, ["%"] = true, vw = true, vh = true, ew = true, eh = true }
+  local validUnits = { px = true, ["%"] = true, vw = true, vh = true }
   if validUnits[value] then
     Units._ErrorHandler:warn("Units", "VAL_005", {
       input = value,
@@ -85,7 +85,7 @@ function Units.parse(value)
     Units._ErrorHandler:warn("Units", "VAL_005", {
       input = value,
       unit = unit,
-      validUnits = "px, %, vw, vh, ew, eh",
+      validUnits = "px, %, vw, vh",
     })
     return num, "px"
   end
@@ -96,18 +96,16 @@ end
 --- Convert relative units to absolute pixel values
 --- Resolves %, vw, vh units based on viewport and parent dimensions, and evaluates calc() expressions
 ---@param value number|table Numeric value to convert or calc object
----@param unit string Unit type ("px", "%", "vw", "vh", "ew", "eh", "calc")
+---@param unit string Unit type ("px", "%", "vw", "vh", "calc")
 ---@param viewportWidth number Current viewport width in pixels
 ---@param viewportHeight number Current viewport height in pixels
 ---@param parentSize number? Required for percentage units (parent dimension in pixels)
----@param elementWidth number? Required for ew units in calc expressions (element width in pixels)
----@param elementHeight number? Required for eh units in calc expressions (element height in pixels)
 ---@return number resolvedValue Resolved pixel value
-function Units.resolve(value, unit, viewportWidth, viewportHeight, parentSize, elementWidth, elementHeight)
+function Units.resolve(value, unit, viewportWidth, viewportHeight, parentSize)
   if unit == "calc" then
     -- Resolve calc expression
     if Units._Calc then
-      return Units._Calc.resolve(value, viewportWidth, viewportHeight, parentSize, elementWidth, elementHeight)
+      return Units._Calc.resolve(value, viewportWidth, viewportHeight, parentSize)
     else
       Units._ErrorHandler:warn("Units", "VAL_006", {
         unit = "calc",
@@ -133,7 +131,7 @@ function Units.resolve(value, unit, viewportWidth, viewportHeight, parentSize, e
   else
     Units._ErrorHandler:warn("Units", "VAL_005", {
       unit = unit,
-      validUnits = "px, %, vw, vh, ew, eh, calc",
+      validUnits = "px, %, vw, vh, calc",
     })
     return 0
   end
@@ -191,14 +189,14 @@ function Units.resolveSpacing(spacingProps, parentWidth, parentHeight)
   if vertical then
     if type(vertical) == "string" or (Units._Calc and Units._Calc.isCalc(vertical)) then
       local value, unit = Units.parse(vertical)
-      vertical = Units.resolve(value, unit, viewportWidth, viewportHeight, parentHeight, nil, nil)
+      vertical = Units.resolve(value, unit, viewportWidth, viewportHeight, parentHeight)
     end
   end
 
   if horizontal then
     if type(horizontal) == "string" or (Units._Calc and Units._Calc.isCalc(horizontal)) then
       local value, unit = Units.parse(horizontal)
-      horizontal = Units.resolve(value, unit, viewportWidth, viewportHeight, parentWidth, nil, nil)
+      horizontal = Units.resolve(value, unit, viewportWidth, viewportHeight, parentWidth)
     end
   end
 
@@ -208,7 +206,7 @@ function Units.resolveSpacing(spacingProps, parentWidth, parentHeight)
       if type(value) == "string" or (Units._Calc and Units._Calc.isCalc(value)) then
         local numValue, unit = Units.parse(value)
         local parentSize = (side == "top" or side == "bottom") and parentHeight or parentWidth
-        result[side] = Units.resolve(numValue, unit, viewportWidth, viewportHeight, parentSize, nil, nil)
+        result[side] = Units.resolve(numValue, unit, viewportWidth, viewportHeight, parentSize)
       else
         result[side] = value
       end
@@ -261,7 +259,7 @@ function Units.isValid(unitStr)
   end
 
   -- Check if unit is valid
-  local validUnits = { px = true, ["%"] = true, vw = true, vh = true, ew = true, eh = true }
+  local validUnits = { px = true, ["%"] = true, vw = true, vh = true }
   return validUnits[unit] == true
 end
 

@@ -814,14 +814,6 @@ function Element.new(props)
       elseif unit == "vw" then
         -- vw is relative to viewport width
         self.textSize = Element._Units.resolve(value, unit, viewportWidth, viewportHeight, viewportWidth)
-      elseif unit == "ew" then
-        -- ew is relative to element width (use viewport width as fallback during initialization)
-        -- Will be re-resolved after width is set
-        self.textSize = (value / 100) * viewportWidth
-      elseif unit == "eh" then
-        -- eh is relative to element height (use viewport height as fallback during initialization)
-        -- Will be re-resolved after height is set
-        self.textSize = (value / 100) * viewportHeight
       elseif unit == "px" then
         -- Pixel units
         self.textSize = value
@@ -1163,22 +1155,8 @@ function Element.new(props)
   self.width = math.max(0, self._borderBoxWidth - self.padding.left - self.padding.right)
   self.height = math.max(0, self._borderBoxHeight - self.padding.top - self.padding.bottom)
 
-  -- Re-resolve ew/eh textSize units now that width/height are set
-  if props.textSize and type(props.textSize) == "string" then
-    -- Check if it's a preset first (presets don't need re-resolution)
-    local presetValue, presetUnit = Element._utils.resolveTextSizePreset(props.textSize)
-    if not presetValue then
-      -- Not a preset, parse and check for ew/eh units
-      local value, unit = Element._Units.parse(props.textSize)
-      if unit == "ew" then
-        -- Element width relative (now that width is set)
-        self.textSize = (value / 100) * self.width
-      elseif unit == "eh" then
-        -- Element height relative (now that height is set)
-        self.textSize = (value / 100) * self.height
-      end
-    end
-  end
+  -- Re-resolve textSize presets now that width/height are set
+  -- (presets like "vw" need the viewport; others are resolved during constructor)
 
   -- Apply min/max constraints (also scaled)
   local minSize = self.minTextSize and (Element._Context.baseScale and (self.minTextSize * scaleY) or self.minTextSize)
@@ -3542,51 +3520,7 @@ function Element:resize(newGameWidth, newGameHeight)
     self.height = contentHeight
   end
 
-  -- Re-resolve ew/eh textSize units after all dimensions are finalized
-  -- This ensures textSize updates based on current width/height (whether calculated or manually set)
-  if self.units.textSize.value then
-    local unit = self.units.textSize.unit
-    local value = self.units.textSize.value
-    local _, scaleY = Element._Context.getScaleFactors()
-
-    if unit == "ew" then
-      -- Element width relative (use current width)
-      self.textSize = (value / 100) * self.width
-
-      -- Apply min/max constraints
-      local minSize = self.minTextSize
-        and (Element._Context.baseScale and (self.minTextSize * scaleY) or self.minTextSize)
-      local maxSize = self.maxTextSize
-        and (Element._Context.baseScale and (self.maxTextSize * scaleY) or self.maxTextSize)
-      if minSize and self.textSize < minSize then
-        self.textSize = minSize
-      end
-      if maxSize and self.textSize > maxSize then
-        self.textSize = maxSize
-      end
-      if self.textSize < 1 then
-        self.textSize = 1
-      end
-    elseif unit == "eh" then
-      -- Element height relative (use current height)
-      self.textSize = (value / 100) * self.height
-
-      -- Apply min/max constraints
-      local minSize = self.minTextSize
-        and (Element._Context.baseScale and (self.minTextSize * scaleY) or self.minTextSize)
-      local maxSize = self.maxTextSize
-        and (Element._Context.baseScale and (self.maxTextSize * scaleY) or self.maxTextSize)
-      if minSize and self.textSize < minSize then
-        self.textSize = minSize
-      end
-      if maxSize and self.textSize > maxSize then
-        self.textSize = maxSize
-      end
-      if self.textSize < 1 then
-        self.textSize = 1
-      end
-    end
-  end
+  -- Re-resolve textSize if it uses viewport-relative units after dimensions are finalized
 
   self:layoutChildren()
   self.prevGameSize.width = newGameWidth
