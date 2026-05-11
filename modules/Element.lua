@@ -317,6 +317,9 @@ function Element.new(props)
       getScaledContentPaddingForState = function()
         return noPadding
       end,
+      _getScaledContentPaddingForState = function()
+        return noPadding
+      end,
       getStyle = function()
         return nil
       end,
@@ -2394,7 +2397,7 @@ function Element:getContentStateOffset()
   local borderBoxHeight = self._borderBoxHeight or (self.height + self.padding.top + self.padding.bottom)
 
   local currentPadding = self:getScaledContentPadding()
-  local basePadding = self._themeManager:getScaledContentPaddingForState("normal", borderBoxWidth, borderBoxHeight)
+  local basePadding = self._themeManager:_getScaledContentPaddingForState("normal", borderBoxWidth, borderBoxHeight)
 
   if not currentPadding or not basePadding then
     return 0, 0

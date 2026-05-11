@@ -1138,7 +1138,7 @@ end
 ---@param borderBoxWidth number The border box width
 ---@param borderBoxHeight number The border box height
 ---@return table? padding Table with {left, top, right, bottom}, or nil if no contentPadding
-function ThemeManager:getScaledContentPaddingForState(state, borderBoxWidth, borderBoxHeight)
+function ThemeManager:_getScaledContentPaddingForState(state, borderBoxWidth, borderBoxHeight)
   if not self.themeComponent then
     return nil
   end
@@ -1158,13 +1158,22 @@ function ThemeManager:getScaledContentPaddingForState(state, borderBoxWidth, bor
   return self:_getScaledContentPaddingForComponent(component, borderBoxWidth, borderBoxHeight)
 end
 
+---@param state string The theme state to resolve (e.g. "normal", "pressed")
+---@param borderBoxWidth number The border box width
+---@param borderBoxHeight number The border box height
+---@return table? padding Table with {left, top, right, bottom}, or nil if no contentPadding
+function ThemeManager:getScaledContentPaddingForState(state, borderBoxWidth, borderBoxHeight)
+  Theme._ErrorHandler:warnDeprecated("Theme", "getScaledContentPaddingForState", "getScaledContentPadding")
+  return self:getScaledContentPadding(borderBoxWidth, borderBoxHeight)
+end
+
 ---Get scaled content padding based on current theme state and border box dimensions
 ---@param borderBoxWidth number The border box width
 ---@param borderBoxHeight number The border box height
 ---@return table? padding Table with {left, top, right, bottom}, or nil if no contentPadding
 function ThemeManager:getScaledContentPadding(borderBoxWidth, borderBoxHeight)
   local state = self._themeState or "normal"
-  return self:getScaledContentPaddingForState(state, borderBoxWidth, borderBoxHeight)
+  return self:_getScaledContentPaddingForState(state, borderBoxWidth, borderBoxHeight)
 end
 
 ---Get content auto-sizing multiplier from theme or component

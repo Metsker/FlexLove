@@ -484,7 +484,8 @@ local ThemeDefinition = {}
 ---@field getStateComponent fun(self:ThemeManager): ThemeComponent?
 ---@field getScrollbarComponent fun(self:ThemeManager, scrollbarName:string?): ThemeComponent?
 ---@field getStyle fun(self:ThemeManager, property:string): any?
----@field getScaledContentPaddingForState fun(self:ThemeManager, state:string, borderBoxWidth:number, borderBoxHeight:number): table?
+---@field _getScaledContentPaddingForState fun(self:ThemeManager, state:string, borderBoxWidth:number, borderBoxHeight:number): table?
+---@field getScaledContentPaddingForState fun(self:ThemeManager, state:string, borderBoxWidth:number, borderBoxHeight:number): table? -- deprecated, use getScaledContentPadding
 ---@field getScaledContentPadding fun(self:ThemeManager, borderBoxWidth:number, borderBoxHeight:number): table?
 ---@field getContentAutoSizingMultiplier fun(self:ThemeManager): table?
 ---@field getDefaultFontFamily fun(self:ThemeManager): string?

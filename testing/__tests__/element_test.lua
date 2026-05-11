@@ -2694,6 +2694,67 @@ function TestElementTheme:test_getScaledContentPadding_no_theme()
   luaunit.assertNil(padding)
 end
 
+function TestElementTheme:test_getScaledContentPaddingForState_shim()
+  local atlas = love.graphics.newImage(love.image.newImageData(100, 100))
+  local previousTheme = FlexLove.Theme.getActive()
+  local preloadKey = "modules.themes.content_padding_shim_test"
+
+  local definition = {
+    name = "content_padding_shim_test",
+    components = {
+      button = {
+        atlas = atlas,
+        _ninePatchData = {
+          contentPadding = { left = 10, top = 10, right = 10, bottom = 10 },
+        },
+      },
+    },
+  }
+
+  package.preload[preloadKey] = function()
+    return definition
+  end
+
+  local theme = FlexLove.Theme.load("content_padding_shim_test")
+  FlexLove.Theme.setActive(theme)
+
+  local element = FlexLove.new({
+    id = "shim_test",
+    x = 0,
+    y = 0,
+    width = 100,
+    height = 60,
+    theme = "content_padding_shim_test",
+    themeComponent = "button",
+  })
+
+  local borderBoxWidth = element._borderBoxWidth or (element.width + element.padding.left + element.padding.right)
+  local borderBoxHeight = element._borderBoxHeight or (element.height + element.padding.top + element.padding.bottom)
+
+  local warnings = {}
+  local original_warn = FlexLove._ErrorHandler.warn
+  FlexLove._ErrorHandler.warn = function(_, module, code, details)
+    table.insert(warnings, { code = code, details = details })
+  end
+
+  local shimResult = element._themeManager:getScaledContentPaddingForState("normal", borderBoxWidth, borderBoxHeight)
+  local directResult = element:getScaledContentPadding()
+
+  FlexLove._ErrorHandler.warn = original_warn
+
+  package.preload[preloadKey] = nil
+  if previousTheme then
+    FlexLove.Theme.setActive(previousTheme)
+  end
+
+  luaunit.assertEquals(shimResult.left, directResult.left)
+  luaunit.assertEquals(shimResult.top, directResult.top)
+  luaunit.assertEquals(shimResult.right, directResult.right)
+  luaunit.assertEquals(shimResult.bottom, directResult.bottom)
+  luaunit.assertTrue(#warnings > 0)
+  luaunit.assertStrContains(warnings[1].code, "deprecated")
+end
+
 function TestElementTheme:test_getAvailableContentWidth_with_padding()
   local element = FlexLove.new({
     id = "content_width",
@@ -2785,9 +2846,9 @@ function TestElementTheme:test_children_shift_with_pressed_theme_state()
 
   local borderBoxWidth = parent._borderBoxWidth or (parent.width + parent.padding.left + parent.padding.right)
   local borderBoxHeight = parent._borderBoxHeight or (parent.height + parent.padding.top + parent.padding.bottom)
-  local normalPadding = parent._themeManager:getScaledContentPaddingForState("normal", borderBoxWidth, borderBoxHeight)
+  local normalPadding = parent._themeManager:_getScaledContentPaddingForState("normal", borderBoxWidth, borderBoxHeight)
   local pressedPadding =
-    parent._themeManager:getScaledContentPaddingForState("pressed", borderBoxWidth, borderBoxHeight)
+    parent._themeManager:_getScaledContentPaddingForState("pressed", borderBoxWidth, borderBoxHeight)
   local expectedShiftX = pressedPadding.left - normalPadding.left
   local expectedShiftY = pressedPadding.top - normalPadding.top
 
