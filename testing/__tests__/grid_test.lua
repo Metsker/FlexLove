@@ -868,6 +868,126 @@ function TestGridLayout:test_variable_auto_max_content()
   luaunit.assertEquals(children[2].width, 480, "1fr col gets all remaining (480)")
 end
 
+-- =================================================== --
+-- Negative / Overflow Size Guard Tests               --
+-- =================================================== --
+
+-- Test that fr tracks don't get negative when px tracks exceed container size
+function TestGridLayout:test_guard_negative_fr_tracks()
+  local container = FlexLove.new({
+    id = "grid",
+    x = 0,
+    y = 0,
+    width = 100,
+    height = 100,
+    positioning = "grid",
+    gridTemplateColumns = { "200px", "1fr" }, -- px exceeds available width
+    gridTemplateRows = { "1fr" },
+  })
+
+  local child = FlexLove.new({
+    id = "child1",
+    parent = container,
+  })
+
+  FlexLove.endFrame()
+  FlexLove.beginFrame()
+
+  -- col1 = 100px (clamped to availableWidth), col2 = 1fr = 0 (no space remaining)
+  -- Track sizes should never be negative
+  luaunit.assertNotNil(child.x, "Child should be positioned")
+  luaunit.assertTrue(child.width >= 0, "Child width should never be negative, got " .. tostring(child.width))
+end
+
+-- Test that fr tracks handle all-px overflow gracefully
+function TestGridLayout:test_guard_all_px_overflow()
+  local container = FlexLove.new({
+    id = "grid",
+    x = 0,
+    y = 0,
+    width = 50,
+    height = 50,
+    positioning = "grid",
+    gridTemplateColumns = { "100px", "100px" }, -- both exceed available
+    gridTemplateRows = { "1fr" },
+  })
+
+  local child = FlexLove.new({
+    id = "child1",
+    parent = container,
+  })
+
+  FlexLove.endFrame()
+  FlexLove.beginFrame()
+
+  luaunit.assertTrue(child.width >= 0, "Child width should never be negative, got " .. tostring(child.width))
+end
+
+-- Test that large reserved space doesn't cause negative available space
+function TestGridLayout:test_guard_negative_available_space()
+  local container = FlexLove.new({
+    id = "grid",
+    x = 0,
+    y = 0,
+    width = 100,
+    height = 100,
+    positioning = "grid",
+    gridRows = 1,
+    gridColumns = 1,
+  })
+
+  -- Absolute child that reserves more space than container has
+  FlexLove.new({
+    id = "abs_child",
+    parent = container,
+    positioning = "absolute",
+    left = 0,
+    top = 0,
+    width = 200, -- larger than container width
+    height = 200, -- larger than container height
+  })
+
+  local child = FlexLove.new({
+    id = "child1",
+    parent = container,
+  })
+
+  FlexLove.endFrame()
+  FlexLove.beginFrame()
+
+  -- Available space should be clamped to 0 (not negative)
+  -- When available is 0, track = 0, child width/height = 0 or greater
+  luaunit.assertTrue(child.width >= 0, "Child width should never be negative, got " .. tostring(child.width))
+  luaunit.assertTrue(child.height >= 0, "Child height should never be negative, got " .. tostring(child.height))
+end
+
+-- Test that extreme values don't cause negative track sizes
+function TestGridLayout:test_guard_extreme_overflow()
+  local container = FlexLove.new({
+    id = "grid",
+    x = 0,
+    y = 0,
+    width = 10,
+    height = 10,
+    positioning = "grid",
+    gridTemplateColumns = { "auto", "auto", "auto" },
+    gridTemplateRows = { "auto", "auto" },
+  })
+
+  local child = FlexLove.new({
+    id = "child1",
+    parent = container,
+    width = 500,
+    height = 500,
+  })
+
+  FlexLove.endFrame()
+  FlexLove.beginFrame()
+
+  luaunit.assertTrue(child.width >= 0, "Child width should never be negative, got " .. tostring(child.width))
+  luaunit.assertTrue(child.height >= 0, "Child height should never be negative, got " .. tostring(child.height))
+end
+
 if not _G.RUNNING_ALL_TESTS then
   os.exit(luaunit.LuaUnit.run())
 end

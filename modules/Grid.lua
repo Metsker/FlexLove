@@ -137,6 +137,8 @@ function Grid._resolveTracks(tracks, availableSize, gap)
     end
   end
 
+  remaining = math.max(0, remaining)
+
   -- Pass 2: Count fr shares
   local totalFr = 0
   local autoCount = 0
@@ -209,8 +211,8 @@ function Grid.layoutGridItems(element)
 
   -- Calculate available space (accounting for padding and reserved space)
   -- BORDER-BOX MODEL: element.width and element.height are already content dimensions
-  local availableWidth = element.width - reservedLeft - reservedRight
-  local availableHeight = element.height - reservedTop - reservedBottom
+  local availableWidth = math.max(0, element.width - reservedLeft - reservedRight)
+  local availableHeight = math.max(0, element.height - reservedTop - reservedBottom)
 
   -- Get gaps
   local columnGap = element.columnGap or 0
