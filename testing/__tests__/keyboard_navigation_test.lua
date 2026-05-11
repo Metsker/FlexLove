@@ -69,6 +69,63 @@ end
 
 -- Test cases
 local tests = {
+
+  testApplyKeyboardNavConfigExists = function()
+    assert(type(FlexLove._applyKeyboardNavConfig) == "function", "_applyKeyboardNavConfig should be a function")
+    print("[PASS] testApplyKeyboardNavConfigExists")
+  end,
+
+  testApplyKeyboardNavConfigFocusIndicatorColor = function()
+    local originalColor = {
+      FocusIndicator.config.color[1],
+      FocusIndicator.config.color[2],
+      FocusIndicator.config.color[3],
+      FocusIndicator.config.color[4],
+    }
+    FlexLove._applyKeyboardNavConfig({
+      focusIndicator = {
+        color = { 1, 0, 0, 1 },
+      },
+    })
+    assert(FocusIndicator.config.color[1] == 1, "Red channel should be 1")
+    assert(FocusIndicator.config.color[2] == 0, "Green channel should be 0")
+    assert(FocusIndicator.config.color[3] == 0, "Blue channel should be 0")
+    assert(FocusIndicator.config.color[4] == 1, "Alpha channel should be 1")
+    FocusIndicator.setColor(originalColor[1], originalColor[2], originalColor[3], originalColor[4])
+    print("[PASS] testApplyKeyboardNavConfigFocusIndicatorColor")
+  end,
+
+  testApplyKeyboardNavConfigFocusIndicatorEnabled = function()
+    local original = FocusIndicator.config.enabled
+    FlexLove._applyKeyboardNavConfig({
+      focusIndicator = {
+        enabled = false,
+      },
+    })
+    assert(FocusIndicator.config.enabled == false, "FocusIndicator enabled should be false")
+    FocusIndicator.config.enabled = original
+    print("[PASS] testApplyKeyboardNavConfigFocusIndicatorEnabled")
+  end,
+
+  testEnableKeyboardNavigationUpdatesFocusIndicatorColor = function()
+    local originalColor = {
+      FocusIndicator.config.color[1],
+      FocusIndicator.config.color[2],
+      FocusIndicator.config.color[3],
+      FocusIndicator.config.color[4],
+    }
+    FlexLove.enableKeyboardNavigation({
+      focusIndicator = {
+        color = { 0, 1, 0, 1 },
+      },
+    })
+    assert(FocusIndicator.config.color[1] == 0, "Red channel should be 0")
+    assert(FocusIndicator.config.color[2] == 1, "Green channel should be 1")
+    assert(FocusIndicator.config.color[3] == 0, "Blue channel should be 0")
+    assert(FocusIndicator.config.color[4] == 1, "Alpha channel should be 1")
+    FocusIndicator.setColor(originalColor[1], originalColor[2], originalColor[3], originalColor[4])
+    print("[PASS] testEnableKeyboardNavigationUpdatesFocusIndicatorColor")
+  end,
   testFocusableDetection = function()
     local focused = Element.new({ editable = true })
     local interactive = Element.new({ onEvent = function() end })
