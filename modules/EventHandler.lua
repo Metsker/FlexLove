@@ -173,10 +173,9 @@ function EventHandler:processMouseEvents(element, mx, my, isHovering, isActiveEl
     end
 
     -- Track hover state changes even when events can't be processed
-    -- Fire unhover event if we were hovering and now we're not (but not if disabled)
-    if self._hovered and not isHovering and not element.disabled then
+    -- Fire synthetic unhover when element becomes disabled while hovered
+    if element.disabled and self._hovered then
       self._hovered = false
-      -- Fire unhover event if handler exists
       if self.onEvent then
         local modifiers = EventHandler._utils.getModifiers()
         local unhoverEvent = EventHandler._InputEvent.new({
@@ -190,8 +189,19 @@ function EventHandler:processMouseEvents(element, mx, my, isHovering, isActiveEl
         self:_invokeCallback(element, unhoverEvent)
       end
     elseif self._hovered and not isHovering then
-      -- Just clear hovered state without firing event when disabled
       self._hovered = false
+      if self.onEvent then
+        local modifiers = EventHandler._utils.getModifiers()
+        local unhoverEvent = EventHandler._InputEvent.new({
+          type = "unhover",
+          button = 0,
+          x = mx,
+          y = my,
+          modifiers = modifiers,
+          clickCount = 0,
+        })
+        self:_invokeCallback(element, unhoverEvent)
+      end
     end
 
     if EventHandler._Performance and EventHandler._Performance.enabled then
@@ -319,7 +329,7 @@ function EventHandler:_handleMousePress(element, mx, my, button)
 
   -- On left click, set keyboard focus to any focusable element (not just editable).
   -- Clear the focus indicator since mouse navigation doesn't use it.
-  local isFocusable = false
+  local isFocusable
   if type(element.isFocusable) == "function" then
     isFocusable = element:isFocusable()
   else
@@ -417,7 +427,7 @@ function EventHandler:_handleMouseRelease(element, mx, my, button)
   end
 
   -- Determine click count (double-click detection)
-  local clickCount = 1
+  local clickCount
   local doubleClickThreshold = 0.3 -- 300ms for double-click
 
   if
@@ -506,10 +516,6 @@ function EventHandler:processTouchEvents(element)
     EventHandler._Performance:startTimer("event_touch")
   end
 
-  -- Get all active touches from LÖVE
-  local loveTouches = love.touch.getTouches()
-  local activeTouchIds = {}
-
   -- Check if element can process events
   local canProcessEvents = (self.onEvent or self.onTouchEvent or element.editable)
     and not element.disabled
@@ -553,9 +559,7 @@ function EventHandler:processTouchEvents(element)
       if not self._touches[touchId] then
         -- Multi-touch filtering: reject new touches when multiTouchEnabled=false
         -- and we already have an active touch
-        if not self.multiTouchEnabled and trackedTouchCount > 0 then
-          -- Skip this new touch (single-touch mode, already tracking one)
-        else
+        if self.multiTouchEnabled or trackedTouchCount == 0 then
           -- New touch began
           self:_handleTouchBegan(element, touchId, tx, ty, pressure)
           trackedTouchCount = trackedTouchCount + 1

@@ -483,8 +483,8 @@ function TestEventHandler:test_processMouseEvents_disabled()
   love.mouse.isDown = originalIsDown
 end
 
--- Test: processMouseEvents() does not fire unhover for disabled element
-function TestEventHandler:test_processMouseEvents_disabled_no_unhover()
+-- Test: processMouseEvents() fires unhover when disabled element was hovered
+function TestEventHandler:test_processMouseEvents_disabled_fires_unhover()
   local handler = createEventHandler()
   local element = createMockElement()
 
@@ -502,8 +502,34 @@ function TestEventHandler:test_processMouseEvents_disabled_no_unhover()
   element.disabled = true
   handler:processMouseEvents(element, 50, 50, false, true)
 
-  -- Should not have fired an unhover event
+  -- Should fire unhover to keep events balanced
+  luaunit.assertEquals(#eventsReceived, 2)
+  luaunit.assertEquals(eventsReceived[2].type, "unhover")
+end
+
+-- Test: processMouseEvents() fires unhover when element disabled during hover
+function TestEventHandler:test_processMouseEvents_disabled_during_hover()
+  local handler = createEventHandler()
+  local element = createMockElement()
+
+  local eventsReceived = {}
+  handler.onEvent = function(el, event)
+    table.insert(eventsReceived, event)
+  end
+
+  -- First hover the element
+  handler:processMouseEvents(element, 50, 50, true, true)
   luaunit.assertEquals(#eventsReceived, 1)
+  luaunit.assertEquals(eventsReceived[1].type, "hover")
+
+  -- Disable the element while mouse is still hovering
+  element.disabled = true
+  handler:processMouseEvents(element, 50, 50, true, true)
+
+  -- Should fire unhover to keep events balanced
+  luaunit.assertEquals(#eventsReceived, 2)
+  luaunit.assertEquals(eventsReceived[2].type, "unhover")
+  luaunit.assertFalse(handler._hovered)
 end
 
 -- Test: processTouchEvents() handles touch
