@@ -2401,6 +2401,24 @@ function TestElementUpdate:test_deferred_method_error_handling()
   luaunit.assertTrue(success)
 end
 
+function TestElementUpdate:test_deferred_method_preserves_nil_args()
+  local callArgs
+  local element = createBasicElement({
+    id = "defer_nil_test",
+  })
+  function element:captureArgs(a, b, c)
+    callArgs = { a, b, c }
+  end
+
+  element:_deferMethod("captureArgs", "hello", nil, "world")
+
+  element:update(0.016)
+
+  luaunit.assertEquals(callArgs[1], "hello")
+  luaunit.assertTrue(callArgs[2] == nil)
+  luaunit.assertEquals(callArgs[3], "world")
+end
+
 -- ============================================================================
 -- Element Draw Tests
 -- ============================================================================

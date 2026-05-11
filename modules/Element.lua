@@ -3,6 +3,7 @@ Element.__index = Element
 
 local MAX_DEFER_RETRIES = 10
 local MAX_DEFERRED_METHODS = 100
+local _DEFERRED_NIL = {}
 local unpack = table.unpack or unpack
 
 ---Initialize Element module with required dependencies
@@ -2330,8 +2331,12 @@ function Element:_deferMethod(methodName, ...)
     return
   end
 
-  local args = { ... }
   local argc = select("#", ...)
+  local args = {}
+  for i = 1, argc do
+    local val = select(i, ...)
+    args[i] = val == nil and _DEFERRED_NIL or val
+  end
   table.insert(self._deferredMethods, {
     methodName = methodName,
     args = args,
@@ -3802,8 +3807,17 @@ function Element:update(dt)
         })
       else
         local beforeCount = #self._deferredMethods
+        local callArgs = {}
+        for j = 1, entry.argc do
+          local val = entry.args[j]
+          if val == _DEFERRED_NIL then
+            callArgs[j] = nil
+          else
+            callArgs[j] = val
+          end
+        end
         local success, err = pcall(function()
-          self[entry.methodName](self, unpack(entry.args, 1, entry.argc))
+          self[entry.methodName](self, unpack(callArgs, 1, entry.argc))
         end)
         if not success then
           Element._ErrorHandler:warn("Element", "CORE_002", {
