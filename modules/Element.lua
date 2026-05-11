@@ -1,6 +1,10 @@
 local Element = {}
 Element.__index = Element
 
+local MAX_DEFER_RETRIES = 10
+local MAX_DEFERRED_METHODS = 100
+local unpack = table.unpack or unpack
+
 ---Initialize Element module with required dependencies
 ---@param deps table Dependency table containing all required modules
 function Element.init(deps)
@@ -2301,11 +2305,31 @@ end
 ---@param methodName string The method name to retry
 ---@param ... any? Arguments to forward on retry
 function Element:_deferMethod(methodName, ...)
+  if type(self[methodName]) ~= "function" then
+    Element._ErrorHandler:warn("Element", "CORE_005", {
+      element = self.id,
+      method = tostring(methodName),
+    })
+    return
+  end
+
+  if #self._deferredMethods >= MAX_DEFERRED_METHODS then
+    Element._ErrorHandler:warn("Element", "CORE_004", {
+      element = self.id,
+      method = tostring(methodName),
+      retryCount = MAX_DEFERRED_METHODS,
+    })
+    return
+  end
+
   local args = { ... }
   local argc = select("#", ...)
-  table.insert(self._deferredMethods, function()
-    self[methodName](self, unpack(args, 1, argc))
-  end)
+  table.insert(self._deferredMethods, {
+    methodName = methodName,
+    args = args,
+    argc = argc,
+    retryCount = 0,
+  })
 end
 
 --- Scroll to bottom
@@ -3761,8 +3785,32 @@ function Element:update(dt)
   if #self._deferredMethods > 0 then
     local pending = self._deferredMethods
     self._deferredMethods = {}
-    for _, fn in ipairs(pending) do
-      fn()
+    for _, entry in ipairs(pending) do
+      if entry.retryCount >= MAX_DEFER_RETRIES then
+        Element._ErrorHandler:warn("Element", "CORE_004", {
+          element = self.id,
+          method = tostring(entry.methodName),
+          retryCount = entry.retryCount,
+        })
+      else
+        local beforeCount = #self._deferredMethods
+        local success, err = pcall(function()
+          self[entry.methodName](self, unpack(entry.args, 1, entry.argc))
+        end)
+        if not success then
+          Element._ErrorHandler:warn("Element", "CORE_002", {
+            element = self.id,
+            method = tostring(entry.methodName),
+            error = tostring(err),
+          })
+        end
+        -- Propagate retry count to any new deferred entry for the same method
+        for i = beforeCount + 1, #self._deferredMethods do
+          if self._deferredMethods[i].methodName == entry.methodName then
+            self._deferredMethods[i].retryCount = entry.retryCount + 1
+          end
+        end
+      end
     end
   end
 end

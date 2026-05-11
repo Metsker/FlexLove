@@ -463,6 +463,18 @@ local ErrorCodes = {
       description = "Invalid garbage collection strategy",
       suggestion = "GC strategy must be one of: 'default', 'aggressive', 'conservative'",
     },
+    CORE_004 = {
+      code = "FLEXLOVE_CORE_004",
+      category = "SYS",
+      description = "Deferred method retry limit exceeded",
+      suggestion = "A deferred method has been retried too many times without succeeding. Check that preconditions are eventually met.",
+    },
+    CORE_005 = {
+      code = "FLEXLOVE_CORE_005",
+      category = "VAL",
+      description = "Invalid deferred method",
+      suggestion = "The method name provided to _deferMethod does not exist on the element.",
+    },
 
     -- Element Errors (ELEM_001 - ELEM_099)
     ELEM_001 = {

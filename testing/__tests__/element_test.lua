@@ -2295,6 +2295,49 @@ function TestElementUpdate:test_countActiveAnimations()
   luaunit.assertEquals(count, 0)
 end
 
+function TestElementUpdate:test_defer_method_nonexistent_method()
+  local element = createBasicElement({
+    id = "defer_test",
+  })
+
+  local success = pcall(function()
+    element:_deferMethod("nonexistentMethod")
+  end)
+  luaunit.assertTrue(success)
+end
+
+function TestElementUpdate:test_defer_method_max_queue()
+  local element = createBasicElement({
+    id = "defer_test_queue",
+  })
+
+  local success = true
+  for i = 1, 110 do
+    local ok = pcall(function()
+      element:_deferMethod("scrollToBottom")
+    end)
+    if not ok then
+      success = false
+      break
+    end
+  end
+  luaunit.assertTrue(success)
+end
+
+function TestElementUpdate:test_deferred_method_error_handling()
+  local element = createBasicElement({
+    id = "defer_test_err",
+  })
+
+  element:_deferMethod("scrollToBottom")
+  element:_deferMethod("scrollToBottom")
+
+  local success = pcall(function()
+    element:update(0.016)
+  end)
+  luaunit.assertTrue(success)
+end
+
 -- ============================================================================
 -- Element Draw Tests
 -- ============================================================================
