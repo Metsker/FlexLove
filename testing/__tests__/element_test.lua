@@ -1576,6 +1576,69 @@ function TestElementScroll:test_getContentSize()
   luaunit.assertNotNil(contentHeight)
 end
 
+function TestElementScroll:test_scrollBy_per_axis_deferral()
+  local container = FlexLove.new({
+    id = "container",
+    width = 300,
+    height = 200,
+    overflow = "scroll",
+    positioning = "flex",
+    flexDirection = "vertical",
+  })
+
+  -- Children narrower than container (no X overflow) but taller (Y overflow)
+  for i = 1, 10 do
+    FlexLove.new({
+      id = "item_" .. i,
+      width = 280,
+      height = 50,
+      parent = container,
+    })
+  end
+
+  local maxScrollX, maxScrollY = container:getMaxScroll()
+  luaunit.assertEquals(maxScrollX, 0)
+  luaunit.assertTrue(maxScrollY > 0)
+
+  -- X is blocked (maxScrollX=0), so X should be deferred
+  -- Y is not blocked, so Y should scroll immediately
+  container:scrollBy(10, 20)
+  local scrollX, scrollY = container:getScrollPosition()
+  luaunit.assertEquals(scrollX, 0)
+  luaunit.assertAlmostEquals(scrollY, 20, 0.001)
+end
+
+function TestElementScroll:test_scrollBy_both_axes_valid()
+  local container = FlexLove.new({
+    id = "container",
+    width = 200,
+    height = 200,
+    overflow = "scroll",
+    positioning = "flex",
+    flexDirection = "vertical",
+  })
+
+  -- Children wider and taller than container (both axes overflow)
+  for i = 1, 10 do
+    FlexLove.new({
+      id = "item_" .. i,
+      width = 300,
+      height = 50,
+      parent = container,
+    })
+  end
+
+  local maxScrollX, maxScrollY = container:getMaxScroll()
+  luaunit.assertTrue(maxScrollX > 0)
+  luaunit.assertTrue(maxScrollY > 0)
+
+  -- Both axes valid — no deferral, both scroll immediately
+  container:scrollBy(10, 20)
+  local scrollX, scrollY = container:getScrollPosition()
+  luaunit.assertAlmostEquals(scrollX, 10, 0.001)
+  luaunit.assertAlmostEquals(scrollY, 20, 0.001)
+end
+
 -- ============================================================================
 -- Element Child Management Tests
 -- ============================================================================

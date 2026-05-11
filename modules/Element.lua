@@ -2283,9 +2283,17 @@ end
 function Element:scrollBy(dx, dy)
   if self._scrollManager then
     local maxScrollX, maxScrollY = self._scrollManager:getMaxScroll()
-    if (dx ~= nil and maxScrollX == 0) or (dy ~= nil and maxScrollY == 0) then
-      self:_deferMethod("scrollBy", dx, dy)
-    else
+
+    if dx ~= nil and maxScrollX == 0 then
+      self:_deferMethod("scrollBy", dx, nil)
+      dx = nil
+    end
+    if dy ~= nil and maxScrollY == 0 then
+      self:_deferMethod("scrollBy", nil, dy)
+      dy = nil
+    end
+
+    if dx ~= nil or dy ~= nil then
       self._scrollManager:scrollBy(dx, dy)
       self:_syncScrollManagerState()
     end
