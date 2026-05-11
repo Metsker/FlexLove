@@ -1,19 +1,30 @@
 local modulePath = (...):match("(.-)[^%.]+$")
 local utils = require(modulePath .. "utils")
 local enums = utils.enums
+local Units = require(modulePath .. "Units")
 
 local Positioning = enums.Positioning
 local AlignItems = enums.AlignItems
 
 --- Grid layout with variable column widths / row heights
---- Supports px, %, fr, and auto track sizes
+--- Supports px, %, fr, auto, vw, vh, and calc track sizes
 local Grid = {}
 
 --- Parse a single track spec into {type, value}
----@param spec number|string Track specification: number (px), string ("100px", "50%", "1fr", "auto")
+--- Uses the Units pipeline for standard CSS units (px, %, vw, vh, calc).
+--- Grid-specific types (fr, auto) are handled directly.
+---@param spec number|string Track specification: number (px), string ("100px", "50%", "10vw", "1fr", "auto")
 ---@param availableSize number Container size for % resolution
+---@param viewportWidth number Viewport width for vw resolution
+---@param viewportHeight number Viewport height for vh resolution
 ---@return table {type: "px"|"fr"|"auto", value: number}
-function Grid._parseTrack(spec, availableSize)
+function Grid._parseTrack(spec, availableSize, viewportWidth, viewportHeight)
+  -- Handle calc objects (tables with _isCalc flag from FlexLove.calc())
+  if type(spec) == "table" then
+    local resolved = Units.resolve(spec, "calc", viewportWidth, viewportHeight, availableSize)
+    return { type = "px", value = resolved }
+  end
+
   if type(spec) == "number" then
     return { type = "px", value = spec }
   end
@@ -23,20 +34,19 @@ function Grid._parseTrack(spec, availableSize)
       return { type = "auto", value = 0 }
     end
 
-    -- Match number + unit
+    -- Check for fr unit (grid-specific, not in Units pipeline)
     local numStr, unit = spec:match("^([%-]?[%d%.]+)(.*)$")
-    if numStr then
+    if numStr and unit == "fr" then
       local num = tonumber(numStr)
       if num then
-        if unit == "" or unit == "px" then
-          return { type = "px", value = num }
-        elseif unit == "%" then
-          return { type = "px", value = (num / 100) * availableSize }
-        elseif unit == "fr" then
-          return { type = "fr", value = num }
-        end
+        return { type = "fr", value = num }
       end
     end
+
+    -- Delegate all other units to the Units pipeline (px, %, vw, vh, calc)
+    local parsedVal, parsedUnit = Units.parse(spec)
+    local resolved = Units.resolve(parsedVal, parsedUnit, viewportWidth, viewportHeight, availableSize)
+    return { type = "px", value = resolved }
   end
 
   -- Default: 1fr
@@ -47,12 +57,14 @@ end
 ---@param template table? Array of track specs (e.g., {"1fr", "2fr", "100px"})
 ---@param count number Fallback track count (from gridColumns/gridRows)
 ---@param availableSize number Container size for % resolution
+---@param viewportWidth number Viewport width for vw resolution
+---@param viewportHeight number Viewport height for vh resolution
 ---@return table Array of {type, value} track descriptors
-function Grid._buildTracks(template, count, availableSize)
+function Grid._buildTracks(template, count, availableSize, viewportWidth, viewportHeight)
   if template and #template > 0 then
     local tracks = {}
     for i, spec in ipairs(template) do
-      tracks[i] = Grid._parseTrack(spec, availableSize)
+      tracks[i] = Grid._parseTrack(spec, availableSize, viewportWidth, viewportHeight)
     end
     return tracks
   end
@@ -226,9 +238,12 @@ function Grid.layoutGridItems(element)
     end
   end
 
+  -- Get viewport dimensions for unit resolution (vw, vh, %)
+  local vpw, vph = Units.getViewport()
+
   -- Build tracks, measure auto tracks by content, then resolve sizes
-  local colTracks = Grid._buildTracks(element.gridTemplateColumns, columns, availableWidth)
-  local rowTracks = Grid._buildTracks(element.gridTemplateRows, rows, availableHeight)
+  local colTracks = Grid._buildTracks(element.gridTemplateColumns, columns, availableWidth, vpw, vph)
+  local rowTracks = Grid._buildTracks(element.gridTemplateRows, rows, availableHeight, vpw, vph)
 
   Grid._measureAutoTracks(colTracks, gridChildren, "width")
   Grid._measureAutoTracks(rowTracks, gridChildren, "height")
