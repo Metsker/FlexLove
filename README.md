@@ -483,6 +483,8 @@ local container = FlexLove.new({
 ```
 
 #### Grid Layout
+
+Uniform grid (all cells equal size):
 ```lua
 local grid = FlexLove.new({
   positioning = "grid",
@@ -492,6 +494,25 @@ local grid = FlexLove.new({
   columnGap = 10
 })
 ```
+
+Variable column widths / row heights with `gridTemplateColumns` / `gridTemplateRows`:
+```lua
+local grid = FlexLove.new({
+  positioning = "grid",
+  gridTemplateColumns = { "1fr", "2fr", "100px" },  -- flexible, 2x flexible, fixed
+  gridTemplateRows = { "auto", "200px", "1fr" },    -- auto-sized, fixed, flexible
+  rowGap = 10,
+  columnGap = 10
+})
+```
+
+Track size units:
+- **`px` / number** — Fixed pixel size (`100`, `"100px"`, `200`)
+- **`%`** — Percentage of available container space (`"25%"`)
+- **`fr`** — Fractional unit: distributes remaining space proportionally (`"1fr"`, `"2fr"`, `"3fr"`)
+- **`auto`** — Sizes to content: uses child's explicit dimension or calculated content size; if multiple children occupy the same track, takes the maximum. When no `fr` tracks exist, `auto` tracks grow equally to fill remaining space (matches CSS Grid)
+
+When `gridTemplateColumns` / `gridTemplateRows` are set, track count is inferred from the array length — `gridColumns` / `gridRows` are optional. When templates are not set, the layout falls back to equal `1fr` tracks based on `gridColumns` / `gridRows`.
 
 ### Theme System
  

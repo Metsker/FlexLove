@@ -140,6 +140,8 @@ local Transform = {}
 ---@field customDraw fun(element:Element)? -- Custom rendering callback called after standard rendering but before visual feedback (default: nil)
 ---@field gridRows number? -- Number of rows in the grid (default: 1)
 ---@field gridColumns number? -- Number of columns in the grid (default: 1)
+---@field gridTemplateColumns (number|string)[]? -- Explicit column track sizes: numbers (px) or strings with "px", "%", "fr", "auto" units. Overrides gridColumns when set (default: nil)
+---@field gridTemplateRows (number|string)[]? -- Explicit row track sizes: numbers (px) or strings with "px", "%", "fr", "auto" units. Overrides gridRows when set (default: nil)
 ---@field columnGap number|string|CalcObject? -- Gap between grid columns: number (px), string ("50%", "10vw"), or CalcObject from FlexLove.calc() (default: 0)
 ---@field rowGap number|string|CalcObject? -- Gap between grid rows: number (px), string ("50%", "10vh"), or CalcObject from FlexLove.calc() (default: 0)
 ---@field theme string? -- Theme name to use (e.g., "space", "metal"). Defaults to theme from flexlove.init()

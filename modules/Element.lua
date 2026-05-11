@@ -743,6 +743,8 @@ function Element.new(props)
     gap = 0,
     gridRows = 1,
     gridColumns = 1,
+    gridTemplateColumns = nil,
+    gridTemplateRows = nil,
     columnGap = 0,
     rowGap = 0,
   }, layoutEngineDeps)
@@ -1809,6 +1811,8 @@ function Element.new(props)
 
     self.gridRows = props.gridRows or 1
     self.gridColumns = props.gridColumns or 1
+    self.gridTemplateColumns = props.gridTemplateColumns
+    self.gridTemplateRows = props.gridTemplateRows
     self.alignItems = props.alignItems or Element._utils.enums.AlignItems.STRETCH
 
     -- Handle columnGap and rowGap
@@ -1885,6 +1889,12 @@ function Element.new(props)
   end
   if self.gridColumns then
     self._layoutEngine.gridColumns = self.gridColumns
+  end
+  if self.gridTemplateColumns then
+    self._layoutEngine.gridTemplateColumns = self.gridTemplateColumns
+  end
+  if self.gridTemplateRows then
+    self._layoutEngine.gridTemplateRows = self.gridTemplateRows
   end
   if self.columnGap then
     self._layoutEngine.columnGap = self.columnGap
@@ -4652,6 +4662,8 @@ function Element:setProperty(property, value)
     positioning = true,
     gridRows = true,
     gridColumns = true,
+    gridTemplateColumns = true,
+    gridTemplateRows = true,
     top = true,
     right = true,
     bottom = true,

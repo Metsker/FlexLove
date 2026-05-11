@@ -493,6 +493,381 @@ function TestGridLayout:test_grid_with_reserved_space()
   luaunit.assertEquals(child1.width, 175, "Cell width should account for reserved space")
 end
 
+-- ======================================== --
+-- Variable Column Width / Row Height Tests --
+-- ======================================== --
+
+-- Test gridTemplateColumns with mixed fr and px
+function TestGridLayout:test_variable_column_widths_mixed()
+  local container = FlexLove.new({
+    id = "grid",
+    x = 0,
+    y = 0,
+    width = 500,
+    height = 300,
+    positioning = "grid",
+    gridTemplateColumns = { "1fr", "2fr", "100px" }, -- 3 cols: flex, 2x flex, fixed
+    gridTemplateRows = { "1fr", "1fr" }, -- 2 equal rows
+    columnGap = 0,
+    rowGap = 0,
+  })
+
+  local children = {}
+  for i = 1, 6 do
+    children[i] = FlexLove.new({
+      id = "child" .. i,
+      parent = container,
+    })
+  end
+
+  FlexLove.endFrame()
+  FlexLove.beginFrame()
+
+  -- Available width: 500, total fr = 3, fr unit = (500 - 100) / 3 = 133.333...
+  -- Col 1: 133.33, Col 2: 266.67, Col 3: 100
+  -- Available height: 300, total fr = 2, fr unit = 300 / 2 = 150
+  -- Row 1: 150, Row 2: 150
+
+  luaunit.assertAlmostEquals(children[1].width, 400 / 3, 0.01, "Col 1 should be ~133.33")
+  luaunit.assertAlmostEquals(children[2].width, 800 / 3, 0.01, "Col 2 should be ~266.67")
+  luaunit.assertEquals(children[3].width, 100, "Col 3 should be 100px")
+
+  -- Second row should start after first row
+  luaunit.assertEquals(children[4].y, 150, "Child 4 should be at y=150 (row 2)")
+  luaunit.assertEquals(children[5].y, 150, "Child 5 should be at y=150 (row 2)")
+
+  -- Third column starts after col1 + col2
+  local col1Width = 400 / 3
+  local col2Width = 800 / 3
+  local col3Start = col1Width + col2Width
+  luaunit.assertAlmostEquals(children[3].x, col3Start, 0.01, "Child 3 should be at col1+col2")
+end
+
+-- Test variable row heights with mixed units
+function TestGridLayout:test_variable_row_heights_mixed()
+  local container = FlexLove.new({
+    id = "grid",
+    x = 0,
+    y = 0,
+    width = 400,
+    height = 500,
+    positioning = "grid",
+    gridTemplateColumns = { "1fr", "1fr" },
+    gridTemplateRows = { "100px", "1fr", "2fr" }, -- fixed, flex, 2x flex
+    rowGap = 0,
+    columnGap = 0,
+  })
+
+  local children = {}
+  for i = 1, 6 do
+    children[i] = FlexLove.new({
+      id = "child" .. i,
+      parent = container,
+    })
+  end
+
+  FlexLove.endFrame()
+  FlexLove.beginFrame()
+
+  -- Available height: 500, Row 1: 100px fixed
+  -- Remaining: 400, fr unit = 400 / 3 = 133.33
+  -- Row 2: 133.33, Row 3: 266.67
+
+  luaunit.assertEquals(children[1].height, 100, "Row 1 should be 100px")
+  luaunit.assertAlmostEquals(children[3].height, 400 / 3, 0.01, "Row 2 should be ~133.33")
+  luaunit.assertAlmostEquals(children[5].height, 800 / 3, 0.01, "Row 3 should be ~266.67")
+
+  -- Row 2 starts after row 1
+  luaunit.assertEquals(children[3].y, 100, "Child 3 (row 2) should be at y=100")
+  -- Row 3 starts after row 1 + row 2
+  luaunit.assertAlmostEquals(children[5].y, 100 + 400 / 3, 0.01, "Child 5 (row 3) should be after row 2")
+end
+
+-- Test all px tracks (no flexible units)
+function TestGridLayout:test_variable_all_px()
+  local container = FlexLove.new({
+    id = "grid",
+    x = 0,
+    y = 0,
+    width = 400,
+    height = 200,
+    positioning = "grid",
+    gridTemplateColumns = { 100, 200, 50 }, -- all px
+    gridTemplateRows = { 100 },
+    columnGap = 10,
+  })
+
+  local children = {}
+  for i = 1, 3 do
+    children[i] = FlexLove.new({
+      id = "child" .. i,
+      parent = container,
+    })
+  end
+
+  FlexLove.endFrame()
+  FlexLove.beginFrame()
+
+  luaunit.assertEquals(children[1].width, 100, "Col 1 should be 100px")
+  luaunit.assertEquals(children[2].width, 200, "Col 2 should be 200px")
+  luaunit.assertEquals(children[3].width, 50, "Col 3 should be 50px")
+
+  luaunit.assertEquals(children[2].x, 110, "Col 2 should start at x=100+10gap")
+  luaunit.assertEquals(children[3].x, 320, "Col 3 should start at x=100+10+200+10")
+end
+
+-- Test auto tracks
+function TestGridLayout:test_variable_auto_tracks()
+  local container = FlexLove.new({
+    id = "grid",
+    x = 0,
+    y = 0,
+    width = 600,
+    height = 300,
+    positioning = "grid",
+    gridTemplateColumns = { "auto", "auto", "auto" }, -- 3 equal auto columns
+    gridTemplateRows = { "auto", "auto" },
+  })
+
+  local children = {}
+  for i = 1, 6 do
+    children[i] = FlexLove.new({
+      id = "child" .. i,
+      parent = container,
+    })
+  end
+
+  FlexLove.endFrame()
+  FlexLove.beginFrame()
+
+  -- Available width: 600, 3 auto columns, 600/3 = 200 each
+  luaunit.assertEquals(children[1].width, 200, "Auto col 1 should be 200")
+  luaunit.assertEquals(children[2].width, 200, "Auto col 2 should be 200")
+  luaunit.assertEquals(children[3].width, 200, "Auto col 3 should be 200")
+
+  -- Available height: 300, 2 auto rows, 300/2 = 150 each
+  luaunit.assertEquals(children[1].height, 150, "Auto row 1 should be 150")
+  luaunit.assertEquals(children[4].height, 150, "Auto row 2 should be 150")
+end
+
+-- Test percentage tracks
+function TestGridLayout:test_variable_percent_tracks()
+  local container = FlexLove.new({
+    id = "grid",
+    x = 0,
+    y = 0,
+    width = 800,
+    height = 400,
+    positioning = "grid",
+    gridTemplateColumns = { "25%", "50%", "25%" }, -- 200, 400, 200
+    gridTemplateRows = { "100%" },
+  })
+
+  local children = {}
+  for i = 1, 3 do
+    children[i] = FlexLove.new({
+      id = "child" .. i,
+      parent = container,
+    })
+  end
+
+  FlexLove.endFrame()
+  FlexLove.beginFrame()
+
+  luaunit.assertEquals(children[1].width, 200, "25% col should be 200px")
+  luaunit.assertEquals(children[2].width, 400, "50% col should be 400px")
+  luaunit.assertEquals(children[3].width, 200, "25% col should be 200px")
+end
+
+-- Test gridTemplateColumns with gaps
+function TestGridLayout:test_variable_with_gaps()
+  local container = FlexLove.new({
+    id = "grid",
+    x = 0,
+    y = 0,
+    width = 500,
+    height = 200,
+    positioning = "grid",
+    gridTemplateColumns = { "1fr", "1fr", "1fr" },
+    gridTemplateRows = { "1fr" },
+    columnGap = 20,
+  })
+
+  local children = {}
+  for i = 1, 3 do
+    children[i] = FlexLove.new({
+      id = "child" .. i,
+      parent = container,
+    })
+  end
+
+  FlexLove.endFrame()
+  FlexLove.beginFrame()
+
+  -- Available width: 500, 2 gaps = 40, remaining = 460
+  -- Each col = 460/3 = 153.33
+  local colWidth = 460 / 3
+  luaunit.assertAlmostEquals(children[1].width, colWidth, 0.01, "Col with gap")
+  luaunit.assertEquals(children[2].x, colWidth + 20, "Col 2 starts after col1 + gap")
+  luaunit.assertEquals(children[3].x, 2 * (colWidth + 20), "Col 3 starts after col1+gap+col2+gap")
+end
+
+-- Test fallback: no gridTemplateColumns set, uses gridColumns
+function TestGridLayout:test_variable_fallback_to_equal()
+  local container = FlexLove.new({
+    id = "grid",
+    x = 0,
+    y = 0,
+    width = 300,
+    height = 300,
+    positioning = "grid",
+    gridColumns = 3,
+    gridRows = 3,
+    -- No gridTemplateColumns/TemplateRows set -- fallback to equal 1fr
+  })
+
+  local child = FlexLove.new({
+    id = "child1",
+    parent = container,
+  })
+
+  FlexLove.endFrame()
+  FlexLove.beginFrame()
+
+  -- 3 equal 1fr columns = 100 each
+  luaunit.assertEquals(child.width, 100, "Fallback col should be 100px equal")
+  luaunit.assertEquals(child.height, 100, "Fallback row should be 100px equal")
+end
+
+-- Test alignment within variable-sized cells (center)
+function TestGridLayout:test_variable_align_center()
+  local container = FlexLove.new({
+    id = "grid",
+    x = 0,
+    y = 0,
+    width = 400,
+    height = 300,
+    positioning = "grid",
+    gridTemplateColumns = { "1fr", "2fr" },
+    gridTemplateRows = { "1fr", "1fr" },
+    alignItems = "center",
+  })
+
+  local child = FlexLove.new({
+    id = "child1",
+    parent = container,
+    width = 50,
+    height = 30,
+  })
+
+  FlexLove.endFrame()
+  FlexLove.beginFrame()
+
+  -- Cell 1: (~133.33, 150)
+  -- Child: (50, 30), centered: ((133.33-50)/2, (150-30)/2)
+  local cell1W = 400 / 3
+  local cellH = 150
+  luaunit.assertAlmostEquals(child.x, (cell1W - 50) / 2, 0.01, "Centered in var-width col")
+  luaunit.assertAlmostEquals(child.y, (cellH - 30) / 2, 0.01, "Centered in var-height row")
+end
+
+-- Test auto tracks sized by content, fr tracks get remainder (CSS Grid behavior)
+function TestGridLayout:test_variable_auto_content_sized()
+  local container = FlexLove.new({
+    id = "grid",
+    x = 0,
+    y = 0,
+    width = 600,
+    height = 200,
+    positioning = "grid",
+    -- auto track sizes to child content (100px), fr tracks split the remainder
+    gridTemplateColumns = { "auto", "1fr", "2fr" },
+    gridTemplateRows = { "1fr" },
+    columnGap = 0,
+  })
+
+  local children = {}
+  children[1] = FlexLove.new({ id = "child1", parent = container, width = 100, height = 50 })
+  children[2] = FlexLove.new({ id = "child2", parent = container })
+  children[3] = FlexLove.new({ id = "child3", parent = container })
+
+  FlexLove.endFrame()
+  FlexLove.beginFrame()
+
+  -- auto track: child1 has width=100, so auto = 100
+  -- remaining: 600 - 100 = 500, totalFr = 3
+  -- col2 (1fr) = 500/3, col3 (2fr) = 1000/3
+  luaunit.assertEquals(children[1].width, 100, "auto col sized to content (100)")
+  luaunit.assertAlmostEquals(children[2].width, 500 / 3, 0.01, "1fr gets remainder/3")
+  luaunit.assertAlmostEquals(children[3].width, 1000 / 3, 0.01, "2fr gets 2*remainder/3")
+  luaunit.assertEquals(children[2].x, 100, "1fr col starts after auto col")
+  luaunit.assertAlmostEquals(children[3].x, 100 + 500 / 3, 0.01, "2fr col starts after 1fr col")
+end
+
+-- Test auto track with no content (intrinsic = 0), fr tracks get all space
+function TestGridLayout:test_variable_auto_no_content()
+  local container = FlexLove.new({
+    id = "grid",
+    x = 0,
+    y = 0,
+    width = 600,
+    height = 200,
+    positioning = "grid",
+    -- auto track has no content (intrinsic = 0), fr tracks get all space
+    gridTemplateColumns = { "auto", "1fr", "2fr" },
+    gridTemplateRows = { "1fr" },
+    columnGap = 0,
+  })
+
+  local children = {}
+  for i = 1, 3 do
+    children[i] = FlexLove.new({ id = "child" .. i, parent = container })
+  end
+
+  FlexLove.endFrame()
+  FlexLove.beginFrame()
+
+  -- auto track: no content, intrinsic = 0
+  -- remaining: 600 - 0 = 600, totalFr = 3
+  -- col1 (auto) = 0, col2 (1fr) = 200, col3 (2fr) = 400
+  luaunit.assertEquals(children[1].width, 0, "auto col with no content = 0")
+  luaunit.assertEquals(children[2].width, 200, "1fr col gets 200")
+  luaunit.assertEquals(children[3].width, 400, "2fr col gets 400")
+  luaunit.assertEquals(children[2].x, 0, "1fr col starts right after 0-width auto col")
+  luaunit.assertEquals(children[3].x, 200, "2fr col starts after 1fr col")
+end
+
+-- Test auto track takes max content when multiple children span the same column
+function TestGridLayout:test_variable_auto_max_content()
+  local container = FlexLove.new({
+    id = "grid",
+    x = 0,
+    y = 0,
+    width = 600,
+    height = 400,
+    positioning = "grid",
+    gridTemplateColumns = { "auto", "1fr" },
+    gridTemplateRows = { "1fr", "1fr" },
+    columnGap = 0,
+  })
+
+  -- Children in col1: child1 (width=80), child3 (width=120) — auto should be 120
+  local children = {}
+  children[1] = FlexLove.new({ id = "child1", parent = container, width = 80, height = 50 })
+  children[2] = FlexLove.new({ id = "child2", parent = container })
+  children[3] = FlexLove.new({ id = "child3", parent = container, width = 120, height = 50 })
+  children[4] = FlexLove.new({ id = "child4", parent = container })
+
+  FlexLove.endFrame()
+  FlexLove.beginFrame()
+
+  -- auto track: max(80, 120) = 120
+  -- remaining: 600 - 120 = 480, totalFr = 1
+  luaunit.assertEquals(children[1].width, 120, "auto col = max content (120)")
+  luaunit.assertEquals(children[3].width, 120, "auto col row2 also 120")
+  luaunit.assertEquals(children[2].width, 480, "1fr col gets all remaining (480)")
+end
+
 if not _G.RUNNING_ALL_TESTS then
   os.exit(luaunit.LuaUnit.run())
 end
