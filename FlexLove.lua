@@ -47,6 +47,8 @@ local Element = req("Element")
 local Color = req("Color")
 ---@type FFI
 local FFI = req("FFI")
+---@type Select
+local Select = req("Select")
 
 -- Optional modules (can be excluded in minimal builds)
 local Blur = safeReq("Blur", true)
@@ -333,6 +335,7 @@ function flexlove.init(config)
     Transform = Transform,
     Animation = Animation,
     ZIndex = ZIndex,
+    Select = Select,
   }
 
   -- Initialize Element module with dependencies
