@@ -3250,6 +3250,57 @@ function Element:layoutChildren()
   self._layoutEngine:layoutChildren()
 end
 
+--- Warn about percentage sizing with auto-sizing parent
+---@param child Element
+---@param axis string "width" or "height"
+function Element:_warnIfPercentageWithAutoSizing(child, axis)
+  if self._managedSelectFrame then
+    return
+  end
+  Element._ErrorHandler:warn("LayoutEngine", "LAY_004", {
+    child = child.id or "unnamed",
+    issue = "percentage " .. axis .. " with parent auto-sizing",
+  })
+end
+
+--- Whether element needs cross-axis percentage dimension syncing
+--- Managed select frames sync percentage children with container dimensions
+---@return boolean
+function Element:_shouldSyncPercentageDimensions()
+  return self._managedSelectFrame == true
+end
+
+--- Adjust cross-axis percentage width for managed select minimum
+---@param child Element
+---@param newBorderBoxWidth number
+---@return number
+function Element:_adjustCrossAxisPercentageWidth(child, newBorderBoxWidth)
+  if self._managedSelectFrame and self.autosizing and self.autosizing.width then
+    local intrinsicBorderBoxWidth = child:calculateAutoWidth() + child.padding.left + child.padding.right
+    return math.max(newBorderBoxWidth, intrinsicBorderBoxWidth)
+  end
+  return newBorderBoxWidth
+end
+
+--- Adjust child border-box width for managed select in vertical flex auto-width
+---@param child Element
+---@param childBorderBoxWidth number
+---@return number
+function Element:_adjustAutoWidthChildBorderBoxForManagedSelect(child, childBorderBoxWidth)
+  if
+    self._managedSelectFrame
+    and self.autosizing
+    and self.autosizing.width
+    and child.units
+    and child.units.width
+    and child.units.width.unit == "%"
+  then
+    local intrinsicBorderBoxWidth = child:calculateAutoWidth() + child.padding.left + child.padding.right
+    return math.max(childBorderBoxWidth, intrinsicBorderBoxWidth)
+  end
+  return childBorderBoxWidth
+end
+
 --- Destroy element and its children
 function Element:destroy()
   -- Remove from global elements list
@@ -4042,7 +4093,13 @@ function Element:calculateTextHeight()
 end
 
 function Element:calculateAutoWidth()
-  return self._layoutEngine:calculateAutoWidth()
+  local contentWidth = self._layoutEngine:calculateAutoWidth()
+  if self._managedSelectMinimumBorderBoxWidth then
+    local minimumContentWidth =
+      math.max(0, self._managedSelectMinimumBorderBoxWidth - self.padding.left - self.padding.right)
+    contentWidth = math.max(contentWidth, minimumContentWidth)
+  end
+  return contentWidth
 end
 
 --- Calculate auto height based on children

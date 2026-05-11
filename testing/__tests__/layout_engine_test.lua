@@ -50,6 +50,40 @@ local deps = {
 }
 
 -- ============================================================================
+-- Mock Element Creator
+-- ============================================================================
+
+local function createMockElement(overrides)
+  overrides = overrides or {}
+  return setmetatable(overrides, {
+    __index = {
+      _warnIfPercentageWithAutoSizing = function() end,
+      _shouldSyncPercentageDimensions = function()
+        return false
+      end,
+      _adjustCrossAxisPercentageWidth = function(_, _, newBorderBoxWidth)
+        return newBorderBoxWidth
+      end,
+      _adjustAutoWidthChildBorderBoxForManagedSelect = function(_, _, childBorderBoxWidth)
+        return childBorderBoxWidth
+      end,
+      calculateTextWidth = function()
+        return 0
+      end,
+      calculateTextHeight = function()
+        return 0
+      end,
+      calculateAutoWidth = function()
+        return 0
+      end,
+      calculateAutoHeight = function()
+        return 0
+      end,
+    },
+  })
+end
+
+-- ============================================================================
 -- Test Suite 1: LayoutEngine Initialization and Constructor
 -- ============================================================================
 
@@ -201,12 +235,12 @@ function TestLayoutEngineAutoWidth:testAutoWidthVerticalTakesMax()
     end,
   }
 
-  local mockElement = {
+  local mockElement = createMockElement({
     children = { mockChild1, mockChild2, mockChild3 },
     calculateTextWidth = function()
       return 0
     end,
-  }
+  })
   layout:initialize(mockElement)
 
   local width = layout:calculateAutoWidth()
@@ -1753,6 +1787,169 @@ function TestTransform:testTransformAnimation()
   luaunit.assertNotNil(result.transform)
   luaunit.assertAlmostEquals(result.transform.rotate, math.pi / 2, 0.01)
   luaunit.assertAlmostEquals(result.transform.scaleX, 1.5, 0.01)
+end
+
+-- ============================================================================
+-- Test Suite 10: Managed Select Decoupling
+-- ============================================================================
+
+--- Verify LayoutEngine has no select-specific references
+TestManagedSelectDecoupling = {}
+
+function TestManagedSelectDecoupling:test_layout_engine_no_managed_select_references()
+  local f = io.open("modules/LayoutEngine.lua", "r")
+  luaunit.assertNotNil(f, "Should be able to read LayoutEngine source")
+  local source = f:read("*all")
+  f:close()
+  luaunit.assertNil(string.find(source, "_managedSelectFrame"), "LayoutEngine should not reference _managedSelectFrame")
+  luaunit.assertNil(
+    string.find(source, "_managedSelectMinimumBorderBoxWidth"),
+    "LayoutEngine should not reference _managedSelectMinimumBorderBoxWidth"
+  )
+  luaunit.assertNil(string.find(source, "_managedSelectOwner"), "LayoutEngine should not reference _managedSelectOwner")
+end
+
+--- Verify element hooks correctly handle managed select frame warning suppression
+TestManagedSelectHooks = {}
+
+function TestManagedSelectHooks:setUp()
+  FlexLove.init()
+  FlexLove.setMode("immediate")
+  FlexLove.beginFrame()
+  self.warnings = {}
+  self.errorHandler = FlexLove._ErrorHandler or ErrorHandler.getInstance()
+  self.originalWarn = rawget(self.errorHandler, "warn")
+  self.errorHandler.warn = function(_, module, code, details)
+    table.insert(self.warnings, { module = module, code = code, details = details })
+  end
+end
+
+function TestManagedSelectHooks:tearDown()
+  if self.errorHandler then
+    self.errorHandler.warn = self.originalWarn
+  end
+  FlexLove.endFrame()
+end
+
+function TestManagedSelectHooks:test_managed_select_frame_suppresses_percentage_warning()
+  local container = FlexLove.new({
+    id = "ms_container",
+    x = 0,
+    y = 0,
+    height = 200,
+    positioning = "flex",
+    flexDirection = "horizontal",
+  })
+
+  FlexLove.new({
+    id = "ms_child",
+    parent = container,
+    width = "50%",
+    height = 100,
+  })
+
+  FlexLove.endFrame()
+  FlexLove.beginFrame()
+
+  local hasPercentageWarning = false
+  for _, w in ipairs(self.warnings) do
+    if w.code == "LAY_004" then
+      hasPercentageWarning = true
+      break
+    end
+  end
+  luaunit.assertTrue(hasPercentageWarning, "Normal elements should warn on percentage width with auto-sizing")
+end
+
+function TestManagedSelectHooks:test_element_warn_if_percentage_with_auto_sizing()
+  FlexLove.init()
+  local element = FlexLove.new({ id = "test_el", x = 0, y = 0, width = 100, height = 100 })
+  local child = FlexLove.new({ id = "test_child", x = 0, y = 0, units = { width = { value = 50, unit = "%" } } })
+  element.autosizing = { width = true, height = false }
+
+  self.warnings = {}
+  element:_warnIfPercentageWithAutoSizing(child, "width")
+
+  luaunit.assertEquals(#self.warnings, 1, "Should emit LAY_004 warning for normal element")
+  luaunit.assertEquals(self.warnings[1].code, "LAY_004")
+end
+
+function TestManagedSelectHooks:test_managed_select_frame_suppresses_warn_method()
+  FlexLove.init()
+  local element = FlexLove.new({ id = "ms_el", x = 0, y = 0, width = 100, height = 100 })
+  local child = FlexLove.new({ id = "ms_child", x = 0, y = 0, units = { width = { value = 50, unit = "%" } } })
+  element._managedSelectFrame = true
+
+  self.warnings = {}
+  element:_warnIfPercentageWithAutoSizing(child, "width")
+
+  luaunit.assertEquals(#self.warnings, 0, "Managed select frame should suppress LAY_004 warning")
+end
+
+function TestManagedSelectHooks:test_should_sync_percentage_dimensions()
+  FlexLove.init()
+  local normal = FlexLove.new({ id = "normal", x = 0, y = 0, width = 100, height = 100 })
+  local msFrame = FlexLove.new({ id = "ms", x = 0, y = 0, width = 100, height = 100 })
+  msFrame._managedSelectFrame = true
+
+  luaunit.assertFalse(normal:_shouldSyncPercentageDimensions())
+  luaunit.assertTrue(msFrame:_shouldSyncPercentageDimensions())
+end
+
+function TestManagedSelectHooks:test_adjust_cross_axis_percentage_width()
+  FlexLove.init()
+  local element = FlexLove.new({ id = "ms2", x = 0, y = 0, width = 100, height = 100 })
+  local child = FlexLove.new({ id = "child1", parent = element, width = 50, height = 30 })
+  element._managedSelectFrame = true
+  element.autosizing = { width = true, height = false }
+
+  local result = element:_adjustCrossAxisPercentageWidth(child, 100)
+  luaunit.assertTrue(result >= 100, "Cross-axis width should be at least the calculated percentage width")
+
+  -- Without managed select frame
+  element._managedSelectFrame = nil
+  local result2 = element:_adjustCrossAxisPercentageWidth(child, 100)
+  luaunit.assertEquals(result2, 100, "Non-managed-select element should return unmodified width")
+end
+
+function TestManagedSelectHooks:test_calculate_auto_width_with_minimum_border_box()
+  FlexLove.init()
+  local element = FlexLove.new({ id = "ms3", x = 0, y = 0, padding = { left = 10, right = 10 } })
+  element._managedSelectMinimumBorderBoxWidth = 200
+
+  local result = element:calculateAutoWidth()
+  -- 200 - 10 - 10 = 180 minimum content width
+  luaunit.assertEquals(result, 180, "calculateAutoWidth should respect minimum border box width")
+end
+
+function TestManagedSelectHooks:test_calculate_auto_width_without_minimum()
+  FlexLove.init()
+  local element = FlexLove.new({ id = "normal2", x = 0, y = 0 })
+
+  local result = element:calculateAutoWidth()
+  luaunit.assertNotNil(result)
+end
+
+function TestManagedSelectHooks:test_adjust_auto_width_child_border_box()
+  FlexLove.init()
+  local element = FlexLove.new({ id = "ms4", x = 0, y = 0, width = 200, height = 200 })
+  local child =
+    FlexLove.new({ id = "child2", parent = element, width = "100%", height = 30, padding = { left = 0, right = 0 } })
+  element._managedSelectFrame = true
+  element.autosizing = { width = true, height = false }
+
+  local borderBoxWidth = child:getBorderBoxWidth()
+  local adjusted = element:_adjustAutoWidthChildBorderBoxForManagedSelect(child, borderBoxWidth)
+  luaunit.assertTrue(adjusted >= borderBoxWidth, "Managed select should not reduce child border box width")
+
+  -- Without managed select frame, should be unmodified
+  element._managedSelectFrame = nil
+  local adjusted2 = element:_adjustAutoWidthChildBorderBoxForManagedSelect(child, borderBoxWidth)
+  luaunit.assertEquals(
+    adjusted2,
+    borderBoxWidth,
+    "Non-managed-select element should return unmodified child border box width"
+  )
 end
 
 -- ============================================================================

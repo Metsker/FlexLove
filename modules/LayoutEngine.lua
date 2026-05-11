@@ -434,29 +434,13 @@ function LayoutEngine:layoutChildren()
 
       -- Warn if child uses percentage sizing but parent has autosizing
       if child.units and child.units.width then
-        if
-          child.units.width.unit == "%"
-          and self.element.autosizing
-          and self.element.autosizing.width
-          and not self.element._managedSelectFrame
-        then
-          LayoutEngine._ErrorHandler:warn("LayoutEngine", "LAY_004", {
-            child = child.id or "unnamed",
-            issue = "percentage width with parent auto-sizing",
-          })
+        if child.units.width.unit == "%" and self.element.autosizing and self.element.autosizing.width then
+          self.element:_warnIfPercentageWithAutoSizing(child, "width")
         end
       end
       if child.units and child.units.height then
-        if
-          child.units.height.unit == "%"
-          and self.element.autosizing
-          and self.element.autosizing.height
-          and not self.element._managedSelectFrame
-        then
-          LayoutEngine._ErrorHandler:warn("LayoutEngine", "LAY_004", {
-            child = child.id or "unnamed",
-            issue = "percentage height with parent auto-sizing",
-          })
+        if child.units.height.unit == "%" and self.element.autosizing and self.element.autosizing.height then
+          self.element:_warnIfPercentageWithAutoSizing(child, "height")
         end
       end
     end
@@ -513,7 +497,7 @@ function LayoutEngine:layoutChildren()
 
   -- Keep percentage-sized children in sync when container dimensions change.
   -- Managed select frames rely on this so `width = "100%"` options expand with the dropdown.
-  if scrollbarReservedWidth > 0 or scrollbarReservedHeight > 0 or self.element._managedSelectFrame then
+  if scrollbarReservedWidth > 0 or scrollbarReservedHeight > 0 or self.element:_shouldSyncPercentageDimensions() then
     local isHorizontal = self.flexDirection == self._FlexDirection.HORIZONTAL
     for _, child in ipairs(flexChildren) do
       if isHorizontal then
@@ -544,10 +528,7 @@ function LayoutEngine:layoutChildren()
         -- Adjust cross-axis width if percentage-based
         if child.units and child.units.width and child.units.width.unit == "%" then
           local newBorderBoxWidth = (child.units.width.value / 100) * availableCrossSize
-          if self.element._managedSelectFrame and self.element.autosizing and self.element.autosizing.width then
-            local intrinsicBorderBoxWidth = child:calculateAutoWidth() + child.padding.left + child.padding.right
-            newBorderBoxWidth = math.max(newBorderBoxWidth, intrinsicBorderBoxWidth)
-          end
+          newBorderBoxWidth = self.element:_adjustCrossAxisPercentageWidth(child, newBorderBoxWidth)
           local newWidth = math.max(0, newBorderBoxWidth - child.padding.left - child.padding.right)
           child.width = newWidth
           child._borderBoxWidth = newBorderBoxWidth
@@ -1047,13 +1028,6 @@ function LayoutEngine:calculateAutoWidth()
 
   -- BORDER-BOX MODEL: Calculate content width, caller will add padding to get border-box
   local contentWidth = self.element:calculateTextWidth()
-  if self.element._managedSelectMinimumBorderBoxWidth then
-    local minimumContentWidth = math.max(
-      0,
-      self.element._managedSelectMinimumBorderBoxWidth - self.element.padding.left - self.element.padding.right
-    )
-    contentWidth = math.max(contentWidth, minimumContentWidth)
-  end
   if not self.element.children or #self.element.children == 0 then
     return contentWidth
   end
@@ -1118,17 +1092,7 @@ function LayoutEngine:calculateAutoWidth()
     local maxWidth = contentWidth
     for _, child in ipairs(flexChildren) do
       local childBorderBoxWidth = child:getBorderBoxWidth()
-      if
-        self.element._managedSelectFrame
-        and self.element.autosizing
-        and self.element.autosizing.width
-        and child.units
-        and child.units.width
-        and child.units.width.unit == "%"
-      then
-        local intrinsicBorderBoxWidth = child:calculateAutoWidth() + child.padding.left + child.padding.right
-        childBorderBoxWidth = math.max(childBorderBoxWidth, intrinsicBorderBoxWidth)
-      end
+      childBorderBoxWidth = self.element:_adjustAutoWidthChildBorderBoxForManagedSelect(child, childBorderBoxWidth)
       local childMarginH = 0
       if child.margin then
         childMarginH = child.margin.left + child.margin.right
