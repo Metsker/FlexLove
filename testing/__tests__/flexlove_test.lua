@@ -1398,7 +1398,41 @@ function TestFlexLoveUnhappyPaths:testStateOperationsInRetainedMode()
   luaunit.assertEquals(stats.frameNumber, 0)
 end
 
--- Test: Extreme z-index values
+-- Test: Extreme z-index values are clamped to valid range
+function TestFlexLoveUnhappyPaths:testExtremeZIndexValues()
+  FlexLove.setMode("retained")
+
+  -- Above max should clamp to 999
+  local highZ = FlexLove.new({
+    width = 100,
+    height = 100,
+    z = 5000,
+  })
+  luaunit.assertEquals(highZ.z, 999)
+
+  -- Below min should clamp to -999
+  local lowZ = FlexLove.new({
+    width = 100,
+    height = 100,
+    z = -5000,
+  })
+  luaunit.assertEquals(lowZ.z, -999)
+
+  -- Normal values pass through unchanged
+  local normalZ = FlexLove.new({
+    width = 100,
+    height = 100,
+    z = 42,
+  })
+  luaunit.assertEquals(normalZ.z, 42)
+
+  -- Default is 0
+  local defaultZ = FlexLove.new({
+    width = 100,
+    height = 100,
+  })
+  luaunit.assertEquals(defaultZ.z, 0)
+end
 
 -- Test: Creating deeply nested element hierarchy
 function TestFlexLoveUnhappyPaths:testDeeplyNestedHierarchy()

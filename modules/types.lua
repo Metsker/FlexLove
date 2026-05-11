@@ -79,7 +79,7 @@ local Transform = {}
 ---@field parent Element? -- Parent element for hierarchical structure
 ---@field x number|string|CalcObject? -- X coordinate: number (px), string ("50%", "10vw"), or CalcObject from FlexLove.calc() (default: 0)
 ---@field y number|string|CalcObject? -- Y coordinate: number (px), string ("50%", "10vh"), or CalcObject from FlexLove.calc() (default: 0)
----@field z number? -- Z-index for layering (default: 0)
+---@field z number? -- Z-index for layering (default: 0, clamped to -999..999)
 ---@field tabIndex number? -- Tab navigation order: >0 (explicit order, visited first), 0 or nil (natural document order), -1 (excluded from keyboard navigation)
 ---@field width number|string|CalcObject? -- Width of the element: number (px), string ("50%", "10vw"), or CalcObject from FlexLove.calc() (default: calculated automatically)
 ---@field height number|string|CalcObject? -- Height of the element: number (px), string ("50%", "10vh"), or CalcObject from FlexLove.calc() (default: calculated automatically)

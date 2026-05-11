@@ -501,6 +501,43 @@ function TestElementCreation:test_element_with_z_index()
   luaunit.assertEquals(element.z, 10)
 end
 
+function TestElementCreation:test_element_z_index_clamping()
+  -- Values above 999 are clamped to 999
+  local highZ = FlexLove.new({
+    id = "highZ",
+    width = 100,
+    height = 100,
+    z = 1000,
+  })
+  luaunit.assertEquals(highZ.z, 999)
+
+  -- Values below -999 are clamped to -999
+  local lowZ = FlexLove.new({
+    id = "lowZ",
+    width = 100,
+    height = 100,
+    z = -1000,
+  })
+  luaunit.assertEquals(lowZ.z, -999)
+
+  -- Boundary values are preserved
+  local maxZ = FlexLove.new({
+    id = "maxZ",
+    width = 100,
+    height = 100,
+    z = 999,
+  })
+  luaunit.assertEquals(maxZ.z, 999)
+
+  local minZ = FlexLove.new({
+    id = "minZ",
+    width = 100,
+    height = 100,
+    z = -999,
+  })
+  luaunit.assertEquals(minZ.z, -999)
+end
+
 function TestElementCreation:test_element_with_userdata()
   local customData = { foo = "bar", count = 42 }
 

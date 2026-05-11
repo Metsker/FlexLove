@@ -34,6 +34,7 @@ function Element.init(deps)
   Element._GestureRecognizer = deps.GestureRecognizer
   Element._Performance = deps.Performance
   Element._Animation = deps.Animation
+  Element._ZIndex = deps.ZIndex
 end
 
 ---@param props ElementProps
@@ -1346,7 +1347,7 @@ function Element.new(props)
       self.units.y = { value = 0, unit = "px" }
     end
 
-    self.z = props.z or 0
+    self.z = Element._ZIndex.clamp(props.z or 0)
     self.tabIndex = props.tabIndex -- nil/0 = document order, >0 = explicit order, -1 = excluded from keyboard nav
 
     -- Set textColor with priority: props > theme text color > black
@@ -1568,7 +1569,7 @@ function Element.new(props)
         self.units.y = { value = 0, unit = "px" }
       end
 
-      self.z = props.z or 0
+      self.z = Element._ZIndex.clamp(props.z or 0)
       self.tabIndex = props.tabIndex
     else
       -- Children in flex containers start at parent position but will be repositioned by layoutChildren
@@ -1640,7 +1641,7 @@ function Element.new(props)
         self.units.y = { value = 0, unit = "px" }
       end
 
-      self.z = props.z or self.parent.z or 0
+      self.z = Element._ZIndex.clamp(props.z or self.parent.z or 0)
       self.tabIndex = props.tabIndex
     end
 
@@ -3189,7 +3190,7 @@ function Element:setParent(newParent)
     self.parent = nil
     self.x = self.x or 0
     self.y = self.y or 0
-    self.z = self.z or 0
+    self.z = Element._ZIndex.clamp(self.z or 0)
     table.insert(Element._Context.topElements, self)
   end
 end

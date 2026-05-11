@@ -39,6 +39,8 @@ local Renderer = req("Renderer")
 ---@type EventHandler
 local EventHandler = req("EventHandler")
 local ScrollManager = req("ScrollManager")
+---@type ZIndex
+local ZIndex = req("ZIndex")
 ---@type Element
 local Element = req("Element")
 ---@type Color
@@ -330,6 +332,7 @@ function flexlove.init(config)
     Performance = flexlove._Performance,
     Transform = Transform,
     Animation = Animation,
+    ZIndex = ZIndex,
   }
 
   -- Initialize Element module with dependencies

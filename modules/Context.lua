@@ -1,4 +1,6 @@
 ---@class Context
+local modulePath = (...):match("(.-)[^%.]+$")
+local ZIndex = require(modulePath .. "ZIndex")
 local Context = {
   topElements = {},
   -- Base scale configuration
@@ -88,15 +90,18 @@ local function getElementDepth(elem)
 end
 
 --- Sort elements by z-index (called after all elements are registered)
+---
+--- Sorting uses a composite key: rootZ * ROOT_WEIGHT + depth * DEPTH_WEIGHT + ownZ
+---
+--- ROOT_WEIGHT (10^10) gives the top-level ancestor's z-index 10 digits of significance.
+--- DEPTH_WEIGHT (10^3) gives nesting depth 3 digits, ensuring children always sort above
+--- their ancestors. The element's own z (capped to ±999 by ZIndex.clamp) fits within the
+--- remaining 3 digits without interfering with the depth component.
+---
+--- These weights assume |z| <= ZIndex.MAX_Z and practical tree depths (< 10^7), which
+--- keeps the composite key well within Lua's exact integer range (2^53 ≈ 9 × 10^15).
 function Context.sortElementsByZIndex()
-  -- Sort elements by z-index (lowest to highest)
-  -- We need to consider parent-child relationships and z-index
   table.sort(Context._zIndexOrderedElements, function(a, b)
-    -- Calculate effective z-index considering parent hierarchy
-    -- The top-level (root) element's z-index is the most significant digit,
-    -- ensuring that entire trees stack above/below other trees correctly.
-    -- Depth ensures children are always sorted above their ancestors,
-    -- and an element's own z provides sibling ordering.
     local function getEffectiveZIndex(elem)
       local rootZ = elem.z or 0
       local current = elem.parent
@@ -106,7 +111,7 @@ function Context.sortElementsByZIndex()
       end
       local depth = getElementDepth(elem)
       local ownZ = elem.z or 0
-      return rootZ * 10000000000 + depth * 1000 + ownZ
+      return rootZ * ZIndex.ROOT_WEIGHT + depth * ZIndex.DEPTH_WEIGHT + ownZ
     end
 
     local za = getEffectiveZIndex(a)
@@ -114,7 +119,6 @@ function Context.sortElementsByZIndex()
     if za ~= zb then
       return za < zb
     end
-    -- Tiebreaker: deeper elements (children) sort higher
     return getElementDepth(a) < getElementDepth(b)
   end)
 end
