@@ -25,18 +25,14 @@
 ---@field _lastFrameCount number Last frame number for resetting counters
 ---@field _ErrorHandler ErrorHandler? ErrorHandler module dependency
 ---@field _Performance Performance? Performance module dependency
----@field _FFI table? FFI module dependency
----@field _useFFI boolean Whether to use FFI optimizations
 local LayoutEngine = {}
 LayoutEngine.__index = LayoutEngine
 
 --- Initialize module with shared dependencies
----@param deps table Dependencies {ErrorHandler, Performance, FFI}
+---@param deps table Dependencies {ErrorHandler, Performance}
 function LayoutEngine.init(deps)
   LayoutEngine._ErrorHandler = deps.ErrorHandler
   LayoutEngine._Performance = deps.Performance
-  LayoutEngine._FFI = deps.FFI
-  LayoutEngine._useFFI = deps.FFI and deps.FFI.enabled or false
 end
 
 ---@class LayoutEngineProps
@@ -171,7 +167,7 @@ function LayoutEngine:applyPositioningOffsets(child)
   end
 end
 
---- Batch calculate child positions using FFI (optimization for large child counts)
+--- Calculate positions for a batch of children
 ---@param children table Array of child elements
 ---@param startX number Starting X position
 ---@param startY number Starting Y position
@@ -180,28 +176,6 @@ end
 ---@return table positions Array of {x, y} positions
 function LayoutEngine:_batchCalculatePositions(children, startX, startY, spacing, isHorizontal)
   local count = #children
-
-  -- Use FFI for batch calculations if available and count is large enough
-  if LayoutEngine._useFFI and LayoutEngine._FFI and count > 10 then
-    local positions = LayoutEngine._FFI:allocateVec2Array(count)
-    local currentPos = isHorizontal and startX or startY
-
-    for i = 0, count - 1 do
-      local child = children[i + 1] -- Lua is 1-indexed
-
-      if isHorizontal then
-        positions[i].x = currentPos + child.margin.left
-        positions[i].y = startY + child.margin.top
-        currentPos = currentPos + child:getBorderBoxWidth() + child.margin.left + child.margin.right + spacing
-      else
-        positions[i].x = startX + child.margin.left
-        positions[i].y = currentPos + child.margin.top
-        currentPos = currentPos + child:getBorderBoxHeight() + child.margin.top + child.margin.bottom + spacing
-      end
-    end
-
-    return positions
-  end
 
   -- Fallback to Lua table
   local positions = {}

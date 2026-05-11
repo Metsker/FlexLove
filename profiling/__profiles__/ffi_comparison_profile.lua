@@ -62,11 +62,8 @@ function profile.update(dt)
     if phaseFrames >= targetFrames then
       -- Take snapshot
       local phase = phases[currentPhaseIndex]
-      local ffiEnabled = FlexLove._FFI and FlexLove._FFI.enabled
       profiler:createSnapshot(phase.label, {
         elementCount = phase.count,
-        ffiEnabled = ffiEnabled,
-        ffiStatus = ffiEnabled and "LuaJIT FFI" or "Standard Lua",
       })
 
       -- Move to next phase
@@ -94,17 +91,6 @@ function profile.draw()
   love.graphics.setColor(1, 1, 1, 1)
   local y = 350
   local lineHeight = 18
-
-  -- FFI Status
-  local ffiStatus = "Standard Lua (No FFI)"
-  if FlexLove._FFI and FlexLove._FFI.enabled then
-    ffiStatus = "LuaJIT FFI Enabled ✓"
-    love.graphics.setColor(0, 1, 0, 1)
-  else
-    love.graphics.setColor(1, 0.5, 0, 1)
-  end
-  love.graphics.print("Status: " .. ffiStatus, 20, y)
-  y = y + lineHeight + 5
 
   -- Phase info
   love.graphics.setColor(1, 1, 1, 1)

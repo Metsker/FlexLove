@@ -45,8 +45,7 @@ local ZIndex = req("ZIndex")
 local Element = req("Element")
 ---@type Color
 local Color = req("Color")
----@type FFI
-local FFI = req("FFI")
+
 ---@type Select
 local Select = req("Select")
 
@@ -159,9 +158,6 @@ function flexlove.init(config)
     enableRotation = config.errorLogRotateEnabled,
   })
 
-  -- Initialize FFI module (LuaJIT optimizations)
-  flexlove._FFI = FFI.init({ ErrorHandler = flexlove._ErrorHandler })
-
   -- Initialize Performance if available
   if Performance then
     flexlove._Performance = Performance.init({
@@ -175,7 +171,7 @@ function flexlove.init(config)
       logWarnings = config.performanceWarnings or false,
       warningsEnabled = config.performanceWarnings or false,
       memoryProfiling = config.memoryProfiling or config.immediateMode and true or false,
-    }, { ErrorHandler = flexlove._ErrorHandler, FFI = flexlove._FFI })
+    }, { ErrorHandler = flexlove._ErrorHandler })
 
     if config.immediateMode then
       flexlove._Performance:registerTableForMonitoring(
@@ -219,7 +215,7 @@ function flexlove.init(config)
   -- Initialize required modules
   Calc.init({ ErrorHandler = flexlove._ErrorHandler })
   Units.init({ Context = Context, ErrorHandler = flexlove._ErrorHandler, Calc = Calc })
-  Color.init({ ErrorHandler = flexlove._ErrorHandler, FFI = flexlove._FFI })
+  Color.init({ ErrorHandler = flexlove._ErrorHandler })
   utils.init({ ErrorHandler = flexlove._ErrorHandler })
 
   -- Initialize optional Animation module
@@ -232,7 +228,7 @@ function flexlove.init(config)
     Theme.init({ ErrorHandler = flexlove._ErrorHandler, Color = Color, utils = utils })
   end
 
-  LayoutEngine.init({ ErrorHandler = flexlove._ErrorHandler, Performance = flexlove._Performance, FFI = flexlove._FFI })
+  LayoutEngine.init({ ErrorHandler = flexlove._ErrorHandler, Performance = flexlove._Performance })
   EventHandler.init({
     ErrorHandler = flexlove._ErrorHandler,
     Performance = flexlove._Performance,

@@ -2,12 +2,10 @@ local Color = {}
 Color.__index = Color
 
 --- Initialize module with shared dependencies
----@param deps table Dependencies {ErrorHandler, FFI}
+---@param deps table Dependencies {ErrorHandler}
 function Color.init(deps)
   if type(deps) == "table" then
     Color._ErrorHandler = deps.ErrorHandler
-    Color._FFI = deps.FFI
-    Color._useFFI = deps.FFI and deps.FFI.enabled or false
   end
 end
 
@@ -25,7 +23,6 @@ function Color.new(r, g, b, a)
   local _, sanitizedB = Color.validateColorChannel(b or 0, 1)
   local _, sanitizedA = Color.validateColorChannel(a or 1, 1)
 
-  -- Note: We don't use FFI for colors because they need methods (toRGBA, etc.)
   -- FFI structs don't support metatables/methods without wrapping
   -- The wrapping overhead negates the FFI benefits
   local self = setmetatable({}, Color)
@@ -335,7 +332,7 @@ function Color.lerp(colorA, colorB, t)
   -- Clamp t to 0-1 range
   t = math.max(0, math.min(1, t))
 
-  -- Linear interpolation for each channel (optimized for both FFI and Lua)
+  -- Linear interpolation for each channel
   local oneMinusT = 1 - t
   local r = colorA.r * oneMinusT + colorB.r * t
   local g = colorA.g * oneMinusT + colorB.g * t
