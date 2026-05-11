@@ -606,79 +606,19 @@ function Element.new(props)
 
   -- Auto-load image if imagePath is provided
   if self.imagePath and not self.image then
-    local loadedImage, err = Element._ImageCache.load(self.imagePath)
-    if loadedImage then
-      self._loadedImage = loadedImage
-      -- Call onImageLoad callback if provided
-      if self.onImageLoad and type(self.onImageLoad) == "function" then
-        if self.onImageLoadDeferred then
-          Element._Context.deferCallback(function()
-            local success, callbackErr = pcall(self.onImageLoad, self, loadedImage)
-            if not success then
-              Element._ErrorHandler:warn("Element", "EVT_002", {
-                callback = "onImageLoad",
-                error = tostring(callbackErr),
-              })
-            end
-          end)
-        else
-          local success, callbackErr = pcall(self.onImageLoad, self, loadedImage)
-          if not success then
-            Element._ErrorHandler:warn("Element", "EVT_002", {
-              callback = "onImageLoad",
-              error = tostring(callbackErr),
-            })
-          end
-        end
-      end
-    else
-      -- Image failed to load
-      self._loadedImage = nil
-      -- Call onImageError callback if provided
-      if self.onImageError and type(self.onImageError) == "function" then
-        if self.onImageErrorDeferred then
-          Element._Context.deferCallback(function()
-            local success, callbackErr = pcall(self.onImageError, self, err or "Unknown error")
-            if not success then
-              Element._ErrorHandler:warn("Element", "EVT_002", {
-                callback = "onImageError",
-                error = tostring(callbackErr),
-              })
-            end
-          end)
-        else
-          local success, callbackErr = pcall(self.onImageError, self, err or "Unknown error")
-          if not success then
-            Element._ErrorHandler:warn("Element", "EVT_002", {
-              callback = "onImageError",
-              error = tostring(callbackErr),
-            })
-          end
-        end
-      end
-    end
+    -- Check cache first (no I/O). Set _loadedImage immediately if cached
+    self._loadedImage = Element._ImageCache.get(self.imagePath)
+    -- Defer image loading to avoid I/O and callbacks in constructor
+    self:_deferMethod("_loadImage")
   elseif self.image then
     self._loadedImage = self.image
-    -- Call onImageLoad for directly provided images
     if self.onImageLoad and type(self.onImageLoad) == "function" then
-      if self.onImageLoadDeferred then
-        Element._Context.deferCallback(function()
-          local success, callbackErr = pcall(self.onImageLoad, self, self.image)
-          if not success then
-            Element._ErrorHandler:warn("Element", "EVT_002", {
-              callback = "onImageLoad",
-              error = tostring(callbackErr),
-            })
-          end
-        end)
-      else
-        local success, callbackErr = pcall(self.onImageLoad, self, self.image)
-        if not success then
-          Element._ErrorHandler:warn("Element", "EVT_002", {
-            callback = "onImageLoad",
-            error = tostring(callbackErr),
-          })
-        end
+      local success, callbackErr = pcall(self.onImageLoad, self, self.image)
+      if not success then
+        Element._ErrorHandler:warn("Element", "EVT_002", {
+          callback = "onImageLoad",
+          error = tostring(callbackErr),
+        })
       end
     end
   else
@@ -2301,6 +2241,60 @@ function Element:_deferMethod(methodName, ...)
     argc = argc,
     retryCount = 0,
   })
+end
+
+--- Deferred image loading (avoids I/O in constructor)
+--- Loads the image from cache or disk, then fires onImageLoad/onImageError callbacks
+function Element:_loadImage()
+  if self.imagePath and not self.image then
+    local loadedImage, err = Element._ImageCache.load(self.imagePath)
+    if loadedImage then
+      self._loadedImage = loadedImage
+      if self.onImageLoad and type(self.onImageLoad) == "function" then
+        if self.onImageLoadDeferred then
+          Element._Context.deferCallback(function()
+            local success, callbackErr = pcall(self.onImageLoad, self, loadedImage)
+            if not success then
+              Element._ErrorHandler:warn("Element", "EVT_002", {
+                callback = "onImageLoad",
+                error = tostring(callbackErr),
+              })
+            end
+          end)
+        else
+          local success, callbackErr = pcall(self.onImageLoad, self, loadedImage)
+          if not success then
+            Element._ErrorHandler:warn("Element", "EVT_002", {
+              callback = "onImageLoad",
+              error = tostring(callbackErr),
+            })
+          end
+        end
+      end
+    else
+      if self.onImageError and type(self.onImageError) == "function" then
+        if self.onImageErrorDeferred then
+          Element._Context.deferCallback(function()
+            local success, callbackErr = pcall(self.onImageError, self, err or "Unknown error")
+            if not success then
+              Element._ErrorHandler:warn("Element", "EVT_002", {
+                callback = "onImageError",
+                error = tostring(callbackErr),
+              })
+            end
+          end)
+        else
+          local success, callbackErr = pcall(self.onImageError, self, err or "Unknown error")
+          if not success then
+            Element._ErrorHandler:warn("Element", "EVT_002", {
+              callback = "onImageError",
+              error = tostring(callbackErr),
+            })
+          end
+        end
+      end
+    end
+  end
 end
 
 --- Scroll to bottom

@@ -44,6 +44,7 @@ local testFiles = {
   "testing/__tests__/blur_test.lua",
   "testing/__tests__/calc_test.lua",
   "testing/__tests__/critical_failures_test.lua",
+  "testing/__tests__/deferred_image_loading_test.lua",
   "testing/__tests__/element_test.lua",
   "testing/__tests__/element_mode_override_test.lua",
   "testing/__tests__/event_handler_test.lua",
