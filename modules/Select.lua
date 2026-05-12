@@ -28,7 +28,7 @@ function Select.initSelectParent(element, selectParentConfig)
     frameAdopted = false,
   }
 
-  if element._elementMode == "immediate" and element._stateId and element._stateId ~= "" then
+  if Select._Context._immediateMode and element._stateId and element._stateId ~= "" then
     local state = Select._StateManager.getState(element._stateId)
     if state and state._selectOpen ~= nil then
       element._selectState.open = state._selectOpen
@@ -433,7 +433,7 @@ function Select.saveStateToStateManager(element)
   if not element._selectState then
     return
   end
-  if element._stateId and element._elementMode == "immediate" and element._stateId ~= "" then
+  if element._stateId and Select._Context._immediateMode and element._stateId ~= "" then
     Select._StateManager.updateState(element._stateId, {
       _selectOpen = element._selectState.open,
       _selectValue = element._selectState.value,

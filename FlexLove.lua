@@ -625,8 +625,6 @@ function flexlove.beginFrame()
 
   -- Cleanup elements from PREVIOUS frame (after they've been drawn)
   -- This breaks circular references and allows GC to collect memory
-  -- Note: Cleanup is minimal to preserve functionality
-  -- IMPORTANT: Only cleanup immediate-mode elements, preserve retained-mode elements
   if flexlove._currentFrameElements then
     local function cleanupChildren(elem)
       for _, child in ipairs(elem.children) do
@@ -636,20 +634,8 @@ function flexlove.beginFrame()
     end
 
     for _, element in ipairs(flexlove._currentFrameElements) do
-      -- Only cleanup immediate-mode top-level elements
-      -- Retained-mode elements persist across frames
-      if not element.parent and element._elementMode == "immediate" then
+      if not element.parent then
         cleanupChildren(element)
-      end
-    end
-  end
-
-  -- Preserve top-level retained elements before resetting
-  local retainedTopElements = {}
-  if flexlove.topElements then
-    for _, element in ipairs(flexlove.topElements) do
-      if element._elementMode == "retained" then
-        table.insert(retainedTopElements, element)
       end
     end
   end
@@ -658,9 +644,7 @@ function flexlove.beginFrame()
   StateManager.incrementFrame()
   flexlove._currentFrameElements = {}
   flexlove._frameStarted = true
-
-  -- Restore retained top-level elements
-  flexlove.topElements = retainedTopElements
+  flexlove.topElements = {}
 
   Context.clearFrameElements()
 end
@@ -675,66 +659,26 @@ function flexlove.endFrame()
   Context.sortElementsByZIndex()
 
   -- Layout all top-level elements now that all children have been added
-  -- This ensures overflow detection happens with complete child lists
-  -- Only process immediate-mode elements (retained elements handle their own layout)
   for _, element in ipairs(flexlove._currentFrameElements) do
-    if not element.parent and element._elementMode == "immediate" then
-      element:layoutChildren() -- Layout with all children present
+    if not element.parent then
+      element:layoutChildren()
     end
-  end
-
-  -- Handle mixed-mode trees: if immediate-mode children were added to retained-mode parents,
-  -- trigger layout on those parents so the children are properly positioned
-  -- We check for parents with _childrenDirty flag OR parents with immediate-mode children
-  local retainedParentsToLayout = {}
-  for _, element in ipairs(flexlove._currentFrameElements) do
-    if element._elementMode == "immediate" and element.parent and element.parent._elementMode == "retained" then
-      -- Found immediate child with retained parent - mark parent for layout
-      retainedParentsToLayout[element.parent] = true
-    end
-  end
-
-  -- Layout all retained parents that had immediate children added
-  for parent, _ in pairs(retainedParentsToLayout) do
-    parent:layoutChildren()
   end
 
   flexlove._handleSelectPointerDismissal()
 
-  -- Auto-update all top-level elements created this frame
-  -- This happens AFTER layout so positions are correct
-  -- Use accumulated dt from FlexLove.update() calls to properly update animations and cursor blink
-  -- Process immediate-mode top-level elements (they recursively update their children)
+  -- Update all top-level elements created this frame
   for _, element in ipairs(flexlove._currentFrameElements) do
-    if not element.parent and element._elementMode == "immediate" then
-      element:update(flexlove._accumulatedDt)
-    end
-  end
-
-  -- Also update immediate-mode children that have retained-mode parents
-  -- These won't be updated by the loop above (since they have parents)
-  -- And their retained parents won't auto-update (retained = manual lifecycle)
-  -- So we need to explicitly update them here
-  for _, element in ipairs(flexlove._currentFrameElements) do
-    if element.parent and element.parent._elementMode == "retained" and element._elementMode == "immediate" then
+    if not element.parent then
       element:update(flexlove._accumulatedDt)
     end
   end
 
   -- Save state for all elements created this frame
-  -- State is collected from element and all sub-modules via element:saveState()
-  -- This is the ONLY place state is saved in immediate mode
-  -- Only process immediate-mode elements (retained elements don't use StateManager)
   for _, element in ipairs(flexlove._currentFrameElements) do
-    if element._elementMode == "immediate" and element.id and element.id ~= "" then
-      -- Collect state from element and all sub-modules
+    if element.id and element.id ~= "" then
       local stateUpdate = element:saveState()
-
-      -- Use optimized update that only changes modified values
-      -- Returns true if state was changed (meaning blur cache needs invalidation)
       local stateChanged = StateManager.updateStateIfChanged(element.id, stateUpdate)
-
-      -- Invalidate blur cache if blur-related properties changed
       if stateChanged and (element.backdropBlur or element.contentBlur) and Blur then
         Blur.clearElementCache(element.id)
       end
@@ -1755,15 +1699,12 @@ function flexlove.new(props, callback)
     return nil
   end
 
-  -- Determine effective mode: props.mode takes precedence over global mode
-  local effectiveMode = props.mode or (flexlove._immediateMode and "immediate" or "retained")
-
-  -- If element is in retained mode, use standard Element.new
-  if effectiveMode == "retained" then
+  -- Use global mode to determine behavior
+  if not flexlove._immediateMode then
     return Element.new(props)
   end
 
-  -- Element is in immediate mode - proceed with immediate-mode logic
+  -- Immediate mode - proceed with immediate-mode logic
   -- Auto-begin frame if not manually started (convenience feature)
   if not flexlove._frameStarted then
     flexlove.beginFrame()
