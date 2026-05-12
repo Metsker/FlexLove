@@ -535,8 +535,8 @@ function TestAnimationGroupControl:test_reverse_reverses_all_animations()
   group:update(0.5)
   group:reverse()
 
-  luaunit.assertTrue(anim1._reversed)
-  luaunit.assertTrue(anim2._reversed)
+  luaunit.assertTrue(anim1:isReversed())
+  luaunit.assertTrue(anim2:isReversed())
 end
 
 function TestAnimationGroupControl:test_setSpeed_affects_all_animations()
@@ -548,8 +548,8 @@ function TestAnimationGroupControl:test_setSpeed_affects_all_animations()
 
   group:setSpeed(2.0)
 
-  luaunit.assertEquals(anim1._speed, 2.0)
-  luaunit.assertEquals(anim2._speed, 2.0)
+  luaunit.assertEquals(anim1:getSpeed(), 2.0)
+  luaunit.assertEquals(anim2:getSpeed(), 2.0)
 end
 
 function TestAnimationGroupControl:test_cancel_cancels_all_animations()
@@ -593,9 +593,7 @@ function TestAnimationGroupControl:test_reset_restores_initial_state()
 
   group:reset()
   luaunit.assertEquals(group:getState(), "ready")
-  luaunit.assertFalse(group._hasStarted)
-  luaunit.assertEquals(group._currentIndex, 1)
-  luaunit.assertEquals(group._staggerElapsed, 0)
+  -- After reset, state is "ready" and the group can be replayed (tested in test_reset_allows_replaying)
 end
 
 function TestAnimationGroupControl:test_reset_allows_replaying()

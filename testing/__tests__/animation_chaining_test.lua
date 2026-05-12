@@ -56,7 +56,6 @@ function TestAnimationChaining:test_chain_links_two_animations()
 
   local returned = anim1:chain(anim2)
 
-  luaunit.assertEquals(anim1._next, anim2)
   luaunit.assertEquals(returned, anim2)
 end
 
@@ -68,7 +67,6 @@ function TestAnimationChaining:test_chain_with_factory_function()
 
   local returned = anim1:chain(factory)
 
-  luaunit.assertEquals(anim1._nextFactory, factory)
   luaunit.assertEquals(returned, anim1) -- returns self when factory
 end
 
@@ -189,11 +187,13 @@ end
 function TestAnimationDelay:test_delay_with_invalid_value_defaults_to_zero()
   local anim = makeAnim(0.5)
   anim:delay(-1)
-  luaunit.assertEquals(anim._delay, 0)
+  anim:update(0.1)
+  luaunit.assertTrue(anim.elapsed > 0, "Animation should progress immediately with invalid delay")
 
   local anim2 = makeAnim(0.5)
   anim2:delay("bad")
-  luaunit.assertEquals(anim2._delay, 0)
+  anim2:update(0.1)
+  luaunit.assertTrue(anim2.elapsed > 0, "Animation should progress immediately with invalid delay")
 end
 
 -- ============================================================================
@@ -269,7 +269,7 @@ function TestAnimationYoyo:test_yoyo_reverses_on_repeat()
   end
 
   -- After first cycle completes, it should be reversed
-  luaunit.assertTrue(anim._reversed)
+  luaunit.assertTrue(anim:isReversed())
 end
 
 function TestAnimationYoyo:test_yoyo_returns_self()
@@ -279,15 +279,21 @@ function TestAnimationYoyo:test_yoyo_returns_self()
 end
 
 function TestAnimationYoyo:test_yoyo_default_true()
-  local anim = makeAnim(1)
-  anim:yoyo()
-  luaunit.assertTrue(anim._yoyo)
+  local anim = makeAnim(0.2)
+  anim:repeatCount(2):yoyo()
+  for i = 1, 15 do
+    anim:update(1 / 60)
+  end
+  luaunit.assertTrue(anim:isReversed(), "Animation should reverse after completing a cycle with yoyo")
 end
 
 function TestAnimationYoyo:test_yoyo_false_disables()
-  local anim = makeAnim(1)
-  anim:yoyo(false)
-  luaunit.assertFalse(anim._yoyo)
+  local anim = makeAnim(0.2)
+  anim:repeatCount(2):yoyo(false)
+  for i = 1, 15 do
+    anim:update(1 / 60)
+  end
+  luaunit.assertFalse(anim:isReversed(), "Animation should not reverse when yoyo is disabled")
 end
 
 -- ============================================================================
@@ -313,8 +319,7 @@ function TestAnimationChainSequence:test_chainSequence_links_all_animations()
   local first = Animation.chainSequence({ a1, a2, a3 })
 
   luaunit.assertEquals(first, a1)
-  luaunit.assertEquals(a1._next, a2)
-  luaunit.assertEquals(a2._next, a3)
+  -- Chaining behavior is verified in test_chained_animations_execute_in_order
 end
 
 function TestAnimationChainSequence:test_chainSequence_single_animation()
@@ -322,7 +327,6 @@ function TestAnimationChainSequence:test_chainSequence_single_animation()
   local first = Animation.chainSequence({ a1 })
 
   luaunit.assertEquals(first, a1)
-  luaunit.assertNil(a1._next)
 end
 
 function TestAnimationChainSequence:test_chainSequence_empty_array()
@@ -490,9 +494,14 @@ function TestAnimationChainingIntegration:test_chained_delay_and_repeat()
   local chained = anim:delay(0.1):repeatCount(2):yoyo(true)
 
   luaunit.assertEquals(chained, anim)
-  luaunit.assertEquals(anim._delay, 0.1)
-  luaunit.assertEquals(anim._repeatCount, 2)
-  luaunit.assertTrue(anim._yoyo)
+  -- Verify delay: animation shouldn't progress until delay passes
+  anim:update(0.05)
+  luaunit.assertEquals(anim.elapsed, 0, "Should still be in delay period")
+  anim:update(0.1)
+  -- After two updates, _delayElapsed (0.15) has passed the delay (0.1)
+  -- Next update will progress the actual animation elapsed
+  anim:update(0.01)
+  luaunit.assertTrue(anim.elapsed > 0, "Should progress after delay passes")
 end
 
 function TestAnimationChainingIntegration:test_complex_chain_executes_fully()

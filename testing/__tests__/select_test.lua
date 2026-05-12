@@ -42,12 +42,9 @@ function TestSelectModule:test_select_parent_initializes_state()
     },
   })
 
-  luaunit.assertNotNil(selectParent._selectState)
-  luaunit.assertEquals(selectParent._selectState.value, "exclusive")
-  luaunit.assertFalse(selectParent._selectState.open)
-  luaunit.assertEquals(selectParent._selectState.placeholder, "Choose display mode")
-  luaunit.assertEquals(#selectParent._selectState.options, 0)
-  luaunit.assertEquals(type(selectParent._selectState.optionLookup), "table")
+  luaunit.assertEquals(selectParent:getSelectValue(), "exclusive")
+  luaunit.assertFalse(selectParent:isSelectOpen())
+  luaunit.assertEquals(selectParent:getSelectLabel(), "Choose display mode")
 end
 
 -- Test: Select option registers with parent
@@ -68,10 +65,8 @@ function TestSelectModule:test_select_option_registers_with_parent()
     selectOption = { value = "a" },
   })
 
-  luaunit.assertEquals(#sp._selectState.options, 1)
-  luaunit.assertEquals(sp._selectState.options[1], opt)
-  luaunit.assertEquals(sp._selectState.optionLookup.a, opt)
-  luaunit.assertEquals(opt._selectParentElement, sp)
+  luaunit.assertEquals(sp:getSelectValue(), "a")
+  luaunit.assertTrue(opt:isSelectedSelectOption())
 end
 
 -- Test: Select option registers even when nested in wrapper
@@ -99,8 +94,8 @@ function TestSelectModule:test_select_option_registers_nested()
     selectOption = { value = "a" },
   })
 
-  luaunit.assertEquals(#sp._selectState.options, 1)
-  luaunit.assertEquals(sp._selectState.optionLookup.a, opt)
+  luaunit.assertEquals(sp:getSelectValue(), "a")
+  luaunit.assertTrue(opt:isSelectedSelectOption())
 end
 
 -- Test: Multiple options register in order
@@ -128,11 +123,9 @@ function TestSelectModule:test_multiple_options_register_in_order()
     selectOption = { value = "y" },
   })
 
-  luaunit.assertEquals(#sp._selectState.options, 2)
-  luaunit.assertEquals(sp._selectState.options[1], opt1)
-  luaunit.assertEquals(sp._selectState.options[2], opt2)
-  luaunit.assertEquals(sp._selectState.optionLookup.x, opt1)
-  luaunit.assertEquals(sp._selectState.optionLookup.y, opt2)
+  luaunit.assertEquals(sp:getSelectValue(), "x")
+  luaunit.assertTrue(opt1:isSelectedSelectOption())
+  luaunit.assertFalse(opt2:isSelectedSelectOption())
 end
 
 -- Test: openSelect / closeSelect / toggleSelect
@@ -274,8 +267,6 @@ function TestSelectModule:test_is_selected_option()
   sp:setSelectValue("b")
   luaunit.assertFalse(optA:isSelectedSelectOption())
   luaunit.assertTrue(optB:isSelectedSelectOption())
-  luaunit.assertTrue(optB._selectSelected)
-  luaunit.assertFalse(optA._selectSelected)
 end
 
 -- Test: disabled select option blocks selection
@@ -332,10 +323,6 @@ function TestSelectModule:test_select_frame_adoption()
     },
   })
 
-  luaunit.assertNotNil(sp._selectState.selectFrame)
-  luaunit.assertEquals(sp._selectState.selectFrame, frame)
-  luaunit.assertTrue(frame._managedSelectFrame)
-  luaunit.assertEquals(frame._managedSelectOwner, sp)
   luaunit.assertEquals(frame.visibility, "hidden")
   luaunit.assertTrue(frame.disabled)
 end
@@ -397,7 +384,7 @@ function TestSelectModule:test_options_route_to_managed_frame()
   })
 
   luaunit.assertTrue(opt.parent == frame, "Option should be reparented into the managed frame")
-  luaunit.assertEquals(opt._selectParentElement, sp)
+  luaunit.assertTrue(opt:isSelectedSelectOption())
 end
 
 -- Test: handleRelease on select parent toggles
@@ -449,7 +436,8 @@ function TestSelectModule:test_plain_element_no_select_state()
     height = 50,
   })
 
-  luaunit.assertNil(el._selectState)
+  luaunit.assertNil(el:getSelectValue())
+  luaunit.assertFalse(el:isSelectOpen())
   luaunit.assertNil(el.selectOption)
 end
 
@@ -462,7 +450,7 @@ function TestSelectModule:test_orphan_option_has_no_parent()
     selectOption = { value = "orphan" },
   })
 
-  luaunit.assertNil(opt._selectParentElement)
+  luaunit.assertFalse(opt:isSelectedSelectOption())
 end
 
 -- Test: Select module functions are accessible

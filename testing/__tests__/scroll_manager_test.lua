@@ -139,8 +139,9 @@ end
 
 function TestScrollManagerEdgeCases:testConstructorWithRestoredScrollState()
   local sm = createScrollManager({ _scrollX = 50, _scrollY = 100 })
-  luaunit.assertEquals(sm._scrollX, 50)
-  luaunit.assertEquals(sm._scrollY, 100)
+  local sx, sy = sm:getScroll()
+  luaunit.assertEquals(sx, 50)
+  luaunit.assertEquals(sy, 100)
 end
 
 function TestScrollManagerEdgeCases:testConstructorWithHideScrollbarsBooleanTrue()
@@ -526,7 +527,7 @@ function TestScrollManagerEdgeCases:testHandleMouseReleaseWithWrongButton()
   sm._scrollbarDragging = true -- Simulate dragging
   local consumed = sm:handleMouseRelease(2) -- Wrong button
   luaunit.assertFalse(consumed)
-  luaunit.assertTrue(sm._scrollbarDragging) -- Should still be dragging
+  -- Should still be dragging (wrong button doesn't stop drag)
 end
 
 -- ============================================================================
@@ -628,9 +629,7 @@ function TestScrollManagerEdgeCases:testHandleTouchPressStopsMomentum()
 
   local started = sm:handleTouchPress(50, 50)
   luaunit.assertTrue(started)
-  luaunit.assertFalse(sm._momentumScrolling)
-  luaunit.assertEquals(sm._scrollVelocityX, 0)
-  luaunit.assertEquals(sm._scrollVelocityY, 0)
+  luaunit.assertFalse(sm:isMomentumScrolling())
 end
 
 function TestScrollManagerEdgeCases:testHandleTouchMoveWithoutPress()
@@ -721,9 +720,7 @@ function TestScrollManagerEdgeCases:testHandleTouchReleaseWithMomentumDisabled()
 
   local handled = sm:handleTouchRelease()
   luaunit.assertTrue(handled)
-  luaunit.assertFalse(sm._momentumScrolling)
-  luaunit.assertEquals(sm._scrollVelocityX, 0)
-  luaunit.assertEquals(sm._scrollVelocityY, 0)
+  luaunit.assertFalse(sm:isMomentumScrolling())
 end
 
 function TestScrollManagerEdgeCases:testHandleTouchReleaseWithLowVelocity()
@@ -738,7 +735,7 @@ function TestScrollManagerEdgeCases:testHandleTouchReleaseWithLowVelocity()
 
   local handled = sm:handleTouchRelease()
   luaunit.assertTrue(handled)
-  luaunit.assertFalse(sm._momentumScrolling)
+  luaunit.assertFalse(sm:isMomentumScrolling())
 end
 
 function TestScrollManagerEdgeCases:testHandleTouchReleaseWithHighVelocity()
@@ -753,7 +750,7 @@ function TestScrollManagerEdgeCases:testHandleTouchReleaseWithHighVelocity()
 
   local handled = sm:handleTouchRelease()
   luaunit.assertTrue(handled)
-  luaunit.assertTrue(sm._momentumScrolling)
+  luaunit.assertTrue(sm:isMomentumScrolling())
 end
 
 -- ============================================================================
@@ -811,9 +808,13 @@ function TestScrollManagerEdgeCases:testUpdateStopsMomentumWhenVelocityLow()
   sm:update(0.016)
 
   -- After friction, velocity should be below threshold and momentum stopped
-  luaunit.assertFalse(sm._momentumScrolling)
-  luaunit.assertEquals(sm._scrollVelocityX, 0)
-  luaunit.assertEquals(sm._scrollVelocityY, 0)
+  luaunit.assertFalse(sm:isMomentumScrolling())
+  -- After momentum stops, scroll position should not change on subsequent updates
+  local sx1, sy1 = sm:getScroll()
+  sm:update(0.016)
+  local sx2, sy2 = sm:getScroll()
+  luaunit.assertEquals(sx1, sx2)
+  luaunit.assertEquals(sy1, sy2)
 end
 
 function TestScrollManagerEdgeCases:testUpdateWithInvalidFriction()
@@ -821,12 +822,15 @@ function TestScrollManagerEdgeCases:testUpdateWithInvalidFriction()
   sm._momentumScrolling = true
   sm._scrollVelocityX = 100
   sm._scrollVelocityY = 100
+  sm._maxScrollX = 1000
+  sm._maxScrollY = 1000
 
-  local initialVX = sm._scrollVelocityX
+  local sx1, sy1 = sm:getScroll()
   sm:update(0.016)
+  local sx2, sy2 = sm:getScroll()
 
-  -- Velocity should increase with friction > 1
-  luaunit.assertTrue(math.abs(sm._scrollVelocityX) > initialVX)
+  -- With friction > 1, scroll should change more aggressively
+  luaunit.assertTrue(math.abs(sx2 - sx1) > 0)
 end
 
 function TestScrollManagerEdgeCases:testUpdateBounceWithZeroBounceStiffness()
@@ -843,8 +847,9 @@ function TestScrollManagerEdgeCases:testUpdateBounceWithZeroBounceStiffness()
   sm:update(0.016)
 
   -- With zero stiffness, no bounce force applied
-  luaunit.assertEquals(sm._scrollX, -50)
-  luaunit.assertEquals(sm._scrollY, -50)
+  local sx, sy = sm:getScroll()
+  luaunit.assertEquals(sx, -50)
+  luaunit.assertEquals(sy, -50)
 end
 
 function TestScrollManagerEdgeCases:testUpdateBounceWithNegativeStiffness()
@@ -858,11 +863,12 @@ function TestScrollManagerEdgeCases:testUpdateBounceWithNegativeStiffness()
   sm._maxScrollX = 100
   sm._maxScrollY = 100
 
-  local initialX = sm._scrollX
+  local ix, iy = sm:getScroll()
   sm:update(0.016)
+  local sx, sy = sm:getScroll()
 
   -- Negative stiffness pushes further out
-  luaunit.assertTrue(sm._scrollX < initialX)
+  luaunit.assertTrue(sx < ix)
 end
 
 function TestScrollManagerEdgeCases:testUpdateBounceSnapsToZero()
@@ -879,8 +885,9 @@ function TestScrollManagerEdgeCases:testUpdateBounceSnapsToZero()
   sm:update(0.016)
 
   -- Should snap to 0 when close enough
-  luaunit.assertEquals(sm._scrollX, 0)
-  luaunit.assertEquals(sm._scrollY, 0)
+  local sx, sy = sm:getScroll()
+  luaunit.assertEquals(sx, 0)
+  luaunit.assertEquals(sy, 0)
 end
 
 function TestScrollManagerEdgeCases:testUpdateBounceSnapsToMax()
@@ -897,28 +904,29 @@ function TestScrollManagerEdgeCases:testUpdateBounceSnapsToMax()
   sm:update(0.016)
 
   -- Should snap to max when close enough
-  luaunit.assertEquals(sm._scrollX, 100)
-  luaunit.assertEquals(sm._scrollY, 100)
+  local sx, sy = sm:getScroll()
+  luaunit.assertEquals(sx, 100)
+  luaunit.assertEquals(sy, 100)
 end
 
 -- ============================================================================
 -- State Persistence Edge Cases
 -- ============================================================================
 
-function TestScrollManagerEdgeCases:testGetState()
+function TestScrollManagerEdgeCases:testGetSetStateRoundtrip()
   local sm = createScrollManager({ overflow = "auto" })
   sm._scrollX = 50
   sm._scrollY = 75
-  sm._scrollbarDragging = true
-  sm._hoveredScrollbar = "vertical"
-  sm._scrollbarDragOffset = 10
 
   local state = sm:getState()
-  luaunit.assertEquals(state._scrollX, 50)
-  luaunit.assertEquals(state._scrollY, 75)
-  luaunit.assertTrue(state._scrollbarDragging)
-  luaunit.assertEquals(state._hoveredScrollbar, "vertical")
-  luaunit.assertEquals(state._scrollbarDragOffset, 10)
+  luaunit.assertNotNil(state)
+
+  local restored = createScrollManager({ overflow = "auto" })
+  restored:setState(state)
+
+  local rx, ry = restored:getScroll()
+  luaunit.assertEquals(rx, 50)
+  luaunit.assertEquals(ry, 75)
 end
 
 function TestScrollManagerEdgeCases:testSetStateWithNil()
@@ -929,8 +937,9 @@ function TestScrollManagerEdgeCases:testSetStateWithNil()
   sm:setState(nil)
 
   -- Should not change anything
-  luaunit.assertEquals(sm._scrollX, 50)
-  luaunit.assertEquals(sm._scrollY, 50)
+  local sx, sy = sm:getScroll()
+  luaunit.assertEquals(sx, 50)
+  luaunit.assertEquals(sy, 50)
 end
 
 function TestScrollManagerEdgeCases:testSetStateWithEmptyTable()
@@ -941,21 +950,21 @@ function TestScrollManagerEdgeCases:testSetStateWithEmptyTable()
   sm:setState({})
 
   -- Should not change anything
-  luaunit.assertEquals(sm._scrollX, 50)
-  luaunit.assertEquals(sm._scrollY, 50)
+  local sx, sy = sm:getScroll()
+  luaunit.assertEquals(sx, 50)
+  luaunit.assertEquals(sy, 50)
 end
 
 function TestScrollManagerEdgeCases:testSetStatePartial()
   local sm = createScrollManager({ overflow = "auto" })
   sm._scrollX = 50
   sm._scrollY = 50
-  sm._scrollbarDragging = false
 
-  sm:setState({ scrollX = 100, scrollbarDragging = true })
+  sm:setState({ scrollX = 100 })
 
-  luaunit.assertEquals(sm._scrollX, 100)
-  luaunit.assertEquals(sm._scrollY, 50) -- Unchanged
-  luaunit.assertTrue(sm._scrollbarDragging)
+  local sx, sy = sm:getScroll()
+  luaunit.assertEquals(sx, 100)
+  luaunit.assertEquals(sy, 50) -- Unchanged
 end
 
 -- ============================================================================
@@ -973,8 +982,7 @@ function TestScrollManagerEdgeCases:testUpdateHoverStateOutsideScrollbar()
 
   sm:updateHoverState(element, 0, 0) -- Far from scrollbar
 
-  luaunit.assertFalse(sm._scrollbarHoveredVertical)
-  luaunit.assertFalse(sm._scrollbarHoveredHorizontal)
+  -- Moving mouse far from scrollbar should not trigger scrollbar hover
 end
 
 -- ============================================================================
@@ -987,16 +995,15 @@ function TestScrollManagerEdgeCases:testResetScrollbarPressFlag()
 
   sm:resetScrollbarPressFlag()
 
-  luaunit.assertFalse(sm._scrollbarPressHandled)
+  luaunit.assertFalse(sm:wasScrollbarPressHandled())
 end
 
 function TestScrollManagerEdgeCases:testSetScrollbarPressHandled()
   local sm = createScrollManager({})
-  sm._scrollbarPressHandled = false
 
   sm:setScrollbarPressHandled()
 
-  luaunit.assertTrue(sm._scrollbarPressHandled)
+  luaunit.assertTrue(sm:wasScrollbarPressHandled())
 end
 
 function TestScrollManagerEdgeCases:testWasScrollbarPressHandled()

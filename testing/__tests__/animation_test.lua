@@ -354,7 +354,7 @@ function TestAnimationUpdate:test_reverse()
   anim:update(0.5)
   anim:reverse()
 
-  luaunit.assertTrue(anim._reversed)
+  luaunit.assertTrue(anim:isReversed())
 
   -- Continue updating - it should go backwards
   anim:update(0.3)
@@ -369,7 +369,7 @@ function TestAnimationUpdate:test_setSpeed()
   })
 
   anim:setSpeed(2.0)
-  luaunit.assertEquals(anim._speed, 2.0)
+  luaunit.assertEquals(anim:getSpeed(), 2.0)
 
   -- Update with 0.1 seconds at 2x speed should advance 0.2 seconds
   anim:update(0.1)
@@ -388,7 +388,7 @@ function TestAnimationUpdate:test_reset()
 
   anim:reset()
   luaunit.assertEquals(anim.elapsed, 0)
-  luaunit.assertFalse(anim._hasStarted)
+  luaunit.assertEquals(anim:getState(), "pending")
 end
 
 function TestAnimationUpdate:test_isPaused_isComplete()

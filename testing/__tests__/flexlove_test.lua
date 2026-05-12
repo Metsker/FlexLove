@@ -137,7 +137,11 @@ function TestFlexLove:testInitWithAutoFrameManagement()
     autoFrameManagement = true,
   })
 
-  luaunit.assertEquals(FlexLove._autoFrameManagement, true)
+  -- autoFrameManagement enables automatic frame handling in immediate mode
+  FlexLove.setMode("immediate")
+  local element = FlexLove.new({ id = "auto-frame-test", width = 50, height = 50 })
+  luaunit.assertNotNil(element)
+  FlexLove.endFrame()
 end
 
 -- Test: init() with state configuration
@@ -153,8 +157,12 @@ end
 -- Test: setMode() to immediate
 function TestFlexLove:testSetModeImmediate()
   FlexLove.setMode("immediate")
-  luaunit.assertTrue(FlexLove._immediateMode)
-  luaunit.assertFalse(FlexLove._frameStarted)
+  luaunit.assertEquals(FlexLove.getMode(), "immediate")
+  -- Elements can be created in immediate mode with beginFrame
+  FlexLove.beginFrame()
+  local element = FlexLove.new({ id = "immediate-test", width = 50, height = 50 })
+  luaunit.assertNotNil(element)
+  FlexLove.endFrame()
 end
 
 -- Test: setMode() to retained
@@ -162,8 +170,9 @@ function TestFlexLove:testSetModeRetained()
   FlexLove.setMode("immediate") -- First set to immediate
   FlexLove.setMode("retained") -- Then to retained
 
-  luaunit.assertFalse(FlexLove._immediateMode)
-  luaunit.assertEquals(FlexLove._frameNumber, 0)
+  luaunit.assertEquals(FlexLove.getMode(), "retained")
+  local stats = FlexLove.getStateStats()
+  luaunit.assertEquals(stats.frameNumber, 0)
 end
 
 -- Test: setMode() with invalid mode
@@ -189,18 +198,21 @@ function TestFlexLove:testBeginFrameImmediate()
   FlexLove.setMode("immediate")
   FlexLove.beginFrame()
 
-  luaunit.assertTrue(FlexLove._frameStarted)
-  luaunit.assertEquals(#FlexLove._currentFrameElements, 0)
+  -- After beginFrame, elements can be created
+  local element = FlexLove.new({ id = "begin-frame-test", width = 50, height = 50 })
+  luaunit.assertNotNil(element)
+  FlexLove.endFrame()
 end
 
 -- Test: beginFrame() in retained mode (should do nothing)
 function TestFlexLove:testBeginFrameRetained()
   FlexLove.setMode("retained")
-  local frameNumber = FlexLove._frameNumber or 0
+  local stats = FlexLove.getStateStats()
   FlexLove.beginFrame()
 
   -- Frame number should not change in retained mode
-  luaunit.assertEquals(FlexLove._frameNumber or 0, frameNumber)
+  local stats2 = FlexLove.getStateStats()
+  luaunit.assertEquals(stats2.frameNumber, stats.frameNumber)
 end
 
 -- Test: endFrame() in immediate mode
@@ -209,7 +221,10 @@ function TestFlexLove:testEndFrameImmediate()
   FlexLove.beginFrame()
   FlexLove.endFrame()
 
-  luaunit.assertFalse(FlexLove._frameStarted)
+  -- After endFrame, a new element should be createable (auto-begins frame)
+  local element = FlexLove.new({ id = "end-frame-test", width = 50, height = 50 })
+  luaunit.assertNotNil(element)
+  FlexLove.endFrame()
 end
 
 -- Test: endFrame() in retained mode (should do nothing)
@@ -402,8 +417,8 @@ function TestFlexLove:testNewAutoBeginFrame()
   })
 
   luaunit.assertNotNil(element)
-  luaunit.assertTrue(FlexLove._autoBeganFrame)
 
+  -- Auto-began frame should allow endFrame to complete successfully
   FlexLove.endFrame()
 end
 
@@ -494,10 +509,13 @@ function TestFlexLove:testDrawAutoEndFrame()
     height = 100,
   })
 
-  -- draw() should call endFrame() if _autoBeganFrame is true
+  -- draw() should auto-end the frame
   FlexLove.draw()
 
-  luaunit.assertFalse(FlexLove._autoBeganFrame)
+  -- After draw auto-ends, a new element creation should work (auto-begins again)
+  local element2 = FlexLove.new({ id = "post-draw-test", width = 50, height = 50 })
+  luaunit.assertNotNil(element2)
+  FlexLove.endFrame()
 end
 
 -- Test: update() with no elements
@@ -588,7 +606,7 @@ function TestFlexLove:testDestroy()
 
   luaunit.assertEquals(#FlexLove.topElements, 0)
   luaunit.assertNil(FlexLove.baseScale)
-  luaunit.assertNil(FlexLove._focusedElement)
+  luaunit.assertNil(FlexLove.getFocusedElement())
 end
 
 -- Test: textinput() with no focused element
@@ -1073,13 +1091,14 @@ end
 function TestFlexLoveUnhappyPaths:testBeginFrameMultipleTimes()
   FlexLove.setMode("immediate")
   FlexLove.beginFrame()
-  local frameNum1 = FlexLove._frameNumber
+  local stats1 = FlexLove.getStateStats()
 
   FlexLove.beginFrame() -- Call again without ending
-  local frameNum2 = FlexLove._frameNumber
+  local stats2 = FlexLove.getStateStats()
 
   -- Frame number should increment each time
-  luaunit.assertTrue(frameNum2 > frameNum1)
+  luaunit.assertTrue(stats2.frameNumber > stats1.frameNumber)
+  FlexLove.endFrame()
 end
 
 -- Test: endFrame() without beginFrame()
@@ -1153,7 +1172,9 @@ function TestFlexLoveUnhappyPaths:testNewImmediateModeNoFrame()
 
   local element = FlexLove.new({ width = 100, height = 100 })
   luaunit.assertNotNil(element)
-  luaunit.assertTrue(FlexLove._autoBeganFrame)
+
+  -- Auto-began frame allows endFrame to complete successfully
+  FlexLove.endFrame()
 end
 
 -- Test: draw() with invalid function types
@@ -1512,10 +1533,17 @@ function TestFlexLove:testScrollSpeedInImmediateMode()
   end
   FlexLove.endFrame()
 
-  -- Verify scrollSpeed was set correctly
+  -- Verify scrollSpeed was set correctly via public property
   luaunit.assertEquals(element.scrollSpeed, 75)
-  luaunit.assertNotNil(element._scrollManager)
-  luaunit.assertEquals(element._scrollManager.scrollSpeed, 75)
+
+  -- Setup overflow state for behavioral scrolling test
+  element._scrollManager._overflowY = true
+  element._scrollManager._maxScrollY = 500
+
+  -- Trigger wheel scroll, verify position via public API
+  element:_handleWheelScroll(0, -1)
+  local _, scrollY = element:getScrollPosition()
+  luaunit.assertEquals(scrollY, 75)
 
   -- Test another frame to ensure scrollSpeed persists
   FlexLove.beginFrame()
@@ -1538,7 +1566,13 @@ function TestFlexLove:testScrollSpeedInImmediateMode()
 
   -- Verify scrollSpeed is still correct after recreating element
   luaunit.assertEquals(element2.scrollSpeed, 75)
-  luaunit.assertEquals(element2._scrollManager.scrollSpeed, 75)
+
+  element2._scrollManager._overflowY = true
+  element2._scrollManager._maxScrollY = 500
+
+  element2:_handleWheelScroll(0, -1)
+  local _, scrollY2 = element2:getScrollPosition()
+  luaunit.assertEquals(scrollY2, 75)
 end
 
 -- Test: smoothScrollEnabled prop is properly passed to ScrollManager
@@ -1563,9 +1597,21 @@ function TestFlexLove:testSmoothScrollEnabledProp()
   end
   FlexLove.endFrame()
 
-  -- Verify smoothScrollEnabled was set correctly
-  luaunit.assertNotNil(element._scrollManager)
-  luaunit.assertTrue(element._scrollManager.smoothScrollEnabled)
+  -- Setup overflow state for behavioral scrolling test
+  element._scrollManager._overflowY = true
+  element._scrollManager._maxScrollY = 800
+
+  -- With smooth scrolling, handleWheel sets a target but does NOT change scroll position immediately
+  element:_handleWheelScroll(0, -1)
+
+  -- Scroll position should still be 0 (not yet interpolated)
+  local _, scrollY = element:getScrollPosition()
+  luaunit.assertEquals(scrollY, 0)
+
+  -- After update, scroll should move towards target
+  element:update(0.016)
+  local _, newScrollY = element:getScrollPosition()
+  luaunit.assertTrue(newScrollY > 0)
 end
 
 -- Test: scrollSpeed must be provided every frame in immediate mode
@@ -1585,7 +1631,13 @@ function TestFlexLove:testScrollSpeedMustBeProvidedEveryFrame()
     FlexLove.new({ parent = element1, width = 180, height = 50 })
   end
   FlexLove.endFrame()
-  luaunit.assertEquals(element1._scrollManager.scrollSpeed, 50)
+
+  element1._scrollManager._overflowY = true
+  element1._scrollManager._maxScrollY = 500
+
+  element1:_handleWheelScroll(0, -1)
+  local _, scrollY1 = element1:getScrollPosition()
+  luaunit.assertEquals(scrollY1, 50)
 
   -- Frame 2: Forget to provide scrollSpeed (should default to 20)
   FlexLove.beginFrame()
@@ -1601,8 +1653,12 @@ function TestFlexLove:testScrollSpeedMustBeProvidedEveryFrame()
   end
   FlexLove.endFrame()
 
-  -- In immediate mode, props must be provided every frame
-  luaunit.assertEquals(element2._scrollManager.scrollSpeed, 20)
+  element2._scrollManager._overflowY = true
+  element2._scrollManager._maxScrollY = 500
+
+  element2:_handleWheelScroll(0, -1)
+  local _, scrollY2 = element2:getScrollPosition()
+  luaunit.assertEquals(scrollY2, 20)
 end
 
 -- Test: smooth scrolling actually interpolates scroll position
@@ -1631,22 +1687,17 @@ function TestFlexLove:testSmoothScrollingInterpolation()
   -- Trigger wheel scroll
   element:_handleWheelScroll(0, -1) -- Scroll down
 
-  -- Should set target, not immediate scroll
-  luaunit.assertNotNil(element._scrollManager._targetScrollY)
-  local initialScroll = element._scrollManager._scrollY
-  local targetScroll = element._scrollManager._targetScrollY
-
-  -- Initial scroll should be 0, target should be scrollSpeed (default 20)
-  luaunit.assertEquals(initialScroll, 0)
-  luaunit.assertEquals(targetScroll, 20)
+  -- Initial scroll should be 0 (smooth scrolling doesn't jump)
+  local _, scrollY = element:getScrollPosition()
+  luaunit.assertEquals(scrollY, 0)
 
   -- Update should interpolate towards target
   element:update(0.016) -- One frame at 60fps
-  local afterUpdate = element._scrollManager._scrollY
+  local _, afterUpdate = element:getScrollPosition()
 
   -- Scroll position should have moved towards target
-  luaunit.assertTrue(afterUpdate > initialScroll)
-  luaunit.assertTrue(afterUpdate <= targetScroll)
+  luaunit.assertTrue(afterUpdate > 0)
+  luaunit.assertTrue(afterUpdate <= 20)
 end
 
 if not _G.RUNNING_ALL_TESTS then

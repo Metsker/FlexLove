@@ -48,9 +48,12 @@ function TestCriticalFailures:test_canvas_cleanup_on_resize()
   -- Old canvas should be replaced
   luaunit.assertNotEquals(canvas1, canvas2)
 
-  -- Check canvas is actually nil after resize (before draw)
+  -- After resize, draw should create new canvases without error
   FlexLove.resize()
-  luaunit.assertNil(FlexLove._gameCanvas)
+  local success = pcall(function()
+    FlexLove.draw(function() end)
+  end)
+  luaunit.assertTrue(success, "Draw should work after resize (new canvases created)")
 end
 
 -- Test: Elements should be cleaned up from topElements on destroy

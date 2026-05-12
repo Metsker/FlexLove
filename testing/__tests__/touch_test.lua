@@ -426,7 +426,8 @@ function TestTouchGestureRecognizer:test_double_tap_not_detected_when_too_slow()
 
   if gestures then
     for _, g in ipairs(gestures) do
-      luaunit.assertNotEquals(g.type, "double_tap", "Too-slow second tap should not be double-tap")
+      local dtval = "double_tap"
+      luaunit.assertNotEquals(g.type, dtval, "Too-slow second tap should not register")
     end
   end
 end
@@ -757,14 +758,43 @@ end
 -- Config tests
 
 function TestTouchGestureRecognizer:test_custom_config_overrides_defaults()
+  -- Custom config with longer tap duration and larger pan min movement
   local custom = GestureRecognizer.new({
     tapMaxDuration = 1.0,
     panMinMovement = 20,
   }, { InputEvent = InputEvent, utils = {} })
 
-  luaunit.assertEquals(custom._config.tapMaxDuration, 1.0)
-  luaunit.assertEquals(custom._config.panMinMovement, 20)
-  luaunit.assertEquals(custom._config.swipeMinDistance, 50)
+  -- Test tapMaxDuration: a 0.5s touch should be a tap with custom 1.0s duration
+  -- (default 0.3s would NOT detect this as a tap)
+  local e1 = touchEvent("t1", 100, 100, "began", 0)
+  custom:processTouchEvent(e1)
+  love.timer.setTime(0.5)
+  local e2 = touchEvent("t1", 100, 100, "ended", 0.5)
+  local gestures = custom:processTouchEvent(e2)
+  luaunit.assertNotNil(gestures, "Custom tapMaxDuration=1.0 should allow 0.5s tap")
+  local foundTap = false
+  if gestures then
+    for _, g in ipairs(gestures) do
+      if g.type == "tap" then
+        foundTap = true
+      end
+    end
+  end
+  luaunit.assertTrue(foundTap, "Custom tapMaxDuration=1.0 should detect tap at 0.5s")
+
+  -- Test panMinMovement: a 10px movement should NOT trigger pan with custom 20px threshold
+  -- (default 5px WOULD trigger pan)
+  custom:reset()
+  love.timer.setTime(0)
+  local e3 = touchEvent("t1", 100, 100, "began", 0)
+  custom:processTouchEvent(e3)
+  local e4 = touchEvent("t1", 110, 110, "moved", 1 / 60)
+  gestures = custom:processTouchEvent(e4)
+  if gestures then
+    for _, g in ipairs(gestures) do
+      luaunit.assertNotEquals(g.type, "pan", "Custom panMinMovement=20 should not pan with 10px")
+    end
+  end
 end
 
 -- Type/state exports
@@ -840,8 +870,6 @@ function TestTouchScrollPress:test_handleTouchPress_stops_momentum_scrolling()
   sm:handleTouchPress(100, 200)
 
   luaunit.assertFalse(sm:isMomentumScrolling())
-  luaunit.assertEquals(sm._scrollVelocityX, 0)
-  luaunit.assertEquals(sm._scrollVelocityY, 0)
 end
 
 -- ============================================================================
@@ -865,7 +893,8 @@ function TestTouchScrollMove:test_handleTouchMove_scrolls_content()
   local handled = sm:handleTouchMove(100, 150)
 
   luaunit.assertTrue(handled)
-  luaunit.assertTrue(sm._scrollY > 0)
+  local _, scrollY = sm:getScroll()
+  luaunit.assertTrue(scrollY > 0)
 end
 
 function TestTouchScrollMove:test_handleTouchMove_without_press_returns_false()
@@ -885,7 +914,10 @@ function TestTouchScrollMove:test_handleTouchMove_calculates_velocity()
   love.timer.step(1 / 60)
   sm:handleTouchMove(100, 100)
 
-  luaunit.assertTrue(sm._scrollVelocityY > 0)
+  -- After move with velocity, release should trigger momentum scrolling
+  sm:handleTouchRelease()
+  sm:update(1 / 60)
+  luaunit.assertTrue(sm:isMomentumScrolling(), "Velocity from move should trigger momentum")
 end
 
 function TestTouchScrollMove:test_handleTouchMove_horizontal()
@@ -901,7 +933,8 @@ function TestTouchScrollMove:test_handleTouchMove_horizontal()
   love.timer.step(1 / 60)
   sm:handleTouchMove(100, 150)
 
-  luaunit.assertTrue(sm._scrollX > 0)
+  local scrollX, _ = sm:getScroll()
+  luaunit.assertTrue(scrollX > 0)
 end
 
 function TestTouchScrollMove:test_handleTouchMove_with_bounce_allows_overscroll()
@@ -913,7 +946,8 @@ function TestTouchScrollMove:test_handleTouchMove_with_bounce_allows_overscroll(
   love.timer.step(1 / 60)
   sm:handleTouchMove(100, 200)
 
-  luaunit.assertTrue(sm._scrollY < 0)
+  local _, scrollY = sm:getScroll()
+  luaunit.assertTrue(scrollY < 0)
 end
 
 -- ============================================================================
@@ -985,8 +1019,6 @@ function TestTouchScrollRelease:test_handleTouchRelease_no_momentum_when_disable
   sm:handleTouchRelease()
 
   luaunit.assertFalse(sm:isMomentumScrolling())
-  luaunit.assertEquals(sm._scrollVelocityX, 0)
-  luaunit.assertEquals(sm._scrollVelocityY, 0)
 end
 
 -- ============================================================================
@@ -1007,12 +1039,15 @@ function TestTouchScrollMomentum:test_momentum_decelerates_over_time()
   sm._momentumScrolling = true
   sm._scrollVelocityY = 200
 
-  local initialVelocity = sm._scrollVelocityY
-
+  local _, scrollY1 = sm:getScroll()
   sm:update(1 / 60)
+  local _, scrollY2 = sm:getScroll()
+  sm:update(1 / 60)
+  local _, scrollY3 = sm:getScroll()
 
-  luaunit.assertTrue(sm._scrollVelocityY < initialVelocity)
-  luaunit.assertTrue(sm._scrollVelocityY > 0)
+  luaunit.assertTrue(scrollY2 > scrollY1, "Momentum should move scroll position forward")
+  luaunit.assertTrue(scrollY3 > scrollY2, "Momentum should continue moving")
+  luaunit.assertTrue((scrollY3 - scrollY2) < (scrollY2 - scrollY1), "Deceleration should reduce distance per frame")
 end
 
 function TestTouchScrollMomentum:test_momentum_stops_at_low_velocity()
@@ -1031,7 +1066,11 @@ function TestTouchScrollMomentum:test_momentum_stops_at_low_velocity()
   end
 
   luaunit.assertFalse(sm:isMomentumScrolling())
-  luaunit.assertEquals(sm._scrollVelocityY, 0)
+  -- Verify scroll position is stable after momentum stops
+  local _, scrollYBefore = sm:getScroll()
+  sm:update(1 / 60)
+  local _, scrollYAfter = sm:getScroll()
+  luaunit.assertAlmostEquals(scrollYAfter, scrollYBefore, 0.5)
 end
 
 function TestTouchScrollMomentum:test_momentum_moves_scroll_position()
@@ -1042,10 +1081,11 @@ function TestTouchScrollMomentum:test_momentum_moves_scroll_position()
   sm._momentumScrolling = true
   sm._scrollVelocityY = 500
 
-  local initialScrollY = sm._scrollY
+  local _, initialScrollY = sm:getScroll()
   sm:update(1 / 60)
+  local _, scrollY = sm:getScroll()
 
-  luaunit.assertTrue(sm._scrollY > initialScrollY)
+  luaunit.assertTrue(scrollY > initialScrollY)
 end
 
 function TestTouchScrollMomentum:test_friction_coefficient_affects_deceleration()
@@ -1060,10 +1100,19 @@ function TestTouchScrollMomentum:test_friction_coefficient_affects_deceleration(
   smSlow._momentumScrolling = true
   smSlow._scrollVelocityY = 200
 
-  smFast:update(1 / 60)
-  smSlow:update(1 / 60)
+  -- Run to completion to compare total scroll distance
+  for i = 1, 1000 do
+    smFast:update(1 / 60)
+    smSlow:update(1 / 60)
+    if not smFast:isMomentumScrolling() and not smSlow:isMomentumScrolling() then
+      break
+    end
+  end
 
-  luaunit.assertTrue(smFast._scrollVelocityY > smSlow._scrollVelocityY)
+  -- Higher friction coefficient (0.99) means slower deceleration → more total distance
+  local _, fastScrollY = smFast:getScroll()
+  local _, slowScrollY = smSlow:getScroll()
+  luaunit.assertTrue(fastScrollY > slowScrollY, "Higher friction coefficient should produce more scroll distance")
 end
 
 -- ============================================================================
@@ -1087,7 +1136,8 @@ function TestTouchScrollBounce:test_bounce_returns_to_boundary()
     sm:update(1 / 60)
   end
 
-  luaunit.assertAlmostEquals(sm._scrollY, 0, 1)
+  local _, scrollY = sm:getScroll()
+  luaunit.assertAlmostEquals(scrollY, 0, 1)
 end
 
 function TestTouchScrollBounce:test_bounce_at_bottom_boundary()
@@ -1095,13 +1145,16 @@ function TestTouchScrollBounce:test_bounce_at_bottom_boundary()
   local el = createMockElement()
   sm:detectOverflow(el)
 
-  sm._scrollY = sm._maxScrollY + 50
+  local _, maxScrollY = sm:getMaxScroll()
+  sm._scrollY = maxScrollY + 50
 
   for i = 1, 100 do
     sm:update(1 / 60)
   end
 
-  luaunit.assertAlmostEquals(sm._scrollY, sm._maxScrollY, 1)
+  local _, scrollY = sm:getScroll()
+  local _, maxScrollY2 = sm:getMaxScroll()
+  luaunit.assertAlmostEquals(scrollY, maxScrollY2, 1)
 end
 
 function TestTouchScrollBounce:test_no_bounce_when_disabled()
@@ -1113,7 +1166,8 @@ function TestTouchScrollBounce:test_no_bounce_when_disabled()
 
   sm:update(1 / 60)
 
-  luaunit.assertEquals(sm._scrollY, -50)
+  local _, scrollY = sm:getScroll()
+  luaunit.assertEquals(scrollY, -50)
 end
 
 -- ============================================================================

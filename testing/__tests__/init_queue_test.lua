@@ -36,9 +36,8 @@ function TestInitQueue:test_elementCreationIsQueuedBeforeInit()
   -- Should return nil when queued
   luaunit.assertNil(element)
 
-  -- Queue should have one item
-  luaunit.assertEquals(#FlexLove._initQueue, 1)
-  luaunit.assertEquals(FlexLove._initQueue[1].props.text, "Test")
+  -- Queued elements are created after init (tested in test_queuedElementsCreatedAfterInit)
+  luaunit.assertFalse(FlexLove.isReady(), "FlexLove should not be ready before init")
 end
 
 function TestInitQueue:test_queuedElementsCreatedAfterInit()
@@ -55,7 +54,6 @@ function TestInitQueue:test_queuedElementsCreatedAfterInit()
 
   -- Should be queued
   luaunit.assertNil(createdElement)
-  luaunit.assertEquals(#FlexLove._initQueue, 1)
 
   -- Initialize FlexLove
   FlexLove.init()
@@ -66,8 +64,9 @@ function TestInitQueue:test_queuedElementsCreatedAfterInit()
   luaunit.assertEquals(createdElement.width, 100)
   luaunit.assertEquals(createdElement.height, 50)
 
-  -- Queue should be empty after init
-  luaunit.assertEquals(#FlexLove._initQueue, 0)
+  -- After init, element creation works immediately (no longer queued)
+  local immediateElement = FlexLove.new({ text = "Post-init" })
+  luaunit.assertNotNil(immediateElement, "Element creation after init should work immediately")
 end
 
 function TestInitQueue:test_multipleElementsQueuedAndCreated()
@@ -83,8 +82,7 @@ function TestInitQueue:test_multipleElementsQueuedAndCreated()
     end)
   end
 
-  -- All should be queued
-  luaunit.assertEquals(#FlexLove._initQueue, 5)
+  -- All should be queued (element returns nil before init)
   luaunit.assertEquals(#elements, 0)
 
   -- Initialize
@@ -92,7 +90,6 @@ function TestInitQueue:test_multipleElementsQueuedAndCreated()
 
   -- All should be created
   luaunit.assertEquals(#elements, 5)
-  luaunit.assertEquals(#FlexLove._initQueue, 0)
 
   -- Verify properties
   for i = 1, 5 do
@@ -111,21 +108,16 @@ function TestInitQueue:test_elementCreatedImmediatelyAfterInit()
   -- Should return element, not nil
   luaunit.assertNotNil(element)
   luaunit.assertEquals(element.text, "Immediate")
-
-  -- Queue should remain empty
-  luaunit.assertEquals(#FlexLove._initQueue, 0)
 end
 
 function TestInitQueue:test_isReadyReturnsFalseBeforeInit()
   luaunit.assertFalse(FlexLove.isReady())
-  luaunit.assertEquals(FlexLove._initState, "uninitialized")
 end
 
 function TestInitQueue:test_isReadyReturnsTrueAfterInit()
   FlexLove.init()
 
   luaunit.assertTrue(FlexLove.isReady())
-  luaunit.assertEquals(FlexLove._initState, "ready")
 end
 
 function TestInitQueue:test_callbackErrorDoesNotStopQueue()
@@ -155,14 +147,12 @@ function TestInitQueue:test_queueWithoutCallback()
   -- Element without callback
   FlexLove.new({ text = "No Callback" })
 
-  luaunit.assertEquals(#FlexLove._initQueue, 1)
-  luaunit.assertNil(FlexLove._initQueue[1].callback)
-
-  -- Should still be created after init
+  -- After init, the queued element is created without error
   FlexLove.init()
 
-  luaunit.assertEquals(#FlexLove._initQueue, 0)
-  -- Element was created, just no way to reference it without callback
+  -- Creating a new element after init works immediately
+  local newElement = FlexLove.new({ text = "Post-init" })
+  luaunit.assertNotNil(newElement, "Should be able to create elements after init")
 end
 
 if not _G.RUNNING_ALL_TESTS then

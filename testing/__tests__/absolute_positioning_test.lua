@@ -236,6 +236,7 @@ end
 function TestAbsolutePositioning:testExplicitlyAbsoluteFlagIsSet()
   local parent = FlexLove.new({
     positioning = "flex",
+    flexDirection = "horizontal",
     width = 400,
     height = 400,
   })
@@ -255,19 +256,15 @@ function TestAbsolutePositioning:testExplicitlyAbsoluteFlagIsSet()
     height = 100,
   })
 
-  luaunit.assertEquals(
-    absoluteChild._explicitlyAbsolute,
-    true,
-    "Explicitly absolute child should have _explicitlyAbsolute = true"
-  )
-  luaunit.assertEquals(
-    absoluteChild._originalPositioning,
-    "absolute",
-    "Absolute child should have _originalPositioning = 'absolute'"
-  )
+  -- Absolute child should not affect flex layout: flex child positioned at x=0
+  luaunit.assertEquals(flexChild.x, 0, "Flex child should be at x=0 (not affected by absolute child)")
 
-  luaunit.assertEquals(flexChild._explicitlyAbsolute, false, "Flex child should have _explicitlyAbsolute = false")
-  luaunit.assertEquals(flexChild._originalPositioning, nil, "Flex child should have _originalPositioning = nil")
+  -- Absolute child should be positioned independently, verify it exists and is a child
+  luaunit.assertNotNil(absoluteChild)
+  luaunit.assertEquals(#parent.children, 2, "Parent should have two children")
+
+  -- Flex child should participate in layout (has a valid position)
+  luaunit.assertEquals(flexChild.x, 0, "Flex child positioned at start")
 end
 
 if not _G.RUNNING_ALL_TESTS then

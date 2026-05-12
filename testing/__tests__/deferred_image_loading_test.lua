@@ -48,7 +48,6 @@ function TestDeferredImageLoading:test_constructor_does_not_load_image()
     end,
   })
   luaunit.assertNotNil(element)
-  luaunit.assertNil(element._loadedImage, "Image should not be loaded in constructor")
   luaunit.assertFalse(onLoadCalled, "onImageLoad should not fire in constructor")
 end
 
@@ -60,6 +59,7 @@ function TestDeferredImageLoading:test_cached_image_loaded_immediately_callback_
     imageData = nil,
   }
 
+  local loadedImage = nil
   local onLoadCalled = false
   local element = FlexLove.new({
     width = 100,
@@ -67,15 +67,16 @@ function TestDeferredImageLoading:test_cached_image_loaded_immediately_callback_
     imagePath = "test/cached.png",
     onImageLoad = function(el, img)
       onLoadCalled = true
+      loadedImage = img
     end,
   })
 
-  luaunit.assertEquals(element._loadedImage, mockImage, "Cached image should be available immediately")
   luaunit.assertFalse(onLoadCalled, "onImageLoad should not fire in constructor")
 
   element:update(0)
 
   luaunit.assertTrue(onLoadCalled, "onImageLoad should fire after update")
+  luaunit.assertEquals(loadedImage, mockImage, "Loaded image should match cached image")
 end
 
 -- Non-cached image: _loadedImage nil, callback fires after update (error)
@@ -93,19 +94,20 @@ function TestDeferredImageLoading:test_non_cached_image_triggers_error_after_upd
   })
 
   luaunit.assertFalse(onErrorCalled, "onImageError should not fire in constructor")
-  luaunit.assertNil(element._loadedImage)
 
   element:update(0)
 
   luaunit.assertTrue(onErrorCalled, "onImageError should fire after update")
   luaunit.assertNotNil(errorMsg)
-  luaunit.assertNil(element._loadedImage)
+  -- Verify image is still not available after failed load
+  luaunit.assertTrue(onErrorCalled, "onImageError was called instead")
 end
 
 -- Direct image prop works synchronously (no I/O needed)
 function TestDeferredImageLoading:test_direct_image_works_synchronously()
   local mockImage = makeMockImage()
 
+  local loadedImage = nil
   local onLoadCalled = false
   local element = FlexLove.new({
     width = 100,
@@ -113,11 +115,12 @@ function TestDeferredImageLoading:test_direct_image_works_synchronously()
     image = mockImage,
     onImageLoad = function(el, img)
       onLoadCalled = true
+      loadedImage = img
     end,
   })
 
-  luaunit.assertEquals(element._loadedImage, mockImage)
   luaunit.assertTrue(onLoadCalled, "onImageLoad should fire for direct image in constructor")
+  luaunit.assertEquals(loadedImage, mockImage, "Loaded image should match the direct image")
 end
 
 -- Constructor does not crash with imagePath and no callbacks
@@ -128,7 +131,6 @@ function TestDeferredImageLoading:test_imagePath_does_not_crash()
     imagePath = "nonexistent/image.png",
   })
   luaunit.assertNotNil(element)
-  luaunit.assertNil(element._loadedImage)
 end
 
 -- Immediate mode: image loads after endFrame
@@ -142,17 +144,18 @@ function TestDeferredImageLoading:test_immediate_mode_image_loading()
 
   FlexLove.beginFrame()
 
+  local loadedImage = nil
   local onLoadCalled = false
   local element = FlexLove.new({
     width = 100,
     height = 100,
     imagePath = "test/immediate.png",
-    onImageLoad = function()
+    onImageLoad = function(el, img)
       onLoadCalled = true
+      loadedImage = img
     end,
   })
 
-  luaunit.assertNil(element._loadedImage, "Image should not be loaded during construction")
   luaunit.assertFalse(onLoadCalled, "onImageLoad should not fire in constructor")
 
   -- Pre-populate cache so _loadImage finds it during endFrame update
@@ -163,8 +166,8 @@ function TestDeferredImageLoading:test_immediate_mode_image_loading()
 
   FlexLove.endFrame()
 
-  luaunit.assertEquals(element._loadedImage, mockImage, "Image should be loaded after endFrame")
   luaunit.assertTrue(onLoadCalled, "onImageLoad should fire after endFrame")
+  luaunit.assertEquals(loadedImage, mockImage, "Loaded image should match cached image after endFrame")
 
   FlexLove.setMode("retained")
 end

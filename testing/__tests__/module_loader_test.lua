@@ -47,7 +47,10 @@ function TestModuleLoader:test_safeRequire_loads_existing_module()
 
   luaunit.assertNotNil(utils)
   luaunit.assertIsTable(utils)
-  luaunit.assertIsNil(utils._isStub)
+  luaunit.assertTrue(
+    ModuleLoader.isModuleLoaded(modulePath .. "modules.utils"),
+    "Real module should be recognized as loaded"
+  )
 end
 
 function TestModuleLoader:test_safeRequire_returns_stub_for_missing_optional_module()
@@ -56,8 +59,13 @@ function TestModuleLoader:test_safeRequire_returns_stub_for_missing_optional_mod
 
   luaunit.assertNotNil(fakeModule)
   luaunit.assertIsTable(fakeModule)
-  luaunit.assertTrue(fakeModule._isStub)
-  luaunit.assertEquals(fakeModule._moduleName, modulePath .. "modules.NonExistentModule")
+  luaunit.assertFalse(
+    ModuleLoader.isModuleLoaded(modulePath .. "modules.NonExistentModule"),
+    "Stub should not be reported as loaded"
+  )
+  local stubs = ModuleLoader.getStubModules()
+  luaunit.assertEquals(#stubs, 1)
+  luaunit.assertEquals(stubs[1], modulePath .. "modules.NonExistentModule")
 end
 
 function TestModuleLoader:test_safeRequire_throws_error_for_missing_required_module()
