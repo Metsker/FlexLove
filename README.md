@@ -428,36 +428,6 @@ local button2 = FlexLove.new({
 
 ```
 
-#### Per-Element Mode Override
-
-You can override the rendering mode on a per-element basis using the `mode` property. This allows you to mix immediate and retained mode elements in the same application:
-
-```lua
--- Initialize in immediate mode globally
-FlexLove.init({ immediateMode = true })
-
-function love.draw()
-  FlexLove.beginFrame()
-  
-  -- This button uses immediate mode (follows global setting)
-  local dynamicButton = FlexLove.new({
-    text = "Frame: " .. love.timer.getTime(),
-    onEvent = function() print("Dynamic!") end
-  })
-  
-  -- This panel uses retained mode (override with mode prop)
-  -- It will persist and won't be recreated each frame
-  local staticPanel = FlexLove.new({
-    mode = "retained",  -- Explicit override
-    width = "30vw",
-    height = "40vh",
-    backgroundColor = Color.new(0.2, 0.2, 0.2, 1),
-  })
-  
-  FlexLove.endFrame()
-end
-```
-
 ### Layout Modes
 
 #### Absolute Positioning
@@ -620,11 +590,10 @@ end
 
 **Multi-Touch Support:**
 
-FlexLöve provides comprehensive multi-touch event tracking and gesture recognition. See the [Multi-Touch Documentation](docs/MULTI_TOUCH.md) for:
-- Touch event handling
+FlexLöve provides multi-touch event tracking and gesture recognition with built-in gesture types:
+- Touch event handling (`touchpress`, `touchmove`, `touchrelease`, `touchcancel`)
 - 7 gesture types (tap, double-tap, long-press, swipe, pan, pinch, rotate)
 - Touch scrolling with momentum and bounce effects
-- Complete API reference and examples
 
 ### Custom Rendering
 
@@ -982,6 +951,13 @@ local semiTransparent = Color.fromHex("#FF000080")
 - `Animation.new(props)` - Create custom animation
 - `Animation.fade(duration, from, to)` - Fade animation
 - `Animation.scale(duration, from, to)` - Scale animation
+
+## Changelog
+
+### Removed
+- **Per-element mode override**: The `mode` property (`"immediate"` / `"retained"`) on individual elements has been removed. Mode is now purely global — set once via `FlexLove.init({ immediateMode = true })`.
+- **FFI module**: The FFI optimization module has been removed. All layout and rendering computations now use pure Lua.
+- **`ew`/`eh` units**: Element-relative width/height units have been removed. Use `vw`, `vh`, `%`, or `px` instead.
 
 ## Compatibility
 
