@@ -10,239 +10,70 @@ Built for developers who know CSS and want that same power (and more) in their g
 
 ## Features
 
-- **Flexbox Layout**: Modern flexbox layouts for UI elements with full flex properties
-- **Grid Layout**: CSS-like (but simplified) grid system for structured layouts
-- **Element Management**: Hierarchical element structures with automatic sizing
-- **Interactive Elements**: Buttons with click detection, event system, and callbacks
+**Layout**
+- **Flexbox & Grid**: CSS-familiar flexbox and grid layouts with full property support
+- **Advanced Positioning**: Absolute, relative, flex, and grid positioning modes
+- **Responsive Units**: Viewport-relative units (vw, vh, %), calc(), and auto-sizing
+- **Corner Radius**: Rounded corners with individual corner control
+
+**Rendering**
 - **Theme System**: 9-patch (NinePatch) theming with state support (normal, hover, pressed, disabled)
 - **Android 9-Patch Auto-Parsing**: Automatic parsing of *.9.png files with multi-region support
-- **Animations**: Built-in animation support for transitions and effects
-- **Image Support**: CSS-like object-fit, object-position, tiling/repeat modes, tinting, and opacity control
-- **Responsive Design**: Automatic resizing with viewport units (vw, vh, %)
-- **Color Handling**: Utility classes for managing colors in various formats
-- **Text Rendering**: Flexible text display with alignment and auto-scaling
-- **Corner Radius**: Rounded corners with individual corner control
-- **Advanced Positioning**: Absolute, relative, flex, and grid positioning modes
-- **Keyboard Navigation**: Full keyboard accessibility with Tab/Shift+Tab sequential navigation, arrow key directional navigation, and ARIA-like roles for screen readers
-- **(Warning - Alpha-stages - Not yet tested) Multi-Touch & Gestures**: Touch event tracking, gesture recognition (tap, double-tap, long-press, swipe, pan, pinch, rotate), and touch scrolling with momentum/bounce
+- **Animations**: Built-in animation with easing curves, keyframes, and sequencing
+- **Image Support**: CSS-like object-fit, object-position, tiling/repeat, tinting, and opacity
+- **Text Rendering**: Flexible text display with alignment, wrapping, and auto-scaling
+- **Blur Effects**: Backdrop blur for glassmorphic UI effects
+
+**Interaction**
+- **Event System**: Click, press, hover, release with modifier key detection
+- **Keyboard Navigation**: Tab/Shift+Tab sequential focus and arrow key directional navigation
+- **Input Fields**: Text input with cursor, selection, clipboard, and UTF-8 support
+- **Multi-Touch & Gestures** *(Alpha - not yet tested)*: Touch tracking, gesture recognition (tap, double-tap, long-press, swipe, pan, pinch, rotate), touch scrolling with momentum/bounce
+
+**Developer Experience**
+- **Debug Overlay**: Element boundary visualization for layout debugging
+- **Immediate & Retained Modes**: Choose per-project between declarative and persistent UI
+- **Build Profiles**: Optional modules let you trim bundle size for different use cases
 
 ## Keyboard Navigation
 
-FlexLöve provides comprehensive keyboard navigation for accessible UI interactions. The navigation system is opt-in and backward compatible.
-
-### Quick Start (Recommended)
-
-Keyboard navigation is automatically initialized when enabled in `FlexLove.init()`:
-
-```lua
-local FlexLove = require("FlexLove")
-
-function love.load()
-  -- Enable keyboard navigation with one line!
-  FlexLove.init({
-    theme = "space",
-    keyboardNavigation = true  -- Auto-initializes everything
-  })
-end
-
-function love.update(dt)
-  FlexLove.update(dt)
-end
-
-function love.draw()
-  FlexLove.draw(function()
-    -- Your UI elements here
-  end)
-end
-```
-
-### Configuration
-
-Customize keyboard navigation behavior:
+FlexLöve provides opt-in keyboard navigation — Tab/Shift+Tab sequential focus, arrow key directional navigation (spatial awareness), Enter/Space activation, and Escape dismissal.
 
 ```lua
 FlexLove.init({
-  keyboardNavigation = {
-    enabled = true,
-    directionalNavigation = true,  -- Arrow key navigation
-    wrapAround = true,             -- Tab wraps to first element
-    
-    -- Focus indicator (visual feedback)
-    focusIndicator = {
-      enabled = true,
-      color = {0.2, 0.6, 1.0, 0.8},  -- Blue with 80% opacity
-      lineWidth = 2,
-      pulseEnabled = true,           -- Pulsing animation
-    },
-  },
+  theme = "space",
+  keyboardNavigation = true  -- Auto-initializes everything
 })
 ```
 
-### Deferred Initialization
-
-Enable keyboard navigation after `FlexLove.init()`: 
-
-```lua
-function love.load()
-  FlexLove.init({ theme = "space" })
-  
-  -- Enable later with custom config
-  FlexLove.enableKeyboardNavigation({
-    directionalNavigation = true,
-    focusIndicator = {
-      color = {1, 0.8, 0, 0.8},  -- Orange
-      lineWidth = 3,
-    },
-  })
-end
-```
-
-### Key Bindings
+Or enable later with `FlexLove.enableKeyboardNavigation({...})`.
 
 | Key | Action |
 |-----|--------|
 | `Tab` | Move focus to next focusable element |
 | `Shift + Tab` | Move focus to previous focusable element |
-| `Arrow Keys` | Navigate directionally (spatial awareness) |
-| `Enter` / `Space` | Activate focused element (button click) |
+| `Arrow Keys` | Directional (spatial) navigation |
+| `Enter` / `Space` | Activate focused element |
 | `Escape` | Dismiss/close focused element |
 | `F12` | Toggle developer tools |
 
-### Runtime Configuration
-
-Access modules after auto-initialization:
+Elements are automatically focusable if they have `editable = true`, an `onEvent` handler, or a `themeComponent`. Customize behavior at runtime via the `KeyboardNavigation` and `FocusIndicator` modules:
 
 ```lua
 local KeyboardNavigation = require("modules.KeyboardNavigation")
 local FocusIndicator = require("modules.FocusIndicator")
 
--- Customize key bindings
-KeyboardNavigation.setKeyBinding("next", "f1")  -- Use F1 instead of Tab
-KeyboardNavigation.setKeyBinding("activate", {"return", "space", "f2"})
+KeyboardNavigation.setDirectionalNavigation(true)
+KeyboardNavigation.setWrapAround(true)
+KeyboardNavigation.setKeyBinding("next", "f1")
+KeyboardNavigation.enableSpatialIndex(true)  -- Recommended for >50 focusable elements
 
--- Toggle directional navigation
-KeyboardNavigation.setDirectionalNavigation(true)  -- Default: true
-
--- Toggle wrap-around behavior
-KeyboardNavigation.setWrapAround(true)  -- Default: true
-
--- Configure focus indicator appearance
-FocusIndicator.setColor(0.2, 0.6, 1.0, 0.8)  -- Blue with 80% opacity
+FocusIndicator.setColor(0.2, 0.6, 1.0, 0.8)
 FocusIndicator.setLineWidth(2)
-FocusIndicator.setPulseEnabled(true)  -- Add pulsing animation
+FocusIndicator.setPulseEnabled(true)
 ```
 
-### Focusable Elements
-
-Elements are automatically focusable if they have:
-- `editable = true` (input fields)
-- `onEvent` handler (buttons, links)
-- `themeComponent` set (themed interactive components)
-- `touchEnabled` with event handlers
-
-```lua
--- Focusable button
-local button = FlexLove.new({
-  text = "Click Me",
-  onEvent = function() print("Clicked!") end
-})
-
--- Focusable input field
-local input = FlexLove.new({
-  editable = true,
-  placeholder = "Enter text..."
-})
-
--- Non-focusable container (no interaction)
-local container = FlexLove.new({
-  text = "Just text"
-})
-```
-
-### Navigation Containers
-
-Scope tab navigation to specific containers (useful for modals/dialogs):
-
-```lua
-local modal = FlexLove.new({
-  width = 400, height = 300,
-  positioning = utils.enums.Positioning.ABSOLUTE,
-  x = "50%", y = "50%",
-})
-
--- Set navigation container to modal
-Context.setNavigationContainer(modal)
-
--- When modal closes, restore previous container
-Context.setNavigationContainer(nil)  -- Returns to global scope
-```
-
-### Focus Stack (for Modals)
-
-Preserve focus when opening/closing modals:
-
-```lua
--- Opening modal
-KeyboardNavigation:pushFocus(modalElement)  -- Saves current focus, focuses modal
-
--- Closing modal
-KeyboardNavigation:popFocus()  -- Restores previous focus
-```
-
-### ARIA Roles (Accessibility)
-
-Add ARIA-like roles for screen reader support:
-
-```lua
-local button = FlexLove.new({
-  text = "Submit",
-  ariaRole = utils.enums.ARIA.BUTTON,
-  ariaLabel = "Submit form",      -- Accessible name
-  ariaDescribedBy = "helpText",   -- Reference to helper text element
-  onEvent = function() end
-})
-
-local dialog = FlexLove.new({
-  ariaRole = utils.enums.ARIA.DIALOG,
-  ariaLabel = "Confirmation",
-  ariaModal = true,
-})
-
--- Available roles:
--- Widgets: button, checkbox, link, menuitem, progressbar, radio, slider, tab, textbox, etc.
--- Landmarks: banner, complementary, contentinfo, form, main, navigation, region, search
--- Live regions: alert, log, marquee, status, timer
--- Document: article, heading, paragraph, list, etc.
-```
-
-### Performance
-
-For UIs with many focusable elements, enable the spatial index for faster directional navigation:
-
-```lua
--- Enable spatial index (recommended for >50 focusable elements)
-KeyboardNavigation.enableSpatialIndex(true)
-
--- Adjust cell size (larger = faster but less precise)
-KeyboardNavigation.setSpatialCellSize(100)  -- Default: 100 pixels
-```
-
-### Focus Indicator Customization
-
-```lua
-FocusIndicator.config = {
-  enabled = true,
-  color = {0.2, 0.6, 1.0, 0.8},  -- RGBA (0-1)
-  lineWidth = 2,
-  inset = -3,                    -- Negative extends beyond element
-  borderRadius = 4,
-  animationDuration = 0.15,       -- Focus entrance animation
-  pulseEnabled = false,          -- Pulsing animation
-  pulseDuration = 1.0,           -- Seconds per pulse
-  pulseScaleMin = 0.95,
-  pulseScaleMax = 1.05,
-}
-```
+Navigation containers (`Context.setNavigationContainer`) scope focus to modals/dialogs; focus stack (`pushFocus`/`popFocus`) preserves focus across modals. Type annotations for ARIA roles (`ariaRole`, `ariaLabel`, `ariaDescribedBy`) are defined in the type system; runtime support is pending.
 
 ## Quick Start
 
@@ -280,32 +111,7 @@ function love.update(dt)
 end
 
 function love.draw()
-    FlexLove.draw(function()
-        -- Game content (will be blurred by backdrop blur)
-        local button = FlexLove.new({
-        width = "20vw",
-        height = "10vh",
-        backgroundColor = Color.new(0.2, 0.2, 0.8, 1),
-        text = "Click Me",
-        textSize = "md",
-        themeComponent = "button",
-        onEvent = function(element, event)
-            print("Button clicked!")
-    end
-    })
-    end, function()
-        -- This is drawn AFTER all GUI elements - no backdrop blur
-        SomeMetaComponent:draw()
-    end)
-end
-
-function love.load()
-    FlexLove.init({
-        theme = "space",
-        immediateMode = true,
-        debugDraw = true,  -- Enable debug view
-        debugDrawKey = "F3"  -- Toggle debug view with F3 key
-    })
+  FlexLove.draw()
 end
 ```
 
@@ -365,67 +171,39 @@ being a `<div>` in html. The `Element` can be anything you need - a container wi
 FlexLöve supports both **immediate mode** and **retained mode** UI paradigms, giving you flexibility in how you structure your UI code:
 
 #### Retained Mode (Default)
-In retained mode, you create elements once and they persist across frames. The library manages the element hierarchy, but you must manage changes in element
-state by .
+In retained mode, create elements once and they persist across frames. Update element properties directly in response to events.
 
 ```lua
-local someGameState = true
--- Create elements once (e.g., in love.load)
 local button1 = FlexLove.new({
   text = "Button 1",
-  disabled = someGameState,
+  disabled = true,
   onEvent = function() print("Clicked!") end
 })
--- ... other things ... --
-local someGameState = false  -- button1 will not change its disabled state, you need a way to update the element
 
+-- Update element state in event handlers
 local button2 = FlexLove.new({
   text = "Click to activate button 1",
   onEvent = function(_, event)
-    if event.type == "release" then -- only fire on mouse release
-      button1.disabled = false -- this will actual update the element
+    if event.type == "release" then
+      button1.disabled = false
     end
   end
 })
--- ... other things ... --
-local someGameState = false  -- button1 will not change its disabled state, you need a way to update the element
-
-local button2 = FlexLove.new({
-  text = "Click to activate button 1",
-  onEvent = function(_, event)
-    if event.type == "release" then -- only fire on mouse release
-      button1.disabled = false -- this will actual update the element
-    end
-  end
-})
-
 ```
 
 #### Immediate Mode
-In immediate mode, you recreate UI elements every frame based on your application state. This approach can be simpler for dynamic UIs that change frequently.
-There is of course some overhead for this, which is why it is not the default behavior.
+In immediate mode, recreate UI elements every frame inside `FlexLove.draw()`. State is read fresh each frame:
 
 ```lua
--- Recreate UI every frame
-local someGameState = true
--- Create elements once (e.g., in love.load)
-local button1 = FlexLove.new({
-  text = "Button 1",
-  disabled = someGameState,
-  onEvent = function() print("Clicked!") end
-})
--- ... other things ... --
-local someGameState = false  -- button1 in immediate mode will have its state updated 
-
-local button2 = FlexLove.new({
-  text = "Click to activate button 1",
-  onEvent = function(_, event)
-    if event.type == "release" then -- only fire on mouse release
-      button1.disabled = false -- this will also update the element
-    end
-  end
-})
-
+function love.draw()
+  FlexLove.draw(function()
+    local button = FlexLove.new({
+      text = "Button 1",
+      disabled = someGameState,
+      onEvent = function() print("Clicked!") end
+    })
+  end)
+end
 ```
 
 ### Layout Modes
@@ -503,7 +281,7 @@ Theme.load("metal")
 Theme.setActive("metal")
 
 -- Use theme on elements
-local button = Flexlove.new({
+local button = FlexLove.new({
   width = 200,
   height = 60,
   text = "Themed Button",
@@ -596,6 +374,23 @@ FlexLöve provides multi-touch event tracking and gesture recognition with built
 - Touch event handling (`touchpress`, `touchmove`, `touchrelease`, `touchcancel`)
 - 7 gesture types (tap, double-tap, long-press, swipe, pan, pinch, rotate)
 - Touch scrolling with momentum and bounce effects
+- **Requires `touchEnabled = true`** on elements to receive touch events
+
+### Text Rendering
+
+Elements display text via the `text` property. Control appearance with standard properties:
+
+```lua
+local label = FlexLove.new({
+  text = "Hello World",
+  textColor = Color.new(1, 1, 1, 1),
+  textSize = "1.5vw",           -- Font size (px, vw, vh, or named like "md")
+  font = "path/to/font.ttf",    -- Custom font (optional)
+  textAlign = "center",         -- "left", "center", "right"
+  textWrap = true,              -- Enable word wrapping
+  lineHeight = 1.5,             -- Line spacing multiplier
+})
+```
 
 ### Custom Rendering
 
@@ -653,11 +448,11 @@ FlexLove.init({
 
 ```lua
 -- Toggle debug view at runtime
-flexlove.setDebugDraw(true)    -- Enable
-flexlove.setDebugDraw(false)   -- Disable
+FlexLove.setDebugDraw(true)    -- Enable
+FlexLove.setDebugDraw(false)   -- Disable
 
 -- Check if debug view is active
-local isEnabled = flexlove.getDebugDraw()
+local isEnabled = FlexLove.getDebugDraw()
 ```
 
 **Features:**
@@ -669,62 +464,19 @@ local isEnabled = flexlove.getDebugDraw()
 
 ### Deferred Callbacks
 
-Some LÖVE operations (like `love.window.setMode`) cannot be called while a Canvas is active. FlexLöve provides a deferred callback system to handle these operations safely:
+LÖVE operations like `love.window.setMode()` crash while a Canvas is active. Set `onEventDeferred = true` to defer callbacks until after all canvases are released:
 
 ```lua
--- In your event handler, queue the callback:
-onEvent = function(element, event)
-  if event.type == "click" then
-    FlexLove.deferCallback(function()
-      love.window.setMode(1920, 1080, { fullscreen = true })
-    end)
-  end
-end
-
--- In your love.draw(), execute callbacks after ALL canvases are released:
-function love.draw()
-  love.graphics.setCanvas(myCanvas)
-  FlexLove.draw()
-  love.graphics.setCanvas() -- Release ALL canvases
-  
-  -- Execute deferred callbacks now that no canvas is active
-  FlexLove.executeDeferredCallbacks()
-end
-```
-
-**IMPORTANT:** You must call `FlexLove.executeDeferredCallbacks()` at the very end of your `love.draw()` function after releasing all canvases. This ensures callbacks execute in a safe context.
-
-#### Automatic Deferral with `onEventDeferred`
-
-Instead of manually wrapping callbacks with `FlexLove.deferCallback()`, you can set the `onEventDeferred` flag to automatically defer all callbacks for that handler:
-
-```lua
-FlexLove.Element.new({
-  width = 200,
-  height = 50,
+FlexLove.new({
   text = "Change Resolution",
-  onEvent = function(element, event)
-    if event.type == "click" then
-      -- This will be automatically deferred!
-      love.window.setMode(1920, 1080, { fullscreen = true })
-    end
+  onEvent = function(el, event)
+    love.window.setMode(1920, 1080, { fullscreen = true })
   end,
-  onEventDeferred = true  -- Automatically defer all onEvent callbacks
+  onEventDeferred = true
 })
 ```
 
-This flag is available for all event callbacks:
-- `onEventDeferred` - Defers `onEvent` callback
-- `onFocusDeferred` - Defers `onFocus` callback
-- `onBlurDeferred` - Defers `onBlur` callback
-- `onTextInputDeferred` - Defers `onTextInput` callback
-- `onTextChangeDeferred` - Defers `onTextChange` callback
-- `onEnterDeferred` - Defers `onEnter` callback
-
-Deferred callbacks are useful for:
-- Changing window mode/resolution
-- Loading resources that modify graphics state
-- Any operation that conflicts with active canvas rendering
+Call `FlexLove.executeDeferredCallbacks()` at the very end of `love.draw()` after releasing all canvases. Also available: `onFocusDeferred`, `onBlurDeferred`, `onTextInputDeferred`, `onTextChangeDeferred`, `onEnterDeferred`.
 
 ### Input Fields
 
@@ -868,10 +620,7 @@ customAnim:apply(element)
 Display images with CSS-like object-fit and positioning:
 
 ```lua
-local Gui = FlexLove.Gui
-
--- Basic image display
-local imageBox = Gui.new({
+local imageBox = FlexLove.new({
   width = 200,
   height = 200,
   imagePath = "assets/photo.jpg",
@@ -927,19 +676,26 @@ local semiTransparent = Color.fromHex("#FF000080")
 
 ## API Reference
 
-### Flexlove (Main Module)
+### FlexLove (Main Module)
 
-- `Flexlove.init(props)` - Initialize GUI system with base scale
-- `Flexlove.new(props)` - Create a new element
-- `Flexlove.update(dt)` - Update all elements
-- `Flexlove.draw()` - Draw all elements
-- `Flexlove.resize()` - Handle window resize
+- `FlexLove.init(props)` - Initialize with theme, mode, and config
+- `FlexLove.new(props)` - Create a new element
+- `FlexLove.update(dt)` - Update all elements
+- `FlexLove.draw(gameDrawFunc?, postDrawFunc?)` - Draw all elements
+- `FlexLove.resize()` - Handle window resize
+- `FlexLove.calc(expr)` - Create a calc expression for dynamic layouts
+- `FlexLove.deferCallback(fn)` - Queue callback to run after canvas release
+- `FlexLove.executeDeferredCallbacks()` - Run deferred callbacks
+- `FlexLove.enableKeyboardNavigation(config?)` - Enable keyboard nav at runtime
+- `FlexLove.setDebugDraw(enabled)` - Toggle debug overlay
+- `FlexLove.getElementAtPosition(x, y)` - Hit-test UI elements
+- `FlexLove.getById(id)` - Find element by ID
+- `FlexLove.setMode(mode)` - Switch immediate/retained mode
 
 ### Color
 
 - `Color.new(r, g, b, a)` - Create color (values 0-1)
 - `Color.fromHex(hex)` - Create from hex string
-- `Color:toHex()` - Convert to hex string
 - `Color:toRGBA()` - Get RGBA values
 
 ### Theme (only needed for dynamic changes)
@@ -951,8 +707,8 @@ local semiTransparent = Color.fromHex("#FF000080")
 ### Animation
 
 - `Animation.new(props)` - Create custom animation
-- `Animation.fade(duration, from, to)` - Fade animation
-- `Animation.scale(duration, from, to)` - Scale animation
+- `Animation.fade(duration, fromOpacity, toOpacity, easing?)` - Fade animation
+- `Animation.scale(duration, fromScale, toScale, easing?)` - Scale animation
 
 ## Changelog
 
@@ -974,4 +730,4 @@ MIT License - see LICENSE file for details.
 
 ## Contributing
 
-This library is under active development. Contributions, bug reports, and feature requests are welcome!
+This library is under active development(when I have time for it). Contributions, bug reports, and feature requests are welcome!
