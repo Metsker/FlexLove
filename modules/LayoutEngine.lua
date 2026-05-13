@@ -89,8 +89,7 @@ function LayoutEngine.new(props, deps)
   -- Grid layout configuration
   self.gridRows = props.gridRows
   self.gridColumns = props.gridColumns
-  self.gridTemplateColumns = props.gridTemplateColumns
-  self.gridTemplateRows = props.gridTemplateRows
+
   self.columnGap = props.columnGap
   self.rowGap = props.rowGap
 

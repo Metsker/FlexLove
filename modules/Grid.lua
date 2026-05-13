@@ -53,22 +53,22 @@ function Grid._parseTrack(spec, availableSize, viewportWidth, viewportHeight)
   return { type = "fr", value = 1 }
 end
 
---- Build track list from template or fall back to equal 1fr tracks
----@param template table? Array of track specs (e.g., {"1fr", "2fr", "100px"})
----@param count number Fallback track count (from gridColumns/gridRows)
+--- Build track list from gridColumns/gridRows or fall back to equal 1fr tracks
+---@param spec number|table? Track count (number = equal 1fr tracks) or array of track specs (e.g., {"1fr", "2fr", "100px"})
 ---@param availableSize number Container size for % resolution
 ---@param viewportWidth number Viewport width for vw resolution
 ---@param viewportHeight number Viewport height for vh resolution
 ---@return table Array of {type, value} track descriptors
-function Grid._buildTracks(template, count, availableSize, viewportWidth, viewportHeight)
-  if template and #template > 0 then
+function Grid._buildTracks(spec, availableSize, viewportWidth, viewportHeight)
+  if type(spec) == "table" and #spec > 0 then
     local tracks = {}
-    for i, spec in ipairs(template) do
-      tracks[i] = Grid._parseTrack(spec, availableSize, viewportWidth, viewportHeight)
+    for i, s in ipairs(spec) do
+      tracks[i] = Grid._parseTrack(s, availableSize, viewportWidth, viewportHeight)
     end
     return tracks
   end
   -- Fallback: equal 1fr tracks
+  local count = (type(spec) == "number" and spec > 0) and spec or 1
   local tracks = {}
   for i = 1, count do
     tracks[i] = { type = "fr", value = 1 }
@@ -185,14 +185,10 @@ function Grid._resolveTracks(tracks, availableSize, gap)
 end
 
 --- Layout grid items within a grid container
---- Supports variable column widths and row heights via gridTemplateColumns/gridTemplateRows
---- Falls back to equal-sized cells via gridRows/gridColumns for backward compatibility
+--- Supports variable column widths and row heights via gridColumns/gridRows (number or track specs)
+--- Falls back to equal-sized 1fr tracks when nil
 ---@param element Element -- Grid container element
 function Grid.layoutGridItems(element)
-  -- Ensure valid row/column counts (must be at least 1 to avoid division by zero)
-  local rows = element.gridRows and element.gridRows > 0 and element.gridRows or 1
-  local columns = element.gridColumns and element.gridColumns > 0 and element.gridColumns or 1
-
   -- Calculate space reserved by absolutely positioned siblings
   local reservedLeft = 0
   local reservedRight = 0
@@ -242,8 +238,8 @@ function Grid.layoutGridItems(element)
   local vpw, vph = Units.getViewport()
 
   -- Build tracks, measure auto tracks by content, then resolve sizes
-  local colTracks = Grid._buildTracks(element.gridTemplateColumns, columns, availableWidth, vpw, vph)
-  local rowTracks = Grid._buildTracks(element.gridTemplateRows, rows, availableHeight, vpw, vph)
+  local colTracks = Grid._buildTracks(element.gridColumns, availableWidth, vpw, vph)
+  local rowTracks = Grid._buildTracks(element.gridRows, availableHeight, vpw, vph)
 
   Grid._measureAutoTracks(colTracks, gridChildren, "width")
   Grid._measureAutoTracks(rowTracks, gridChildren, "height")

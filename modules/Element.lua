@@ -626,8 +626,7 @@ function Element.new(props)
     gap = 0,
     gridRows = 1,
     gridColumns = 1,
-    gridTemplateColumns = nil,
-    gridTemplateRows = nil,
+
     columnGap = 0,
     rowGap = 0,
   }, layoutEngineDeps)
@@ -1302,11 +1301,11 @@ function Element.new(props)
     end
 
     -- Warn if grid properties are set with flex positioning
-    if props.gridRows or props.gridColumns or props.gridTemplateRows or props.gridTemplateColumns then
+    if props.gridRows or props.gridColumns then
       Element._ErrorHandler:warn("Element", "LAY_010", {
         element = self.id or "unnamed",
         positioning = "flex",
-        properties = "gridRows/gridColumns/gridTemplate*",
+        properties = "gridRows/gridColumns",
       })
     end
 
@@ -1329,10 +1328,8 @@ function Element.new(props)
       })
     end
 
-    self.gridRows = props.gridRows or 1
-    self.gridColumns = props.gridColumns or 1
-    self.gridTemplateColumns = props.gridTemplateColumns
-    self.gridTemplateRows = props.gridTemplateRows
+    self.gridRows = props.gridRows
+    self.gridColumns = props.gridColumns
     self.alignItems = props.alignItems or Element._utils.enums.AlignItems.STRETCH
 
     -- Handle columnGap and rowGap
@@ -1373,12 +1370,7 @@ function Element.new(props)
   if self.gridColumns then
     self._layoutEngine.gridColumns = self.gridColumns
   end
-  if self.gridTemplateColumns then
-    self._layoutEngine.gridTemplateColumns = self.gridTemplateColumns
-  end
-  if self.gridTemplateRows then
-    self._layoutEngine.gridTemplateRows = self.gridTemplateRows
-  end
+
   if self.columnGap then
     self._layoutEngine.columnGap = self.columnGap
   end
@@ -3874,8 +3866,7 @@ function Element:setProperty(property, value)
     positioning = true,
     gridRows = true,
     gridColumns = true,
-    gridTemplateColumns = true,
-    gridTemplateRows = true,
+
     top = true,
     right = true,
     bottom = true,

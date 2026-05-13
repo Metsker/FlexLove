@@ -501,7 +501,7 @@ end
 -- Variable Column Width / Row Height Tests --
 -- ======================================== --
 
--- Test gridTemplateColumns with mixed fr and px
+-- Test gridColumns with mixed fr and px
 function TestGridLayout:test_variable_column_widths_mixed()
   local container = FlexLove.new({
     id = "grid",
@@ -510,8 +510,8 @@ function TestGridLayout:test_variable_column_widths_mixed()
     width = 500,
     height = 300,
     positioning = "grid",
-    gridTemplateColumns = { "1fr", "2fr", "100px" }, -- 3 cols: flex, 2x flex, fixed
-    gridTemplateRows = { "1fr", "1fr" }, -- 2 equal rows
+    gridColumns = { "1fr", "2fr", "100px" }, -- 3 cols: flex, 2x flex, fixed
+    gridRows = { "1fr", "1fr" }, -- 2 equal rows
     columnGap = 0,
     rowGap = 0,
   })
@@ -556,8 +556,8 @@ function TestGridLayout:test_variable_row_heights_mixed()
     width = 400,
     height = 500,
     positioning = "grid",
-    gridTemplateColumns = { "1fr", "1fr" },
-    gridTemplateRows = { "100px", "1fr", "2fr" }, -- fixed, flex, 2x flex
+    gridColumns = { "1fr", "1fr" },
+    gridRows = { "100px", "1fr", "2fr" }, -- fixed, flex, 2x flex
     rowGap = 0,
     columnGap = 0,
   })
@@ -596,8 +596,8 @@ function TestGridLayout:test_variable_all_px()
     width = 400,
     height = 200,
     positioning = "grid",
-    gridTemplateColumns = { 100, 200, 50 }, -- all px
-    gridTemplateRows = { 100 },
+    gridColumns = { 100, 200, 50 }, -- all px
+    gridRows = { 100 },
     columnGap = 10,
   })
 
@@ -629,8 +629,8 @@ function TestGridLayout:test_variable_auto_tracks()
     width = 600,
     height = 300,
     positioning = "grid",
-    gridTemplateColumns = { "auto", "auto", "auto" }, -- 3 equal auto columns
-    gridTemplateRows = { "auto", "auto" },
+    gridColumns = { "auto", "auto", "auto" }, -- 3 equal auto columns
+    gridRows = { "auto", "auto" },
   })
 
   local children = {}
@@ -663,8 +663,8 @@ function TestGridLayout:test_variable_percent_tracks()
     width = 800,
     height = 400,
     positioning = "grid",
-    gridTemplateColumns = { "25%", "50%", "25%" }, -- 200, 400, 200
-    gridTemplateRows = { "100%" },
+    gridColumns = { "25%", "50%", "25%" }, -- 200, 400, 200
+    gridRows = { "100%" },
   })
 
   local children = {}
@@ -683,7 +683,7 @@ function TestGridLayout:test_variable_percent_tracks()
   luaunit.assertEquals(children[3].width, 200, "25% col should be 200px")
 end
 
--- Test gridTemplateColumns with gaps
+-- Test gridColumns with gaps
 function TestGridLayout:test_variable_with_gaps()
   local container = FlexLove.new({
     id = "grid",
@@ -692,8 +692,8 @@ function TestGridLayout:test_variable_with_gaps()
     width = 500,
     height = 200,
     positioning = "grid",
-    gridTemplateColumns = { "1fr", "1fr", "1fr" },
-    gridTemplateRows = { "1fr" },
+    gridColumns = { "1fr", "1fr", "1fr" },
+    gridRows = { "1fr" },
     columnGap = 20,
   })
 
@@ -716,7 +716,7 @@ function TestGridLayout:test_variable_with_gaps()
   luaunit.assertEquals(children[3].x, 2 * (colWidth + 20), "Col 3 starts after col1+gap+col2+gap")
 end
 
--- Test fallback: no gridTemplateColumns set, uses gridColumns
+-- Test fallback: no gridColumns set, uses gridColumns
 function TestGridLayout:test_variable_fallback_to_equal()
   local container = FlexLove.new({
     id = "grid",
@@ -727,7 +727,7 @@ function TestGridLayout:test_variable_fallback_to_equal()
     positioning = "grid",
     gridColumns = 3,
     gridRows = 3,
-    -- No gridTemplateColumns/TemplateRows set -- fallback to equal 1fr
+    -- No gridColumns/TemplateRows set -- fallback to equal 1fr
   })
 
   local child = FlexLove.new({
@@ -752,8 +752,8 @@ function TestGridLayout:test_variable_align_center()
     width = 400,
     height = 300,
     positioning = "grid",
-    gridTemplateColumns = { "1fr", "2fr" },
-    gridTemplateRows = { "1fr", "1fr" },
+    gridColumns = { "1fr", "2fr" },
+    gridRows = { "1fr", "1fr" },
     alignItems = "center",
   })
 
@@ -785,8 +785,8 @@ function TestGridLayout:test_variable_auto_content_sized()
     height = 200,
     positioning = "grid",
     -- auto track sizes to child content (100px), fr tracks split the remainder
-    gridTemplateColumns = { "auto", "1fr", "2fr" },
-    gridTemplateRows = { "1fr" },
+    gridColumns = { "auto", "1fr", "2fr" },
+    gridRows = { "1fr" },
     columnGap = 0,
   })
 
@@ -818,8 +818,8 @@ function TestGridLayout:test_variable_auto_no_content()
     height = 200,
     positioning = "grid",
     -- auto track has no content (intrinsic = 0), fr tracks get all space
-    gridTemplateColumns = { "auto", "1fr", "2fr" },
-    gridTemplateRows = { "1fr" },
+    gridColumns = { "auto", "1fr", "2fr" },
+    gridRows = { "1fr" },
     columnGap = 0,
   })
 
@@ -850,8 +850,8 @@ function TestGridLayout:test_variable_auto_max_content()
     width = 600,
     height = 400,
     positioning = "grid",
-    gridTemplateColumns = { "auto", "1fr" },
-    gridTemplateRows = { "1fr", "1fr" },
+    gridColumns = { "auto", "1fr" },
+    gridRows = { "1fr", "1fr" },
     columnGap = 0,
   })
 
@@ -885,8 +885,8 @@ function TestGridLayout:test_guard_negative_fr_tracks()
     width = 100,
     height = 100,
     positioning = "grid",
-    gridTemplateColumns = { "200px", "1fr" }, -- px exceeds available width
-    gridTemplateRows = { "1fr" },
+    gridColumns = { "200px", "1fr" }, -- px exceeds available width
+    gridRows = { "1fr" },
   })
 
   local child = FlexLove.new({
@@ -912,8 +912,8 @@ function TestGridLayout:test_guard_all_px_overflow()
     width = 50,
     height = 50,
     positioning = "grid",
-    gridTemplateColumns = { "100px", "100px" }, -- both exceed available
-    gridTemplateRows = { "1fr" },
+    gridColumns = { "100px", "100px" }, -- both exceed available
+    gridRows = { "1fr" },
   })
 
   local child = FlexLove.new({
@@ -974,8 +974,8 @@ function TestGridLayout:test_guard_extreme_overflow()
     width = 10,
     height = 10,
     positioning = "grid",
-    gridTemplateColumns = { "auto", "auto", "auto" },
-    gridTemplateRows = { "auto", "auto" },
+    gridColumns = { "auto", "auto", "auto" },
+    gridRows = { "auto", "auto" },
   })
 
   local child = FlexLove.new({
@@ -996,7 +996,7 @@ end
 -- Unit Resolution Pipeline Tests          --
 -- ======================================== --
 
--- Test vw units in gridTemplateColumns
+-- Test vw units in gridColumns
 function TestGridLayout:test_units_vw_columns()
   local container = FlexLove.new({
     id = "grid",
@@ -1005,8 +1005,8 @@ function TestGridLayout:test_units_vw_columns()
     width = 1000,
     height = 400,
     positioning = "grid",
-    gridTemplateColumns = { "25vw", "1fr" },
-    gridTemplateRows = { "1fr" },
+    gridColumns = { "25vw", "1fr" },
+    gridRows = { "1fr" },
     columnGap = 0,
   })
 
@@ -1025,7 +1025,7 @@ function TestGridLayout:test_units_vw_columns()
   luaunit.assertEquals(children[2].x, 200, "1fr col starts after 25vw col")
 end
 
--- Test vh units in gridTemplateRows
+-- Test vh units in gridRows
 function TestGridLayout:test_units_vh_rows()
   local container = FlexLove.new({
     id = "grid",
@@ -1034,8 +1034,8 @@ function TestGridLayout:test_units_vh_rows()
     width = 400,
     height = 1000,
     positioning = "grid",
-    gridTemplateColumns = { "1fr" },
-    gridTemplateRows = { "50vh", "1fr" },
+    gridColumns = { "1fr" },
+    gridRows = { "50vh", "1fr" },
     rowGap = 0,
   })
 
@@ -1063,8 +1063,8 @@ function TestGridLayout:test_units_vw_vh_mixed()
     width = 800,
     height = 600,
     positioning = "grid",
-    gridTemplateColumns = { "10vw", "20vw" },
-    gridTemplateRows = { "10vh" },
+    gridColumns = { "10vw", "20vw" },
+    gridRows = { "10vh" },
     columnGap = 0,
     rowGap = 0,
   })
@@ -1084,7 +1084,7 @@ function TestGridLayout:test_units_vw_vh_mixed()
   luaunit.assertEquals(children[2].x, 80, "2nd col starts after 10vw col")
 end
 
--- Test calc() with viewport units in gridTemplateColumns
+-- Test calc() with viewport units in gridColumns
 function TestGridLayout:test_units_calc_vw_columns()
   local container = FlexLove.new({
     id = "grid",
@@ -1093,8 +1093,8 @@ function TestGridLayout:test_units_calc_vw_columns()
     width = 1000,
     height = 200,
     positioning = "grid",
-    gridTemplateColumns = { FlexLove.calc("10vw + 50px"), "1fr" },
-    gridTemplateRows = { "1fr" },
+    gridColumns = { FlexLove.calc("10vw + 50px"), "1fr" },
+    gridRows = { "1fr" },
     columnGap = 0,
   })
 
@@ -1113,7 +1113,7 @@ function TestGridLayout:test_units_calc_vw_columns()
   luaunit.assertEquals(children[2].x, 130, "1fr col starts after calc col")
 end
 
--- Test calc() with percentage in gridTemplateColumns
+-- Test calc() with percentage in gridColumns
 function TestGridLayout:test_units_calc_percent_columns()
   local container = FlexLove.new({
     id = "grid",
@@ -1122,8 +1122,8 @@ function TestGridLayout:test_units_calc_percent_columns()
     width = 400,
     height = 200,
     positioning = "grid",
-    gridTemplateColumns = { FlexLove.calc("50% - 20px"), "1fr" },
-    gridTemplateRows = { "1fr" },
+    gridColumns = { FlexLove.calc("50% - 20px"), "1fr" },
+    gridRows = { "1fr" },
     columnGap = 0,
   })
 
@@ -1151,8 +1151,8 @@ function TestGridLayout:test_units_vw_with_gap()
     width = 500,
     height = 200,
     positioning = "grid",
-    gridTemplateColumns = { "10vw", "1fr" },
-    gridTemplateRows = { "1fr" },
+    gridColumns = { "10vw", "1fr" },
+    gridRows = { "1fr" },
     columnGap = 20,
   })
 
