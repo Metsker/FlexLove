@@ -3936,7 +3936,11 @@ function Element:setProperty(property, value)
 
   -- Don't transition if value is the same
   if self[property] == value then
-    print(property, " read as the same: ", value)
+    Element._ErrorHandler:warn("Element", "SYS_003", {
+      property = tostring(property),
+      value = tostring(value),
+      element = self.id or "unknown",
+    })
     return
   end
 

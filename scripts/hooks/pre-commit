@@ -40,14 +40,9 @@ STAGED_LUA=$(git diff --cached --name-only --diff-filter=ACM 2>/dev/null | grep 
 
 if [ -n "$STAGED_LUA" ]; then
   if command -v stylua &>/dev/null; then
-    UNFORMATTED=$(echo "$STAGED_LUA" | xargs stylua --check 2>&1 | grep "^Diff in" | sed 's/^Diff in //' | sed 's/:$//' || true)
-    if [ -n "$UNFORMATTED" ]; then
-      fail "Lua formatting issues (run: stylua <file> to fix):"
-      echo "$UNFORMATTED" | sed 's/^/      /'
-      ERRORS=$((ERRORS + 1))
-    else
-      pass "Lua formatting (stylua)"
-    fi
+    echo "$STAGED_LUA" | xargs stylua 2>&1 || true
+    echo "$STAGED_LUA" | xargs git add 2>/dev/null || true
+    pass "Lua formatting (stylua)"
   else
     warn "stylua not found — skipping format check (install: cargo install stylua)"
   fi
@@ -69,7 +64,6 @@ fi
 
 # ── 4. Tests ───────────────────────────────────────────────────────────────────
 if [ -n "$STAGED_LUA" ]; then
-  echo "  Running tests..."
   if ! lua testing/runAll.lua --no-coverage 2>&1; then
     fail "Tests failed — fix before committing"
     ERRORS=$((ERRORS + 1))

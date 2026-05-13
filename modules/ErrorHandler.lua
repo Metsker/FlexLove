@@ -555,6 +555,26 @@ local ErrorCodes = {
       description = "Stencil buffer not available",
       suggestion = "Cannot apply corner radius to image without stencil buffer support. Check graphics capabilities.",
     },
+
+    -- Navigation Errors (NAV_001 - NAV_099)
+    NAV_001 = {
+      code = "FLEXLOVE_NAV_001",
+      category = "EVT",
+      description = "Element focus callback error",
+      suggestion = "Check the onFocus callback function for errors. Error details included in message.",
+    },
+    NAV_002 = {
+      code = "FLEXLOVE_NAV_002",
+      category = "EVT",
+      description = "Element activation callback error",
+      suggestion = "Check the onEvent callback function for errors. Error details included in message.",
+    },
+    NAV_003 = {
+      code = "FLEXLOVE_NAV_003",
+      category = "EVT",
+      description = "Element dismiss callback error",
+      suggestion = "Check the onDismiss callback function for errors. Error details included in message.",
+    },
   },
 }
 

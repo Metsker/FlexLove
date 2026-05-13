@@ -1,38 +1,63 @@
 package.path = package.path
   .. ";./?.lua;./modules/?.lua;./game/?.lua;./game/utils/?.lua;./game/components/?.lua;./game/systems/?.lua"
 
--- Set global flag BEFORE loading anything to prevent individual test files from modifying package.path
 _G.RUNNING_ALL_TESTS = true
 
--- Check for --no-coverage flag and filter it out
+local verbose = false
 local enableCoverage = true
 local filteredArgs = {}
 for i, v in ipairs(arg) do
   if v == "--no-coverage" then
     enableCoverage = false
+  elseif v == "--verbose" or v == "-v" then
+    verbose = true
   else
     table.insert(filteredArgs, v)
   end
 end
 arg = filteredArgs
 
--- Enable code coverage tracking BEFORE loading any modules (if not disabled)
+-- Suppress print/write during loading and test execution
+local old_print = _G.print
+local old_io_write = io.write
+local old_stdout = io.stdout
+local old_stderr = io.stderr
+local dev_null = { write = function() end, flush = function() end }
+local function silence()
+  _G.print = function() end
+  io.write = function() end
+  io.stdout = dev_null
+  io.stderr = dev_null
+end
+local function unsilence()
+  _G.print = old_print
+  io.write = old_io_write
+  io.stdout = old_stdout
+  io.stderr = old_stderr
+end
+
+local function eprint(...)
+  old_print(...)
+end
+
 local status, luacov = false, nil
 if enableCoverage then
   status, luacov = pcall(require, "luacov")
   if status then
-    print("========================================")
-    print("Code coverage tracking enabled")
-    print("Use --no-coverage flag to disable")
-    print("========================================")
+    eprint("========================================")
+    eprint("Code coverage tracking enabled")
+    eprint("Use --no-coverage flag to disable")
+    eprint("========================================")
   else
-    print("Warning: luacov not found, coverage tracking disabled")
+    eprint("Warning: luacov not found, coverage tracking disabled")
   end
 else
-  print("========================================")
-  print("Code coverage tracking disabled")
-  print("========================================")
+  eprint("========================================")
+  eprint("Code coverage tracking disabled")
+  eprint("========================================")
 end
+
+silence()
 
 local luaunit = require("testing.luaunit")
 
@@ -73,48 +98,202 @@ local testFiles = {
   "testing/__tests__/utils_test.lua",
 }
 
-local success = true
-for i, testFile in ipairs(testFiles) do
-  local status, err = pcall(dofile, testFile)
-  if not status then
-    print("ERROR running test " .. testFile .. ": " .. tostring(err))
-    success = false
-  else
-    print("Successfully loaded " .. testFile)
+-- Verbose mode: original full output
+if verbose then
+  local loadOk = true
+  for _, testFile in ipairs(testFiles) do
+    local ok, err = pcall(dofile, testFile)
+    if not ok then
+      print("ERROR running test " .. testFile .. ": " .. tostring(err))
+      loadOk = false
+    else
+      print("Successfully loaded " .. testFile)
+    end
+  end
+  local result = luaunit.LuaUnit.run()
+  if enableCoverage and status then
+    print("\n========================================")
+    print("Generating coverage report...")
+    print("========================================")
+    luacov.save_stats()
+    os.execute("luacov 2>/dev/null")
+    local report_file = io.open("luacov.report.out", "r")
+    if report_file then
+      local report_content = report_file:read("*all")
+      report_file:close()
+      local summary = report_content:match("Summary\n=+\n(.-)$")
+      if summary then
+        print("\nSummary")
+        print("==============================================================================")
+        print(summary)
+      end
+    end
+    print("Full coverage report: luacov.report.out")
+    print("========================================")
+  end
+  os.exit(loadOk and result or 1)
+end
+
+-- Non-verbose mode
+local red = function(s) return "\027[31m" .. s .. "\027[0m" end
+local green = function(s) return "\027[32m" .. s .. "\027[0m" end
+local yellow = function(s) return "\027[33m" .. s .. "\027[0m" end
+local bold = function(s) return "\027[1m" .. s .. "\027[0m" end
+
+local RED_X = red("\226\156\151")
+local GREEN_CHECK = green("\226\156\147")
+local YELLOW_DASH = yellow("-")
+
+local function extractLineNum(stackTrace)
+  if not stackTrace then return "?" end
+  for line in stackTrace:gmatch("[^\n]+") do
+    local _, _, ln = line:find(":(%d+):")
+    if ln then return ln end
+  end
+  return "?"
+end
+
+-- Phase 1: Load all files, mapping test classes to their source file
+local classToFile = {}
+local fileToClasses = {}
+local loadFailures = {}
+
+for _, testFile in ipairs(testFiles) do
+  local before = {}
+  for k, _ in pairs(_G) do
+    if type(k) == "string" and luaunit.LuaUnit.isTestName(k) then
+      before[k] = true
+    end
+  end
+
+  local ok, err = pcall(dofile, testFile)
+  if not ok then
+    table.insert(loadFailures, { file = testFile, err = err })
+    goto continue
+  end
+
+  local classes = {}
+  for k, _ in pairs(_G) do
+    if type(k) == "string" and luaunit.LuaUnit.isTestName(k) and not before[k] then
+      table.insert(classes, k)
+      classToFile[k] = testFile
+    end
+  end
+  fileToClasses[testFile] = classes
+
+  ::continue::
+end
+
+-- Phase 2: Run all tests together
+local runner = luaunit.LuaUnit.new()
+runner:setOutputType("nil")
+runner.verbosity = 0
+runner:registerSuite()
+runner:internalRunSuiteByNames(luaunit.LuaUnit.collectTests())
+runner:unregisterSuite()
+
+unsilence()
+
+-- Phase 3: Group results by file
+local fileResults = {}
+for _, node in ipairs(runner.result.allTests) do
+  local className = node.className
+  local srcFile = classToFile[className] or "unknown"
+  if not fileResults[srcFile] then
+    fileResults[srcFile] = { failures = {}, errors = {}, total = 0, pass = 0 }
+  end
+  fileResults[srcFile].total = fileResults[srcFile].total + 1
+  if node:isSuccess() then
+    fileResults[srcFile].pass = fileResults[srcFile].pass + 1
+  elseif node:isFailure() then
+    table.insert(fileResults[srcFile].failures, node)
+  elseif node:isError() then
+    table.insert(fileResults[srcFile].errors, node)
   end
 end
 
-local result = luaunit.LuaUnit.run()
+-- Report load failures
+for _, lf in ipairs(loadFailures) do
+  print("  " .. lf.file .. " ... " .. RED_X)
+  print("      " .. red("Failed to load: " .. tostring(lf.err):gsub("\n", "\n      ")))
+end
 
--- Generate and display coverage report
-if status then
+-- Phase 4: Print per-file summary
+local allPassed = true
+local totalTests = 0
+local totalFail = 0
+local totalErr = 0
+
+for _, testFile in ipairs(testFiles) do
+  local result = fileResults[testFile]
+  if not result then
+    -- File had no tests or failed to load (already reported above)
+    if not loadFailures[testFile] then
+      print("  " .. testFile .. " ... " .. YELLOW_DASH)
+    end
+    goto next_file
+  end
+
+  totalTests = totalTests + result.total
+  local hasFails = #result.failures > 0 or #result.errors > 0
+
+  if hasFails then
+    allPassed = false
+    print("  " .. testFile .. " ... " .. RED_X)
+    totalFail = totalFail + #result.failures
+    totalErr = totalErr + #result.errors
+    for _, node in ipairs(result.failures) do
+      local line = extractLineNum(node.stackTrace)
+      local msg = node.msg:gsub("\n", "\n            ")
+      print(string.format("      FAIL  %s (line %s)", node.testName, line))
+      print("            " .. msg)
+    end
+    for _, node in ipairs(result.errors) do
+      local line = extractLineNum(node.stackTrace)
+      local msg = node.msg:gsub("\n", "\n            ")
+      print(string.format("      ERROR %s (line %s)", node.testName, line))
+      print("            " .. msg)
+    end
+  else
+    print("  " .. testFile .. " ... " .. GREEN_CHECK)
+  end
+
+  ::next_file::
+end
+
+-- Summary
+local duration = string.format("%.3f", os.clock() - runner.result.startTime)
+print()
+if allPassed then
+  print(string.format("  %s Ran %d tests in %s seconds, 0 failures",
+    green(bold("All tests passed")), totalTests, duration))
+else
+  local parts = {}
+  if totalFail > 0 then table.insert(parts, string.format("%d failures", totalFail)) end
+  if totalErr > 0 then table.insert(parts, string.format("%d errors", totalErr)) end
+  print(string.format("  %s Ran %d tests in %s seconds - %s",
+    red(bold("Some tests FAILED")), totalTests, duration, table.concat(parts, ", ")))
+end
+
+if enableCoverage and status then
   print("\n========================================")
   print("Generating coverage report...")
   print("========================================")
-
-  -- Save coverage stats
   luacov.save_stats()
-
-  -- Run luacov command to generate report (silent)
   os.execute("luacov 2>/dev/null")
-
-  -- Read and display the summary section from the report
   local report_file = io.open("luacov.report.out", "r")
   if report_file then
-    local content = report_file:read("*all")
+    local report_content = report_file:read("*all")
     report_file:close()
-
-    -- Extract just the Summary section
-    local summary = content:match("Summary\n=+\n(.-)$")
+    local summary = report_content:match("Summary\n=+\n(.-)$")
     if summary then
       print("\nSummary")
       print("==============================================================================")
       print(summary)
     end
   end
-
   print("Full coverage report: luacov.report.out")
   print("========================================")
 end
 
-os.exit(success and result or 1)
+os.exit(allPassed and 0 or 1)

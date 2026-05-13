@@ -213,10 +213,16 @@ function flexlove.init(config)
   end
 
   -- Initialize required modules
+  StateManager.init({ ErrorHandler = flexlove._ErrorHandler })
   Calc.init({ ErrorHandler = flexlove._ErrorHandler })
   Units.init({ Context = Context, ErrorHandler = flexlove._ErrorHandler, Calc = Calc })
   Color.init({ ErrorHandler = flexlove._ErrorHandler })
   utils.init({ ErrorHandler = flexlove._ErrorHandler })
+
+  -- Initialize optional ImageCache module
+  if ModuleLoader.isModuleLoaded(modulePath .. "modules.ImageCache") then
+    ImageCache.init({ ErrorHandler = flexlove._ErrorHandler })
+  end
 
   -- Initialize optional Animation module
   if ModuleLoader.isModuleLoaded(modulePath .. "modules.Animation") then
@@ -327,7 +333,9 @@ function flexlove.init(config)
     end)
 
     if not success then
-      print("[FlexLove] Failed to load theme: " .. tostring(err))
+      flexlove._ErrorHandler:warn("FlexLove", "THM_005", {
+        error = tostring(err),
+      })
     end
   end
 

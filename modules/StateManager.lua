@@ -1,7 +1,7 @@
 ---@class StateManager
 local StateManager = {}
 
--- Load error handler (loaded lazily since it's in a sibling module)
+-- ErrorHandler will be injected via init
 local ErrorHandler
 
 -- State storage: ID -> state table
@@ -270,17 +270,21 @@ end
 -- State Management
 -- ====================
 
+--- Initialize StateManager with dependencies
+---@param deps table Dependencies: { ErrorHandler = ErrorHandler }
+function StateManager.init(deps)
+  if type(deps) == "table" then
+    ErrorHandler = deps.ErrorHandler
+  end
+end
+
 --- Get state for an element ID, creating if it doesn't exist
 ---@param id string Element ID
 ---@param defaultState table|nil Default state if creating new
 ---@return table state State table for the element
 function StateManager.getState(id, defaultState)
   if not id then
-    -- Lazy load ErrorHandler
-    if not ErrorHandler then
-      ErrorHandler = require("modules.ErrorHandler")
-    end
-    ErrorHandler.error("StateManager", "SYS_001", {
+    ErrorHandler:error("StateManager", "SYS_001", {
       parameter = "id",
       value = "nil",
     })
@@ -312,11 +316,7 @@ end
 ---@param state table State to store
 function StateManager.setState(id, state)
   if not id then
-    -- Lazy load ErrorHandler
-    if not ErrorHandler then
-      ErrorHandler = require("modules.ErrorHandler")
-    end
-    ErrorHandler.error("StateManager", "SYS_001", {
+    ErrorHandler:error("StateManager", "SYS_001", {
       parameter = "id",
       value = "nil",
     })

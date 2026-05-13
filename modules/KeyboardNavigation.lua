@@ -325,8 +325,8 @@ function KeyboardNavigation:_findNextInZIndexOrder(current)
   end
 
   -- Search forward
-  for i = startIndex + 1, #elements do
-    return elements[i]
+  if startIndex < #elements then
+    return elements[startIndex + 1]
   end
 
   -- Wrap around
@@ -636,7 +636,7 @@ function KeyboardNavigation:_focusElement(element)
       end)
 
       if not success then
-        KeyboardNavigation._ErrorHandler:warn("KeyboardNavigation", "FOCUS_001", {
+        KeyboardNavigation._ErrorHandler:warn("KeyboardNavigation", "NAV_001", {
           elementId = element.id or "unknown",
           error = tostring(err),
         })
@@ -696,7 +696,7 @@ function KeyboardNavigation:activateElement()
     end)
 
     if not success then
-      KeyboardNavigation._ErrorHandler:warn("KeyboardNavigation", "ACTIVATE_001", {
+      KeyboardNavigation._ErrorHandler:warn("KeyboardNavigation", "NAV_002", {
         elementId = focused.id or "unknown",
         error = tostring(err),
       })
@@ -739,7 +739,7 @@ function KeyboardNavigation:dismissElement()
     end)
 
     if not success then
-      KeyboardNavigation._ErrorHandler:warn("KeyboardNavigation", "DISMISS_001", {
+      KeyboardNavigation._ErrorHandler:warn("KeyboardNavigation", "NAV_003", {
         elementId = focused.id or "unknown",
         error = tostring(err),
       })

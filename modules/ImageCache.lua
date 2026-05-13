@@ -5,10 +5,21 @@ end
 
 local utils = req("utils")
 
+-- ErrorHandler will be injected via init
+local ErrorHandler = nil
+
 ---@class ImageCache
 ---@field _cache table<string, {image: love.Image, imageData: love.ImageData?}>
 local ImageCache = {}
 ImageCache._cache = {}
+
+--- Initialize ImageCache with dependencies
+---@param deps table Dependencies table with ErrorHandler
+function ImageCache.init(deps)
+  if deps and deps.ErrorHandler then
+    ErrorHandler = deps.ErrorHandler
+  end
+end
 
 --- Load an image from file path with caching
 --- Returns cached image if already loaded, otherwise loads and caches it
@@ -29,6 +40,13 @@ function ImageCache.load(imagePath, loadImageData)
 
   local success, imageOrError = pcall(love.graphics.newImage, normalizedPath)
   if not success then
+    if ErrorHandler then
+      ErrorHandler:warn("ImageCache", "RES_004", {
+        resourceType = "image",
+        path = imagePath,
+        error = tostring(imageOrError),
+      })
+    end
     return nil, string.format("Failed to load image '%s': %s", imagePath, tostring(imageOrError))
   end
 
@@ -39,6 +57,12 @@ function ImageCache.load(imagePath, loadImageData)
     local dataSuccess, dataOrError = pcall(love.image.newImageData, normalizedPath)
     if dataSuccess then
       imgData = dataOrError
+    elseif ErrorHandler then
+      ErrorHandler:warn("ImageCache", "RES_004", {
+        resourceType = "image data",
+        path = imagePath,
+        error = tostring(dataOrError),
+      })
     end
   end
 

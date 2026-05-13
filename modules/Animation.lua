@@ -586,15 +586,10 @@ function Animation:update(dt, element)
     if self.onStart and type(self.onStart) == "function" then
       local success, err = pcall(self.onStart, self, element)
       if not success then
-        -- Use ErrorHandler if available via Animation module
-        if Animation._ErrorHandler then
-          Animation._ErrorHandler:warn("Animation", "EVT_002", {
-            callback = "onStart",
-            error = tostring(err),
-          })
-        else
-          print(string.format("[Animation] onStart error: %s", tostring(err)))
-        end
+        Animation._ErrorHandler:warn("Animation", "EVT_002", {
+          callback = "onStart",
+          error = tostring(err),
+        })
       end
     end
   end
@@ -610,15 +605,10 @@ function Animation:update(dt, element)
       if self.onComplete and type(self.onComplete) == "function" then
         local success, err = pcall(self.onComplete, self, element)
         if not success then
-          -- Use ErrorHandler if available via Animation module
-          if Animation._ErrorHandler then
-            Animation._ErrorHandler:warn("Animation", "EVT_002", {
-              callback = "onComplete",
-              error = tostring(err),
-            })
-          else
-            print(string.format("[Animation] onComplete error: %s", tostring(err)))
-          end
+          Animation._ErrorHandler:warn("Animation", "EVT_002", {
+            callback = "onComplete",
+            error = tostring(err),
+          })
         end
       end
       return true
@@ -651,15 +641,10 @@ function Animation:update(dt, element)
       if self.onComplete and type(self.onComplete) == "function" then
         local success, err = pcall(self.onComplete, self, element)
         if not success then
-          -- Use ErrorHandler if available via Animation module
-          if Animation._ErrorHandler then
-            Animation._ErrorHandler:warn("Animation", "EVT_002", {
-              callback = "onComplete",
-              error = tostring(err),
-            })
-          else
-            print(string.format("[Animation] onComplete error: %s", tostring(err)))
-          end
+          Animation._ErrorHandler:warn("Animation", "EVT_002", {
+            callback = "onComplete",
+            error = tostring(err),
+          })
         end
       end
       return true
@@ -672,15 +657,10 @@ function Animation:update(dt, element)
     local progress = self.elapsed / self.duration
     local success, err = pcall(self.onUpdate, self, element, progress)
     if not success then
-      -- Use ErrorHandler if available via Animation module
-      if Animation._ErrorHandler then
-        Animation._ErrorHandler:warn("Animation", "EVT_002", {
-          callback = "onUpdate",
-          error = tostring(err),
-        })
-      else
-        print(string.format("[Animation] onUpdate error: %s", tostring(err)))
-      end
+      Animation._ErrorHandler:warn("Animation", "EVT_002", {
+        callback = "onUpdate",
+        error = tostring(err),
+      })
     end
   end
 
@@ -991,15 +971,10 @@ function Animation:cancel(element)
     if self.onCancel and type(self.onCancel) == "function" then
       local success, err = pcall(self.onCancel, self, element)
       if not success then
-        -- Use ErrorHandler if available via Animation module
-        if Animation._ErrorHandler then
-          Animation._ErrorHandler:warn("Animation", "EVT_002", {
-            callback = "onCancel",
-            error = tostring(err),
-          })
-        else
-          print(string.format("[Animation] onCancel error: %s", tostring(err)))
-        end
+        Animation._ErrorHandler:warn("Animation", "EVT_002", {
+          callback = "onCancel",
+          error = tostring(err),
+        })
       end
     end
   end
@@ -1366,15 +1341,10 @@ function AnimationGroup:update(dt, element)
     if self.onStart and type(self.onStart) == "function" then
       local success, err = pcall(self.onStart, self)
       if not success then
-        -- Use ErrorHandler if available via AnimationGroup module
-        if AnimationGroup._ErrorHandler then
-          AnimationGroup._ErrorHandler:warn("AnimationGroup", "EVT_002", {
-            callback = "onStart",
-            error = tostring(err),
-          })
-        else
-          print(string.format("[AnimationGroup] onStart error: %s", tostring(err)))
-        end
+        Animation._ErrorHandler:warn("Animation", "EVT_002", {
+          callback = "onStart",
+          error = tostring(err),
+        })
       end
     end
   end
@@ -1394,15 +1364,10 @@ function AnimationGroup:update(dt, element)
     if self.onComplete and type(self.onComplete) == "function" then
       local success, err = pcall(self.onComplete, self)
       if not success then
-        -- Use ErrorHandler if available via AnimationGroup module
-        if AnimationGroup._ErrorHandler then
-          AnimationGroup._ErrorHandler:warn("AnimationGroup", "EVT_002", {
-            callback = "onComplete",
-            error = tostring(err),
-          })
-        else
-          print(string.format("[AnimationGroup] onComplete error: %s", tostring(err)))
-        end
+        Animation._ErrorHandler:warn("Animation", "EVT_002", {
+          callback = "onComplete",
+          error = tostring(err),
+        })
       end
     end
   end

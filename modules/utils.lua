@@ -266,6 +266,17 @@ local function evictLRU()
   end
 end
 
+-- Validation utilities
+local ErrorHandler = nil
+
+--- Initialize dependencies
+---@param deps table Dependencies: { ErrorHandler = ErrorHandler }
+local function init(deps)
+  if type(deps) == "table" then
+    ErrorHandler = deps.ErrorHandler
+  end
+end
+
 --- Create or get a font from cache
 ---@param size number
 ---@param fontPath string?
@@ -302,14 +313,11 @@ function FONT_CACHE.get(size, fontPath)
     if success then
       font = result
     else
-      -- Use ErrorHandler if available, otherwise fall back to print
       if ErrorHandler then
         ErrorHandler:warn("utils", "RES_004", {
           resourceType = "font",
           path = fontPath,
         })
-      else
-        print("[FlexLove] Failed to load font: " .. fontPath .. " - using default font")
       end
       font = love.graphics.newFont(size)
     end
@@ -390,17 +398,6 @@ local function applyContentMultiplier(value, multiplier, axis)
     return value * multiplier[axis]
   end
   return value
-end
-
--- Validation utilities
-local ErrorHandler = nil
-
---- Initialize dependencies
----@param deps table Dependencies: { ErrorHandler = ErrorHandler }
-local function init(deps)
-  if type(deps) == "table" then
-    ErrorHandler = deps.ErrorHandler
-  end
 end
 
 --- Validate that a value is in an enum table
@@ -553,15 +550,12 @@ local function safeLoadImage(imagePath)
 
   if not success then
     local errorMsg = string.format("Failed to load image data: %s - %s", imagePath, tostring(imageData))
-    -- Use ErrorHandler if available, otherwise fall back to print
     if ErrorHandler then
       ErrorHandler:warn("utils", "RES_004", {
         resourceType = "image data",
         path = imagePath,
         error = tostring(imageData),
       })
-    else
-      print("[FlexLove] " .. errorMsg)
     end
     return nil, nil, errorMsg
   end
@@ -574,15 +568,12 @@ local function safeLoadImage(imagePath)
     return image, imageData, nil
   else
     local errorMsg = string.format("Failed to create image: %s - %s", imagePath, tostring(image))
-    -- Use ErrorHandler if available, otherwise fall back to print
     if ErrorHandler then
       ErrorHandler:warn("utils", "RES_004", {
         resourceType = "image",
         path = imagePath,
         error = tostring(image),
       })
-    else
-      print("[FlexLove] " .. errorMsg)
     end
     return nil, nil, errorMsg
   end

@@ -676,26 +676,20 @@ function MemoryScanner.saveReport(report, filename)
   if file then
     file:write(formatted)
     file:close()
-    -- Use ErrorHandler if available, otherwise fall back to print
     if MemoryScanner._ErrorHandler then
       MemoryScanner._ErrorHandler:warn("MemoryScanner", "RES_004", {
         resourceType = "report",
         path = filename,
         status = "saved",
       })
-    else
-      print(string.format("[MemoryScanner] Report saved to %s", filename))
     end
   else
-    -- Use ErrorHandler if available, otherwise fall back to print
     if MemoryScanner._ErrorHandler then
       MemoryScanner._ErrorHandler:warn("MemoryScanner", "RES_004", {
         resourceType = "report",
         path = filename,
         status = "failed to save",
       })
-    else
-      print(string.format("[MemoryScanner] Failed to save report to %s", filename))
     end
   end
 end
