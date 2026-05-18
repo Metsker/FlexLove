@@ -893,8 +893,8 @@ function TestRendererEdgeCases:test_text_rendering_with_special_characters()
 end
 
 function TestRendererEdgeCases:test_invalid_text_align()
-  -- Invalid textAlign - should throw validation error
-  local success, result = pcall(function()
+  -- Invalid textAlign now warns instead of erroring, falling back to defaults
+  local success, element = pcall(function()
     return FlexLove.new({
       id = "test",
       width = 100,
@@ -903,7 +903,12 @@ function TestRendererEdgeCases:test_invalid_text_align()
       textAlign = "invalid-alignment",
     })
   end)
-  luaunit.assertFalse(success)
+  luaunit.assertTrue(success) -- No longer errors, warns and falls back
+  if success and element then
+    luaunit.assertEquals(element.textAlign, "invalid-alignment") -- original value preserved
+    luaunit.assertEquals(element.textAlignHorizontal, "start") -- falls back to default
+    luaunit.assertEquals(element.textAlignVertical, "start") -- falls back to default
+  end
 end
 
 function TestRendererEdgeCases:test_invalid_text_size()

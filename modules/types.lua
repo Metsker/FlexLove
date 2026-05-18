@@ -97,7 +97,7 @@ local Transform = {}
 ---@field padding number|string|CalcObject|{top:number|string|CalcObject?, right:number|string|CalcObject?, bottom:number|string|CalcObject?, left:number|string|CalcObject?, horizontal:number|string|CalcObject?, vertical:number|string|CalcObject?}? -- Padding around children: single value, string, CalcObject for all sides, or table for individual sides (default: {top=0, right=0, bottom=0, left=0})
 ---@field margin number|string|CalcObject|{top:number|string|CalcObject?, right:number|string|CalcObject?, bottom:number|string|CalcObject?, left:number|string|CalcObject?, horizontal:number|string|CalcObject?, vertical:number|string|CalcObject?}? -- Margin around element: single value, string, CalcObject for all sides, or table for individual sides (default: {top=0, right=0, bottom=0, left=0})
 ---@field text string? -- Text content to display (default: nil)
----@field textAlign TextAlign? -- Alignment of the text content (default: START)
+---@field textAlign TextAlignSpec? -- Alignment of the text content: simple string, compound string ("top-left"), or {horizontal, vertical} table (default: START)
 ---@field textColor Color? -- Color of the text content (default: black or theme text color)
 ---@field textSize number|string? -- Font size: number (px), string with units ("2vh", "10%"), or preset ("xxs"|"xs"|"sm"|"md"|"lg"|"xl"|"xxl"|"3xl"|"4xl") (default: "md" or 12px)
 ---@field minTextSize number? -- Minimum text size in pixels for auto-scaling
@@ -307,8 +307,12 @@ local FlexLoveConfig = {}
 --=====================================--
 -- Public FlexLove API
 --=====================================--
+---@alias TextAlignCompound "top-left" | "top-center" | "top-right" | "center-left" | "center-center" | "center-right" | "bottom-left" | "bottom-center" | "bottom-right"
+---@alias TextAlignSpec TextAlign | TextAlignCompound | {horizontal: TextAlign, vertical: TextAlignVertical}
+
 ---@class FlexLoveEnums
 ---@field TextAlign TextAlign
+---@field TextAlignVertical TextAlignVertical
 ---@field Positioning Positioning
 ---@field FlexDirection FlexDirection
 ---@field JustifyContent JustifyContent

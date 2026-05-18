@@ -514,11 +514,103 @@ function Element.new(props)
     self.text = props.text
   end
 
-  -- Validate and set textAlign
-  if props.textAlign then
-    Element._utils.validateEnum(props.textAlign, Element._utils.enums.TextAlign, "textAlign")
+  -- Validate and set textAlign (supports simple string, compound string, or table format)
+  local textAlignDefault = Element._utils.enums.TextAlign.START
+  self.textAlign = props.textAlign or textAlignDefault
+  self.textAlignHorizontal = textAlignDefault
+  self.textAlignVertical = Element._utils.enums.TextAlignVertical.START
+
+  if props.textAlign ~= nil then
+    if type(props.textAlign) == "table" then
+      -- Table format: {horizontal = "start", vertical = "center"}
+      local hAlign = props.textAlign.horizontal or textAlignDefault
+      local vAlign = props.textAlign.vertical or Element._utils.enums.TextAlignVertical.START
+
+      -- Validate horizontal value
+      local validH = false
+      for _, v in pairs(Element._utils.enums.TextAlign) do
+        if hAlign == v then
+          validH = true
+          break
+        end
+      end
+      if not validH then
+        Element._ErrorHandler:warn("Element", "VAL_001", {
+          property = "textAlign.horizontal",
+          expected = "valid TextAlign value",
+          got = tostring(hAlign),
+        })
+        hAlign = textAlignDefault
+      end
+
+      -- Validate vertical value
+      local validV = false
+      for _, v in pairs(Element._utils.enums.TextAlignVertical) do
+        if vAlign == v then
+          validV = true
+          break
+        end
+      end
+      if not validV then
+        Element._ErrorHandler:warn("Element", "VAL_001", {
+          property = "textAlign.vertical",
+          expected = "valid TextAlignVertical value",
+          got = tostring(vAlign),
+        })
+        vAlign = Element._utils.enums.TextAlignVertical.START
+      end
+
+      self.textAlignHorizontal = hAlign
+      self.textAlignVertical = vAlign
+    elseif type(props.textAlign) == "string" then
+      -- Check if it's a known simple value (backward compatible)
+      local isSimple = false
+      for _, v in pairs(Element._utils.enums.TextAlign) do
+        if props.textAlign == v then
+          isSimple = true
+          break
+        end
+      end
+
+      if isSimple then
+        self.textAlignHorizontal = props.textAlign
+        self.textAlignVertical = Element._utils.enums.TextAlignVertical.START
+      else
+        -- Treat as compound string: "top-left" through "bottom-right"
+        local parts = {}
+        for part in props.textAlign:gmatch("[^-]+") do
+          table.insert(parts, part)
+        end
+
+        if #parts == 2 then
+          local verticalMap = { top = "start", center = "center", bottom = "end" }
+          local horizontalMap = { left = "start", center = "center", right = "end" }
+
+          local vStr = parts[1]:lower()
+          local hStr = parts[2]:lower()
+          local resolvedV = verticalMap[vStr]
+          local resolvedH = horizontalMap[hStr]
+
+          if resolvedV and resolvedH then
+            self.textAlignHorizontal = resolvedH
+            self.textAlignVertical = resolvedV
+          else
+            Element._ErrorHandler:warn("Element", "VAL_001", {
+              property = "textAlign",
+              expected = "valid compound string (e.g., 'top-left', 'center-right')",
+              got = props.textAlign,
+            })
+          end
+        else
+          Element._ErrorHandler:warn("Element", "VAL_001", {
+            property = "textAlign",
+            expected = "valid TextAlign value or compound string",
+            got = props.textAlign,
+          })
+        end
+      end
+    end
   end
-  self.textAlign = props.textAlign or Element._utils.enums.TextAlign.START
 
   -- Image properties
   self.imagePath = props.imagePath
