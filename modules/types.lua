@@ -127,6 +127,8 @@ local Transform = {}
 ---@field onTextChangeDeferred boolean? -- Whether onTextChange callback should be deferred (default: false)
 ---@field onEnter fun(element:Element)? -- Callback when Enter key is pressed
 ---@field onEnterDeferred boolean? -- Whether onEnter callback should be deferred (default: false)
+---@field onCreate fun(element:Element, props:table)? -- Callback when element is created, receives the element and original creation props
+---@field onCreateDeferred boolean? -- Whether onCreate callback should be deferred (default: false)
 ---@field onTouchEvent fun(element:Element, touchEvent:InputEvent)? -- Callback for touch-specific events (touchpress, touchmove, touchrelease)
 ---@field onTouchEventDeferred boolean? -- Whether onTouchEvent callback should be deferred (default: false)
 ---@field onGesture fun(element:Element, gesture:table)? -- Callback for recognized gestures (tap, swipe, pinch, etc.)

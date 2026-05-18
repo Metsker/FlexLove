@@ -344,6 +344,8 @@ function Element.new(props)
   self.onTextChangeDeferred = props.onTextChangeDeferred or false
   self.onEnter = props.onEnter
   self.onEnterDeferred = props.onEnterDeferred or false
+  self.onCreate = props.onCreate
+  self.onCreateDeferred = props.onCreateDeferred or false
 
   self.customDraw = props.customDraw -- Custom rendering callback
 
@@ -1859,6 +1861,22 @@ function Element.new(props)
           end
         end
       end
+    end
+  end
+
+  -- Fire onCreate callback if provided
+  if self.onCreate then
+    if self.onCreateDeferred then
+      local FlexLove = package.loaded["FlexLove"] or package.loaded["libs.FlexLove"]
+      if FlexLove and FlexLove.deferCallback then
+        FlexLove.deferCallback(function()
+          self.onCreate(self, props)
+        end)
+      else
+        self.onCreate(self, props)
+      end
+    else
+      self.onCreate(self, props)
     end
   end
 
@@ -4545,6 +4563,7 @@ function Element:_cleanup()
   self.onImageError = nil
   self.onTouchEvent = nil
   self.onGesture = nil
+  self.onCreate = nil
   if self.selectParent then
     self.selectParent.onChange = nil
   end
