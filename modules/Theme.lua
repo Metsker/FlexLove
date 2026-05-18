@@ -307,6 +307,7 @@ local function parseNinePatch(imagePath)
   }
 end
 
+---@class Theme
 local Theme = {}
 Theme.__index = Theme
 
@@ -714,12 +715,8 @@ function Theme.getDefaultScrollbar()
     return nil
   end
 
-  -- Return first scrollbar in insertion order (Lua 5.3+ preserves order)
-  for _, scrollbar in pairs(activeTheme.scrollbars) do
-    return scrollbar
-  end
-
-  return nil
+  local _, scrollbar = next(activeTheme.scrollbars)
+  return scrollbar
 end
 
 --- Retrieve themed scrollbar components for consistent scrollbar styling
@@ -839,6 +836,7 @@ end
 -- ThemeManager: Instance-level theme state management
 --------------------------------------------------------------------------------
 
+---@class ThemeManager
 local ThemeManager = {}
 ThemeManager.__index = ThemeManager
 
@@ -1013,12 +1011,9 @@ function ThemeManager:getScrollbarComponent(scrollbarName)
     return nil
   end
 
-  -- If no scrollbarName specified, return default (first) scrollbar
   if not scrollbarName then
-    for _, scrollbar in pairs(themeToUse.scrollbars) do
-      return scrollbar
-    end
-    return nil
+    local _, scrollbar = next(themeToUse.scrollbars)
+    return scrollbar
   end
 
   return themeToUse.scrollbars[scrollbarName]

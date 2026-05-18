@@ -429,4 +429,6 @@ function TestChildrenPropIntegration:test_children_with_flex_properties()
   luaunit.assertEquals(container.children[2].flexGrow, 2)
 end
 
-os.exit(luaunit.run())
+if not _G.RUNNING_ALL_TESTS then
+  os.exit(luaunit.LuaUnit.run())
+end

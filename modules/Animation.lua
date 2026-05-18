@@ -488,6 +488,7 @@ local function lerpTable(startTable, finalTable, easedT)
   return result
 end
 
+---@class Animation
 local Animation = {
   _Transform = Transform,
 }

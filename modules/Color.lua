@@ -1,3 +1,4 @@
+---@class Color
 local Color = {}
 Color.__index = Color
 
