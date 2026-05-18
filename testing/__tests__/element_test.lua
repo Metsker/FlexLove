@@ -3373,15 +3373,21 @@ function TestElementEdgeCases:test_element_invalid_text_size()
 end
 
 function TestElementEdgeCases:test_element_invalid_text_align()
-  local success = pcall(function()
-    FlexLove.new({
+  -- Invalid textAlign now warns instead of erroring, falling back to defaults
+  local success, element = pcall(function()
+    return FlexLove.new({
       id = "invalid_align",
       width = 100,
       height = 100,
       textAlign = "invalid_value",
     })
   end)
-  luaunit.assertFalse(success) -- Should error (validateEnum)
+  luaunit.assertTrue(success) -- No longer errors, warns and falls back
+  if success and element then
+    luaunit.assertEquals(element.textAlign, "invalid_value") -- original value preserved
+    luaunit.assertEquals(element.textAlignHorizontal, "start") -- falls back to default
+    luaunit.assertEquals(element.textAlignVertical, "start") -- falls back to default
+  end
 end
 
 function TestElementEdgeCases:test_element_invalid_positioning()

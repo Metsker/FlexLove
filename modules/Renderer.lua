@@ -63,6 +63,7 @@ function Renderer.new(config, deps)
   self._utils = deps.utils
   self._FONT_CACHE = deps.utils.FONT_CACHE
   self._TextAlign = deps.utils.enums.TextAlign
+  self._TextAlignVertical = deps.utils.enums.TextAlignVertical
 
   -- Visual properties
   self.backgroundColor = config.backgroundColor or Color.new(0, 0, 0, 0)
@@ -811,15 +812,19 @@ function Renderer:drawText(element)
     local contentX = element.x + textPaddingLeft
     local contentY = element.y + textPaddingTop
 
+    -- Resolve horizontal and vertical alignment (new format with backward compatibility)
+    local hAlign = element.textAlignHorizontal or element.textAlign or self._TextAlign.START
+    local vAlign = element.textAlignVertical or self._TextAlignVertical.START
+
     -- Check if text wrapping is enabled
     if element.textWrap and (element.textWrap == "word" or element.textWrap == "char" or element.textWrap == true) then
-      -- Use printf for wrapped text
+      -- Use printf for wrapped text (horizontal alignment only)
       local align = "left"
-      if element.textAlign == self._TextAlign.CENTER then
+      if hAlign == self._TextAlign.CENTER then
         align = "center"
-      elseif element.textAlign == self._TextAlign.END then
+      elseif hAlign == self._TextAlign.END then
         align = "right"
-      elseif element.textAlign == self._TextAlign.JUSTIFY then
+      elseif hAlign == self._TextAlign.JUSTIFY then
         align = "justify"
       end
 
@@ -830,18 +835,25 @@ function Renderer:drawText(element)
       love.graphics.printf(displayText, tx, ty, textAreaWidth, align)
     else
       -- Use regular print for non-wrapped text
-      if element.textAlign == self._TextAlign.START then
+      -- Horizontal alignment
+      if hAlign == self._TextAlign.START then
         tx = contentX
-        ty = contentY
-      elseif element.textAlign == self._TextAlign.CENTER then
+      elseif hAlign == self._TextAlign.CENTER then
         tx = contentX + (textAreaWidth - textWidth) / 2
-        ty = contentY + (textAreaHeight - textHeight) / 2
-      elseif element.textAlign == self._TextAlign.END then
+      elseif hAlign == self._TextAlign.END then
         tx = contentX + textAreaWidth - textWidth - 10
-        ty = contentY + textAreaHeight - textHeight - 10
-      elseif element.textAlign == self._TextAlign.JUSTIFY then
-        --- need to figure out spreading
+      else -- JUSTIFY or unknown
         tx = contentX
+      end
+
+      -- Vertical alignment
+      if vAlign == self._TextAlignVertical.START then
+        ty = contentY
+      elseif vAlign == self._TextAlignVertical.CENTER then
+        ty = contentY + (textAreaHeight - textHeight) / 2
+      elseif vAlign == self._TextAlignVertical.END then
+        ty = contentY + textAreaHeight - textHeight
+      else
         ty = contentY
       end
 

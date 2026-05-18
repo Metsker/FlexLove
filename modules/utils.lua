@@ -1,6 +1,8 @@
 local enums = {
   ---@enum TextAlign
   TextAlign = { START = "start", CENTER = "center", END = "end", JUSTIFY = "justify" },
+  ---@enum TextAlignVertical
+  TextAlignVertical = { START = "start", CENTER = "center", END = "end" },
   ---@enum Positioning
   Positioning = { ABSOLUTE = "absolute", RELATIVE = "relative", FLEX = "flex", GRID = "grid" },
   ---@enum FlexDirection

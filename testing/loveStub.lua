@@ -99,6 +99,10 @@ function love_helper.graphics.print(text, x, y)
   -- Mock text printing
 end
 
+function love_helper.graphics.printf(text, x, y, limit, align)
+  -- Mock formatted text printing
+end
+
 function love_helper.graphics.newShader(shaderCode)
   -- Mock shader creation - return a mock shader object
   return {
