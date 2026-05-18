@@ -200,6 +200,7 @@ local Transform = {}
 ---@field onImageErrorDeferred boolean? -- Whether onImageError callback should be deferred (default: false)
 ---@field _scrollX number? -- Internal: scroll X position (restored in immediate mode)
 ---@field _scrollY number? -- Internal: scroll Y position (restored in immediate mode)
+---@field children? ElementProps[]
 ---@field userdata table? -- User-defined data storage for custom properties
 ---@field ariaRole ARIA? -- ARIA role for screen readers (e.g., "button", "link", "dialog")
 ---@field ariaLabel string? -- Accessible name for screen readers (overrides text content)

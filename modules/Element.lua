@@ -1189,10 +1189,11 @@ function Element.new(props)
     end
 
     -- Set initial position
+    local parentPadding = self.parent.padding or { left = 0, top = 0 }
     if self.positioning == Element._utils.enums.Positioning.ABSOLUTE then
       -- Absolute positioning is relative to parent's content area (padding box)
-      local baseX = self.parent.x + self.parent.padding.left
-      local baseY = self.parent.y + self.parent.padding.top
+      local baseX = self.parent.x + parentPadding.left
+      local baseY = self.parent.y + parentPadding.top
 
       -- Handle x/y position with units
       _resolveUnit(self, props.x, "x", self.parent.width, _ctx, { scaleAxis = "x", offset = baseX, default = 0 })
@@ -1203,8 +1204,8 @@ function Element.new(props)
     else
       -- Children in flex containers start at parent position but will be repositioned by layoutChildren
       -- Children in absolute/relative containers start at parent's content area (accounting for padding)
-      local baseX = self.parent.x + self.parent.padding.left
-      local baseY = self.parent.y + self.parent.padding.top
+      local baseX = self.parent.x + parentPadding.left
+      local baseY = self.parent.y + parentPadding.top
 
       -- Warn if explicit x/y is set on a child that will be positioned by flex layout
       -- This position will be overridden unless the child has positioning="absolute"
@@ -1508,6 +1509,41 @@ function Element.new(props)
   end
   local dr, dg, db = hslToRgb(hue)
   self._debugColor = { dr, dg, db }
+
+  -- Process declarative children prop: build child tree from property tables
+  -- Placed after all self properties are initialized so children can safely access parent state
+  if props.children then
+    if type(props.children) ~= "table" then
+      Element._ErrorHandler:warn("Element", "ELEM_010", {
+        element = self.id or "unnamed",
+        issue = "children must be a table array",
+        value = tostring(props.children),
+      })
+    else
+      for i = 1, #props.children do
+        local childProps = props.children[i]
+        if childProps == nil then
+          Element._ErrorHandler:warn("Element", "ELEM_011", {
+            element = self.id or "unnamed",
+            issue = "nil entry in children array, skipping",
+          })
+        elseif type(childProps) ~= "table" then
+          Element._ErrorHandler:warn("Element", "ELEM_012", {
+            element = self.id or "unnamed",
+            issue = "non-table entry in children array, skipping",
+            value = tostring(childProps),
+          })
+        else
+          local childCopy = {}
+          for k, v in pairs(childProps) do
+            childCopy[k] = v
+          end
+          childCopy.parent = self
+          Element.new(childCopy)
+        end
+      end
+    end
+  end
 
   return self
 end
