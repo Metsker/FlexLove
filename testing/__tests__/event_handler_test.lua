@@ -589,6 +589,7 @@ end
 -- Test: onEventDeferred flag defers callback execution
 function TestEventHandler:test_onEventDeferred()
   -- Mock FlexLove module
+  local originalFlexLove = package.loaded["FlexLove"]
   local deferredCallbacks = {}
   local MockFlexLove = {
     deferCallback = function(callback)
@@ -644,7 +645,7 @@ function TestEventHandler:test_onEventDeferred()
   luaunit.assertTrue(hasClick, "Should have received click event")
 
   love.mouse.isDown = originalIsDown
-  package.loaded["FlexLove"] = nil
+  package.loaded["FlexLove"] = originalFlexLove
 end
 
 -- Test: onEventDeferred = false executes immediately

@@ -4261,6 +4261,109 @@ function TestSelectDisabled:test_disabled_select_does_not_fire_change_event()
   luaunit.assertEquals(selectParent:getSelectValue(), "windowed")
 end
 
+-- ============================================================================
+-- onCreate Callback Tests
+-- ============================================================================
+
+TestOnCreate = {}
+
+function TestOnCreate:setUp()
+  FlexLove.setMode("retained")
+  FlexLove.init()
+end
+
+function TestOnCreate:tearDown()
+  FlexLove.destroy()
+end
+
+function TestOnCreate:test_onCreate_fires_with_element_and_props()
+  local capturedElement = nil
+  local capturedProps = nil
+
+  FlexLove.new({
+    id = "oncreate_test1",
+    width = 100,
+    height = 50,
+    text = "hello",
+    onCreate = function(el, props)
+      capturedElement = el
+      capturedProps = props
+    end,
+  })
+
+  luaunit.assertNotNil(capturedElement, "onCreate should fire with the element")
+  luaunit.assertEquals(capturedElement.id, "oncreate_test1")
+  luaunit.assertEquals(capturedElement.text, "hello")
+  luaunit.assertNotNil(capturedProps, "onCreate should receive creation props")
+  luaunit.assertEquals(capturedProps.text, "hello")
+  luaunit.assertEquals(capturedProps.width, 100)
+end
+
+function TestOnCreate:test_onCreate_fires_after_element_is_fully_constructed()
+  local childCount = nil
+
+  local parent = FlexLove.new({
+    id = "oncreate_parent",
+    width = 200,
+    height = 200,
+    children = {
+      { id = "child1", width = 50, height = 50 },
+      { id = "child2", width = 50, height = 50 },
+    },
+    onCreate = function(el)
+      childCount = #el.children
+    end,
+  })
+
+  luaunit.assertEquals(childCount, 2, "onCreate should fire after children are created")
+end
+
+function TestOnCreate:test_onCreate_with_deferred()
+  local capturedElement = nil
+  local capturedProps = nil
+
+  FlexLove.setMode("immediate")
+  FlexLove.beginFrame(1920, 1080)
+
+  FlexLove.new({
+    id = "oncreate_deferred",
+    width = 100,
+    height = 50,
+    text = "deferred",
+    onCreate = function(el, props)
+      capturedElement = el
+      capturedProps = props
+    end,
+    onCreateDeferred = true,
+  })
+
+  -- In deferred mode, the callback should NOT fire immediately
+  luaunit.assertNil(capturedElement, "deferred onCreate should not fire immediately")
+
+  -- Execute deferred callbacks (simulates end of render cycle)
+  FlexLove.executeDeferredCallbacks()
+
+  -- Now the callback should have fired
+  luaunit.assertNotNil(capturedElement, "deferred onCreate should fire after executeDeferredCallbacks")
+  luaunit.assertEquals(capturedElement.id, "oncreate_deferred")
+  luaunit.assertEquals(capturedProps.text, "deferred")
+
+  FlexLove.endFrame()
+  FlexLove.setMode("retained")
+end
+
+function TestOnCreate:test_onCreate_not_required()
+  -- Should not error when no onCreate is provided
+  local element = FlexLove.new({
+    id = "no_oncreate",
+    width = 100,
+    height = 50,
+  })
+
+  luaunit.assertNotNil(element)
+  luaunit.assertEquals(element.id, "no_oncreate")
+end
+
 -- Run tests
 if not _G.RUNNING_ALL_TESTS then
   os.exit(luaunit.LuaUnit.run())
