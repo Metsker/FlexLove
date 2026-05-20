@@ -472,6 +472,22 @@ function Element.new(props)
   -- Set visibility property (default: "visible")
   self.visibility = props.visibility or "visible"
 
+  -- Set display property (default: true — element participates in layout, rendering, and hit testing)
+  if props.display ~= nil then
+    if type(props.display) == "boolean" then
+      self.display = props.display
+    else
+      self.display = true
+      Element._ErrorHandler:warn(
+        "Element",
+        "ELEM_010",
+        "display must be a boolean (true/false), got " .. type(props.display) .. ". Defaulting to true."
+      )
+    end
+  else
+    self.display = true
+  end
+
   -- Set transform property (optional)
   self.transform = props.transform or nil
 
@@ -2598,8 +2614,8 @@ end
 
 --- Draw element and its children
 function Element:draw(backdropCanvas)
-  -- Early exit if element is invisible (optimization)
-  if self.opacity <= 0 or self.visibility == "hidden" then
+  -- Early exit if element is display:none or invisible (optimization)
+  if self.display == false or self.opacity <= 0 or self.visibility == "hidden" then
     return
   end
 

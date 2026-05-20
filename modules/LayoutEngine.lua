@@ -399,9 +399,11 @@ function LayoutEngine:layoutChildren()
   end
 
   -- Get flex children (children that participate in flex layout)
+  -- Exclude display=false (CSS display:none) and explicitly absolute children
   local flexChildren = {}
   for _, child in ipairs(self.element.children) do
     local isFlexChild = not (child.positioning == self._Positioning.ABSOLUTE and child._explicitlyAbsolute)
+      and child.display ~= false
     if isFlexChild then
       table.insert(flexChildren, child)
 
@@ -426,7 +428,7 @@ function LayoutEngine:layoutChildren()
   if #flexChildren == 0 then
     -- Position absolutely positioned children even when there are no flex children
     for i, child in ipairs(self.element.children) do
-      if child.positioning == self._Positioning.ABSOLUTE and child._explicitlyAbsolute then
+      if child.positioning == self._Positioning.ABSOLUTE and child._explicitlyAbsolute and child.display ~= false then
         self:applyPositioningOffsets(child)
 
         -- If child has children, layout them after position change
@@ -921,7 +923,7 @@ function LayoutEngine:layoutChildren()
 
   -- Position explicitly absolute children after flex layout
   for i, child in ipairs(self.element.children) do
-    if child.positioning == self._Positioning.ABSOLUTE and child._explicitlyAbsolute then
+    if child.positioning == self._Positioning.ABSOLUTE and child._explicitlyAbsolute and child.display ~= false then
       -- Apply positioning offsets (top, right, bottom, left)
       self:applyPositioningOffsets(child)
 
@@ -1006,9 +1008,10 @@ function LayoutEngine:calculateAutoWidth()
   end
 
   -- Get flex children (children that participate in flex layout)
+  -- Exclude display=false (CSS display:none) and explicitly absolute children
   local flexChildren = {}
   for _, child in ipairs(self.element.children) do
-    if not child._explicitlyAbsolute then
+    if not child._explicitlyAbsolute and child.display ~= false then
       table.insert(flexChildren, child)
     end
   end
@@ -1088,9 +1091,10 @@ function LayoutEngine:calculateAutoHeight()
   end
 
   -- Get flex children (children that participate in flex layout)
+  -- Exclude display=false (CSS display:none) and explicitly absolute children
   local flexChildren = {}
   for _, child in ipairs(self.element.children) do
-    if not child._explicitlyAbsolute then
+    if not child._explicitlyAbsolute and child.display ~= false then
       table.insert(flexChildren, child)
     end
   end
@@ -1565,11 +1569,11 @@ function LayoutEngine:_canSkipLayout()
   local containerX = self.element.x
   local containerY = self.element.y
 
-  -- Generate simple hash of children dimensions
+  -- Generate simple hash of children dimensions + display state
   local childrenHash = ""
   for i, child in ipairs(self.element.children) do
     if i <= 5 then -- Only hash first 5 children for performance
-      childrenHash = childrenHash .. child.width .. "x" .. child.height .. ","
+      childrenHash = childrenHash .. child.width .. "x" .. child.height .. "d" .. tostring(child.display) .. ","
     end
   end
 

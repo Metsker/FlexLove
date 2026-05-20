@@ -91,6 +91,7 @@ local Transform = {}
 ---@field borderColor Color? -- Color of the border (default: black)
 ---@field opacity number? -- Element opacity 0-1 (default: 1)
 ---@field visibility "visible"|"hidden"? -- Element visibility (default: "visible")
+---@field display boolean? -- Whether element participates in layout, rendering, and hit testing (default: true). Set false for CSS display:none behavior (zero layout space, no rendering, no hit testing). NOTE: In retained mode, toggling at runtime requires setting the parent's `_dirty = true` or calling `layoutChildren()` on the parent to trigger re-layout.
 ---@field backgroundColor Color? -- Background color (default: transparent)
 ---@field cornerRadius number|{topLeft:number?, topRight:number?, bottomLeft:number?, bottomRight:number?}? -- Corner radius: number (all corners) or table for individual corners (default: 0)
 ---@field gap number|string|CalcObject? -- Space between children elements: number (px), string ("50%", "10vw"), or CalcObject from FlexLove.calc() (default: 0)
