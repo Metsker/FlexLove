@@ -1700,6 +1700,292 @@ function TestFlexLove:testSmoothScrollingInterpolation()
   luaunit.assertTrue(afterUpdate <= 20)
 end
 
+-- ============================================================================
+-- Immediate Mode Property Persistence Tests
+-- ============================================================================
+
+TestImmediateModePropertyPersistence = {}
+
+function TestImmediateModePropertyPersistence:setUp()
+  FlexLove.destroy()
+  FlexLove.init()
+end
+
+function TestImmediateModePropertyPersistence:tearDown()
+  FlexLove.destroy()
+end
+
+-- Test: saveState() persists all public scalar properties in immediate mode
+function TestImmediateModePropertyPersistence:test_saveState_persists_public_properties()
+  FlexLove.setMode("immediate")
+  FlexLove.beginFrame(800, 600)
+
+  local elem = FlexLove.new({
+    id = "save-props-test",
+    text = "original",
+    display = true,
+    width = 100,
+    height = 50,
+  })
+
+  -- Simulate mutations (as would happen in an event callback)
+  elem.text = "mutated"
+  elem.display = false
+
+  -- In immediate mode, saveState should capture public scalar properties
+  local state = elem:saveState()
+
+  luaunit.assertNotNil(state._props, "saveState should save public properties in immediate mode")
+  luaunit.assertEquals(state._props.text, "mutated", "text mutation should be captured")
+  luaunit.assertEquals(state._props.display, false, "display mutation should be captured")
+
+  FlexLove.endFrame()
+  FlexLove.setMode("retained")
+end
+
+-- Test: saveState() skips tables, functions, and underscore properties
+function TestImmediateModePropertyPersistence:test_saveState_filters_internal_and_complex_types()
+  FlexLove.setMode("immediate")
+  FlexLove.beginFrame(800, 600)
+
+  local elem = FlexLove.new({
+    id = "filter-props-test",
+    text = "hello",
+    width = 100,
+    height = 50,
+  })
+
+  -- _themeState is underscore-prefixed — should NOT appear in _props
+  elem._themeState = "hover"
+
+  local state = elem:saveState()
+
+  luaunit.assertNotNil(state._props)
+  -- Underscore properties should be excluded
+  luaunit.assertNil(state._props._themeState, "underscore properties should not be persisted")
+  -- Tables (children, padding, etc.) should be excluded
+  luaunit.assertNil(state._props.children, "table properties should not be persisted")
+
+  FlexLove.endFrame()
+  FlexLove.setMode("retained")
+end
+
+-- Test: restoreState() applies persisted properties to a fresh element
+function TestImmediateModePropertyPersistence:test_restoreState_restores_public_properties()
+  local state = {
+    _props = {
+      text = "patched",
+      display = false,
+    },
+  }
+
+  -- Create a fresh element with original props (as in a new frame)
+  local elem = FlexLove.new({
+    id = "restore-props-test",
+    text = "original",
+    display = true,
+    width = 100,
+    height = 50,
+  })
+
+  -- Apply restored state (as done in flexlove.new())
+  elem:restoreState(state)
+
+  luaunit.assertEquals(elem.text, "patched", "restoreState should restore text")
+  luaunit.assertEquals(elem.display, false, "restoreState should restore display")
+end
+
+-- Test: Property mutation persists through full immediate mode frame lifecycle
+function TestImmediateModePropertyPersistence:test_mutation_persists_across_immediate_frames()
+  FlexLove.setMode("immediate")
+
+  -- Frame 1: Create element and simulate a property change
+  FlexLove.beginFrame(800, 600)
+  local elem1 = FlexLove.new({
+    id = "persist-test-1",
+    text = "original",
+    width = 100,
+    height = 50,
+  })
+
+  -- Simulate what happens during event processing: element gets mutated
+  elem1.text = "mutated"
+
+  FlexLove.endFrame()
+
+  -- Frame 2: Recreate the element with same ID and original props
+  FlexLove.beginFrame(800, 600)
+  local elem2 = FlexLove.new({
+    id = "persist-test-1",
+    text = "original",
+    width = 100,
+    height = 50,
+  })
+
+  -- The mutation from Frame 1 should have persisted via _props
+  luaunit.assertEquals(elem2.text, "mutated", "text mutation from Frame 1 should persist to Frame 2 element")
+  FlexLove.endFrame()
+
+  FlexLove.setMode("retained")
+end
+
+-- Test: Multiple property mutations persist through frame recreation
+function TestImmediateModePropertyPersistence:test_multiple_property_patches_persist()
+  FlexLove.setMode("immediate")
+
+  -- Frame 1: Mutate multiple properties
+  FlexLove.beginFrame(800, 600)
+  local elem1 = FlexLove.new({
+    id = "multi-persist-test",
+    text = "original",
+    display = true,
+    width = 100,
+    height = 50,
+  })
+
+  elem1.text = "changed"
+  elem1.display = false
+
+  FlexLove.endFrame()
+
+  -- Frame 2: Verify all mutations persisted
+  FlexLove.beginFrame(800, 600)
+  local elem2 = FlexLove.new({
+    id = "multi-persist-test",
+    text = "original",
+    display = true,
+    width = 100,
+    height = 50,
+  })
+
+  luaunit.assertEquals(elem2.text, "changed", "text should persist")
+  luaunit.assertEquals(elem2.display, false, "display should persist")
+  FlexLove.endFrame()
+
+  FlexLove.setMode("retained")
+end
+
+-- Test: Mutation in one frame can be overridden in the next frame
+function TestImmediateModePropertyPersistence:test_mutation_override_in_subsequent_frame()
+  FlexLove.setMode("immediate")
+
+  -- Frame 1: Mutate to "first"
+  FlexLove.beginFrame(800, 600)
+  local elem1 = FlexLove.new({
+    id = "override-test",
+    text = "original",
+    width = 100,
+    height = 50,
+  })
+  elem1.text = "first"
+  FlexLove.endFrame()
+
+  -- Frame 2: Override to "second"
+  FlexLove.beginFrame(800, 600)
+  local elem2 = FlexLove.new({
+    id = "override-test",
+    text = "original",
+    width = 100,
+    height = 50,
+  })
+  elem2.text = "second"
+  FlexLove.endFrame()
+
+  -- Frame 3: Verify latest mutation ("second") is the one that persists
+  FlexLove.beginFrame(800, 600)
+  local elem3 = FlexLove.new({
+    id = "override-test",
+    text = "original",
+    width = 100,
+    height = 50,
+  })
+  luaunit.assertEquals(elem3.text, "second", "most recent mutation should override earlier ones")
+  FlexLove.endFrame()
+
+  FlexLove.setMode("retained")
+end
+
+-- Test: Declarative children persist property mutations across frames
+function TestImmediateModePropertyPersistence:test_declarative_child_persists_mutation()
+  FlexLove.setMode("immediate")
+
+  -- Frame 1: Create parent with declarative child, mutate child
+  FlexLove.beginFrame(800, 600)
+  local parent = FlexLove.new({
+    id = "child-persist-parent",
+    width = 400,
+    height = 300,
+    children = {
+      {
+        id = "child-persist-btn",
+        themeComponent = "buttonv2",
+        text = "original",
+        width = 100,
+        height = 50,
+        onEvent = function(elem, event)
+          if event.type == "release" then
+            elem.text = "mutated"
+            elem.display = false
+          end
+        end,
+      },
+    },
+  })
+  -- Simulate what the event handler would do
+  local child = parent.children[1]
+  luaunit.assertNotNil(child, "declarative child should exist")
+  child.text = "mutated"
+  child.display = false
+  FlexLove.endFrame()
+
+  -- Frame 2: Recreate, verify child's mutations persisted
+  FlexLove.beginFrame(800, 600)
+  local parent2 = FlexLove.new({
+    id = "child-persist-parent",
+    width = 400,
+    height = 300,
+    children = {
+      {
+        id = "child-persist-btn",
+        themeComponent = "buttonv2",
+        text = "original",
+        width = 100,
+        height = 50,
+        onEvent = function(elem, event)
+          if event.type == "release" then
+            elem.text = "mutated"
+            elem.display = false
+          end
+        end,
+      },
+    },
+  })
+  local child2 = parent2.children[1]
+  luaunit.assertNotNil(child2, "declarative child should exist in frame 2")
+  luaunit.assertEquals(child2.text, "mutated", "declarative child text mutation should persist across frames")
+  luaunit.assertEquals(child2.display, false, "declarative child display mutation should persist across frames")
+  FlexLove.endFrame()
+
+  FlexLove.setMode("retained")
+end
+
+-- Test: saveState does NOT persist in retained mode (no mode filter)
+function TestImmediateModePropertyPersistence:test_no_persistence_in_retained_mode()
+  -- In retained mode, saveState should not include _props
+  local elem = FlexLove.new({
+    id = "retained-test",
+    text = "original",
+    width = 100,
+    height = 50,
+  })
+
+  elem.text = "mutated"
+  local state = elem:saveState()
+
+  luaunit.assertNil(state._props, "retained mode should not persist public properties")
+  luaunit.assertNil(state._patches, "no patches expected in retained mode")
+end
+
 if not _G.RUNNING_ALL_TESTS then
   os.exit(luaunit.LuaUnit.run())
 end

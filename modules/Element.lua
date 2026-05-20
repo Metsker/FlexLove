@@ -1782,7 +1782,40 @@ function Element.new(props)
             childCopy[k] = v
           end
           childCopy.parent = self
-          Element.new(childCopy)
+          local child = Element.new(childCopy)
+
+          -- In immediate mode, set up state management for declarative children
+          -- so mutations made in event callbacks persist across frames
+          if Element._Context._immediateMode then
+            if not child.id or child.id == "" then
+              child.id = Element._StateManager.generateID(childCopy, self)
+            end
+            local childState = Element._StateManager.getState(child.id, {})
+            Element._StateManager.markStateUsed(child.id)
+            child:restoreState(childState)
+            child._stateId = child.id
+
+            -- Restore theme state from event handler state
+            if child.themeComponent then
+              local eventState = childState.eventHandler or {}
+              if child.disabled or eventState.disabled then
+                child._themeState = "disabled"
+              elseif child.active or eventState.active then
+                child._themeState = "active"
+              elseif eventState._pressed and next(eventState._pressed) then
+                child._themeState = "pressed"
+              elseif eventState._hovered then
+                child._themeState = "hover"
+              else
+                child._themeState = "normal"
+              end
+            end
+
+            -- Add to current frame elements for saveState tracking
+            if Element._Context._currentFrameElements then
+              table.insert(Element._Context._currentFrameElements, child)
+            end
+          end
         end
       end
     end
@@ -4331,6 +4364,21 @@ function Element:saveState()
     end
   end
 
+  -- Persist public scalar properties across immediate-mode frames
+  -- This captures event-driven mutations (text, display, opacity, etc.)
+  -- so they survive element recreation in the next frame
+  if Element._Context._immediateMode then
+    local props = {}
+    for k, v in pairs(self) do
+      if type(k) == "string" and k:sub(1, 1) ~= "_" and type(v) ~= "table" and type(v) ~= "function" then
+        props[k] = v
+      end
+    end
+    if next(props) then
+      state._props = props
+    end
+  end
+
   -- Save drag tracking state for text selection
   if self._mouseDownPosition ~= nil then
     state._mouseDownPosition = self._mouseDownPosition
@@ -4373,6 +4421,14 @@ function Element:restoreState(state)
   -- Restore ScrollManager state (if exists)
   if self._scrollManager and state.scrollManager then
     self._scrollManager:setState(state.scrollManager)
+  end
+
+  -- Apply persisted public properties (immediate mode)
+  -- These override constructor props to persist event-driven mutations across frames
+  if state._props then
+    for k, v in pairs(state._props) do
+      self[k] = v
+    end
   end
 
   -- Restore drag tracking state for text selection
