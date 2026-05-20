@@ -1,3 +1,138 @@
+---@class Element
+---@field id string
+---@field children Element[]
+---@field parent Element|nil
+---@field userdata any|nil
+---@field onEvent fun(self: Element, event: table)|nil
+---@field onEventDeferred boolean|nil
+---@field onFocus fun(self: Element)|nil
+---@field onFocusDeferred boolean
+---@field dropFocusOnSelection boolean|nil
+---@field onBlur fun(self: Element)|nil
+---@field onBlurDeferred boolean
+---@field onTextInput fun(self: Element, text: string)|nil
+---@field onTextInputDeferred boolean
+---@field onTextChange fun(self: Element, text: string)|nil
+---@field onTextChangeDeferred boolean
+---@field onEnter fun(self: Element)|nil
+---@field onEnterDeferred boolean
+---@field customDraw fun(self: Element)|nil
+---@field onTouchEvent fun(self: Element, event: table)|nil
+---@field onTouchEventDeferred boolean
+---@field onGesture fun(self: Element, gesture: table)|nil
+---@field onGestureDeferred boolean
+---@field touchEnabled boolean
+---@field multiTouchEnabled boolean
+---@field theme table|nil
+---@field themeComponent string|nil
+---@field disabled boolean
+---@field active boolean
+---@field disableHighlight boolean
+---@field contentAutoSizingMultiplier number[]|nil
+---@field scaleCorners boolean|nil
+---@field scalingAlgorithm string|nil
+---@field contentBlur {radius:number, quality?:number}|nil
+---@field backdropBlur {radius:number, quality?:number}|nil
+---@field editable boolean
+---@field multiline boolean
+---@field passwordMode boolean
+---@field textWrap string|boolean
+---@field maxLines number|nil
+---@field maxLength number|nil
+---@field placeholder string|nil
+---@field inputType string
+---@field textOverflow string
+---@field scrollable boolean
+---@field autoGrow boolean
+---@field selectOnFocus boolean
+---@field cursorColor Color|nil
+---@field selectionColor Color|nil
+---@field cursorBlinkRate number
+---@field selectParent Element|nil
+---@field selectOption table|nil
+---@field onChange fun(self: Element, value: any, option: Element)|nil
+---@field border number|table|nil
+---@field borderColor Color
+---@field backgroundColor Color
+---@field opacity number
+---@field visibility string
+---@field display boolean
+---@field transform table|nil
+---@field cornerRadius number|{topLeft:number, topRight:number, bottomLeft:number, bottomRight:number}|nil
+---@field text string|nil
+---@field textAlign string|table|nil
+---@field textAlignHorizontal string
+---@field textAlignVertical string
+---@field imagePath string|nil
+---@field image table|nil
+---@field objectFit string
+---@field objectPosition string
+---@field imageOpacity number
+---@field imageRepeat string
+---@field imageTint Color|nil
+---@field onImageLoad fun(self: Element, image: table)|nil
+---@field onImageLoadDeferred boolean
+---@field onImageError fun(self: Element, err: string)|nil
+---@field onImageErrorDeferred boolean
+---@field prevGameSize {width:number, height:number}
+---@field autosizing {width:boolean, height:boolean}
+---@field units table
+---@field minTextSize number|nil
+---@field maxTextSize number|nil
+---@field autoScaleText boolean
+---@field fontFamily string|nil
+---@field textSize number
+---@field width number
+---@field height number
+---@field x number
+---@field y number
+---@field z number
+---@field gap number
+---@field flexGrow number
+---@field flexShrink number
+---@field flexBasis number|string
+---@field padding {top:number, right:number, bottom:number, left:number}
+---@field margin {top:number, right:number, bottom:number, left:number}
+---@field tabIndex number|nil
+---@field textColor Color
+---@field positioning string
+---@field top number|nil
+---@field right number|nil
+---@field bottom number|nil
+---@field left number|nil
+---@field flexDirection string|nil
+---@field flexWrap string|nil
+---@field justifyContent string|nil
+---@field alignItems string|nil
+---@field alignContent string|nil
+---@field justifySelf string|nil
+---@field alignSelf string
+---@field gridRows number|nil
+---@field gridColumns number|nil
+---@field columnGap number|nil
+---@field rowGap number|nil
+---@field transition table
+---@field transitions table|nil
+---@field animation table|nil
+---@field overflow string|nil
+---@field overflowX string|nil
+---@field overflowY string|nil
+---@field scrollbarWidth number|nil
+---@field scrollbarColor Color|nil
+---@field scrollbarBackgroundColor Color|nil
+---@field scrollbarTrackColor Color|nil
+---@field scrollbarRadius number|nil
+---@field scrollbarPadding number|nil
+---@field scrollSpeed number|nil
+---@field invertScroll boolean|nil
+---@field scrollBarStyle string|nil
+---@field scrollbarKnobOffset number|nil
+---@field hideScrollbars boolean|nil
+---@field scrollbarPlacement string|nil
+---@field scrollbarBalance number|nil
+---@field borderWidth number|nil
+---@field fontSize number|nil
+---@field lineHeight number|nil
 local Element = {}
 Element.__index = Element
 
