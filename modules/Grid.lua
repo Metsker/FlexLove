@@ -196,8 +196,8 @@ function Grid.layoutGridItems(element)
   local reservedBottom = 0
 
   for _, child in ipairs(element.children) do
-    -- Only consider absolutely positioned children with explicit positioning
-    if child.positioning == Positioning.ABSOLUTE and child._explicitlyAbsolute then
+    -- Only consider absolutely positioned children with explicit positioning and display != false
+    if child.positioning == Positioning.ABSOLUTE and child._explicitlyAbsolute and child.display ~= false then
       -- BORDER-BOX MODEL: Use border-box dimensions for space calculations
       local childBorderBoxWidth = child:getBorderBoxWidth()
       local childBorderBoxHeight = child:getBorderBoxHeight()
@@ -226,10 +226,10 @@ function Grid.layoutGridItems(element)
   local columnGap = element.columnGap or 0
   local rowGap = element.rowGap or 0
 
-  -- Collect grid children (exclude explicitly absolute)
+  -- Collect grid children (exclude explicitly absolute and display=false)
   local gridChildren = {}
   for _, child in ipairs(element.children) do
-    if not (child.positioning == Positioning.ABSOLUTE and child._explicitlyAbsolute) then
+    if not (child.positioning == Positioning.ABSOLUTE and child._explicitlyAbsolute) and child.display ~= false then
       table.insert(gridChildren, child)
     end
   end

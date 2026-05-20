@@ -962,6 +962,10 @@ function flexlove.getElementAtPosition(x, y)
     local adjustedY = y + scrollOffsetY
 
     if adjustedX >= bx and adjustedX <= bx + bw and adjustedY >= by and adjustedY <= by + bh then
+      -- Skip display:none elements and their entire subtree
+      if element.display == false then
+        return
+      end
       if element.visibility == "hidden" or element.opacity <= 0 then
         return
       end
@@ -1380,6 +1384,10 @@ function flexlove._getTouchElementAtPosition(x, y)
     local adjustedY = y + scrollOffsetY
 
     if adjustedX >= bx and adjustedX <= bx + bw and adjustedY >= by and adjustedY <= by + bh then
+      -- Skip display:none elements and their entire subtree
+      if element.display == false then
+        return
+      end
       -- Check if element is touch-enabled and interactive
       if
         element.touchEnabled

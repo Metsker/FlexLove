@@ -105,6 +105,25 @@ Tests immediate mode where UI is recreated every frame.
 - `R` : Reset
 - `ESC` : Return to menu
 
+### Display Toggle Profile
+Tests mass toggling of the `display` property across element hierarchies.
+
+**Features:**
+- Toggle `display` on 20/50/100 elements at leaf, mid, or root depth
+- Root-depth toggles affect entire subtrees (parent + children)
+- Auto-toggle mode for sustained toggle cycling
+- Measures toggle operation time (ms)
+- Element counts from 20-1000+
+
+**Controls:**
+- `1/2/3` : Toggle 20/50/100 elements at **leaf** depth
+- `Q/W/E` : Toggle 20/50/100 elements at **mid** depth (parent + 1 child)
+- `A/D/Z` : Toggle 20/50/100 elements at **root** depth (parent + 2 children + grandchildren)
+- `+` / `-` : Increase/decrease element pool by 50
+- `SPACE` : Toggle auto-toggle (cycles leaf-20 every 500ms)
+- `R` : Reset
+- `ESC` : Return to menu
+
 ### Memory Profile
 Tests memory usage patterns and garbage collection.
 

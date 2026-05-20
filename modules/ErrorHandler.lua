@@ -531,6 +531,12 @@ local ErrorCodes = {
       description = "Managed select frame was reparented unexpectedly",
       suggestion = "Avoid moving a managed selectFrame outside its owning select after adoption. Let the select own the frame lifecycle.",
     },
+    ELEM_010 = {
+      code = "FLEXLOVE_ELEM_010",
+      category = "VAL",
+      description = "Invalid display property value",
+      suggestion = "The display property accepts only boolean values (true/false). Pass `true` to show the element or `false` to hide it from layout, rendering, and hit testing.",
+    },
 
     -- Module Loader Warnings (MOD_001 - MOD_099)
     MOD_001 = {

@@ -33,6 +33,7 @@ local state = {
   selectedIndex = 1,
   ui = nil,
   error = nil,
+  showOverlay = true,
 }
 
 ---@return table
@@ -325,12 +326,17 @@ function lv.draw()
       end
     end
 
-    if state.profiler then
-      state.profiler:draw(10, 10)
+    if state.profiler and state.showOverlay then
+      local sw, sh = love.graphics.getDimensions()
+      state.profiler:draw(10, sh - 290)
     end
 
     lv.graphics.setColor(1, 1, 1, 1)
-    lv.graphics.print("Press R to reset | S to save report | ESC to menu | F11 fullscreen", 10, love.graphics.getHeight() - 25)
+    lv.graphics.print(
+      "R: reset | S: save report | F1: toggle overlay | ESC: menu | F11: fullscreen",
+      10,
+      love.graphics.getHeight() - 25
+    )
   end
 end
 
@@ -374,6 +380,8 @@ function lv.keypressed(key)
       end
     elseif key == "f11" then
       lv.window.setFullscreen(not love.window.getFullscreen())
+    elseif key == "f1" then
+      state.showOverlay = not state.showOverlay
     end
 
     if state.currentProfile and type(state.currentProfile.keypressed) == "function" then
