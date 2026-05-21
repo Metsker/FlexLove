@@ -73,7 +73,7 @@ local Transform = Animation and Animation.Transform or nil
 local enums = utils.enums
 
 local flexlove = Context
-flexlove._VERSION = "0.12.0"
+flexlove._VERSION = "0.13.0"
 flexlove._DESCRIPTION = "UI Library for LÖVE Framework based on flexbox"
 flexlove._URL = "https://github.com/mikefreno/FlexLove"
 flexlove._LICENSE = [[
