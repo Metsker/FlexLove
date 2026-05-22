@@ -1953,6 +1953,69 @@ function TestManagedSelectHooks:test_adjust_auto_width_child_border_box()
 end
 
 -- ============================================================================
+-- Test Suite 11: Min/Max Size Constraints
+-- ============================================================================
+
+TestMinMax = {}
+
+function TestMinMax:setUp()
+  FlexLove.init()
+  self._savedW, self._savedH = love.window.getMode()
+end
+
+function TestMinMax:tearDown()
+  love.window.setMode(self._savedW, self._savedH)
+  FlexLove.resize()
+end
+
+function TestMinMax:test_explicit_size_clamped_by_max()
+  local el = FlexLove.new({ width = 500, height = 999, maxWidth = 200, maxHeight = 300 })
+  luaunit.assertEquals(el.width, 200)
+  luaunit.assertEquals(el.height, 300)
+end
+
+function TestMinMax:test_percentage_minWidth_resolved_against_parent()
+  local parent = FlexLove.new({ width = 400, height = 200 })
+  local child = FlexLove.new({ width = 50, height = 50, minWidth = "50%", parent = parent })
+  luaunit.assertEquals(child.minWidth, 200)
+  luaunit.assertEquals(child.width, 200)
+end
+
+function TestMinMax:test_flex_grow_clamped_by_maxWidth_redistributes()
+  local container = FlexLove.new({
+    width = 600, height = 100,
+    positioning = "flex", flexDirection = "horizontal", gap = 0,
+  })
+  local capped = FlexLove.new({ width = 100, height = 50, flexGrow = 1, maxWidth = 200, parent = container })
+  local free = FlexLove.new({ width = 100, height = 50, flexGrow = 1, parent = container })
+  container:layoutChildren()
+  luaunit.assertEquals(capped.width, 200)
+  luaunit.assertEquals(free.width, 300)
+end
+
+function TestMinMax:test_cross_axis_stretch_clamped_by_maxHeight()
+  local container = FlexLove.new({
+    width = 400, height = 300,
+    positioning = "flex", flexDirection = "horizontal",
+    alignItems = "stretch", gap = 0,
+  })
+  local child = FlexLove.new({ width = 100, maxHeight = 100, parent = container })
+  container:layoutChildren()
+  luaunit.assertEquals(child.height, 100)
+end
+
+function TestMinMax:test_vw_constraint_reresolves_on_resize()
+  love.window.setMode(1000, 600)
+  local el = FlexLove.new({ width = "100vw", height = 100, maxWidth = "50vw" })
+  luaunit.assertEquals(el.width, 500)
+
+  love.window.setMode(2000, 600)
+  FlexLove.resize()
+  luaunit.assertEquals(el.maxWidth, 1000)
+  luaunit.assertEquals(el.width, 1000)
+end
+
+-- ============================================================================
 -- Run Tests
 -- ============================================================================
 

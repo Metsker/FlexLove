@@ -188,11 +188,12 @@ end
 ---@param key string Field name on self and self.units (e.g., "width", "x")
 ---@param ref number Reference dimension for percentage resolution
 ---@param ctx {vw:number, vh:number, sx:number, sy:number} Viewport and scale context
----@param opts {offset?: number, scaleAxis?: "x"|"y", default?: number}?
----@return number resolved Resolved pixel value
+---@param opts {offset?: number, scaleAxis?: "x"|"y", default?: number, nullable?: boolean}?
+---@return number? resolved Resolved pixel value (or nil if opts.nullable and input is missing/invalid)
 local function _resolveUnit(self, raw, key, ref, ctx, opts)
   opts = opts or {}
   if raw == nil then
+    if opts.nullable then return nil end
     local default = opts.default or 0
     self[key] = (opts.offset or 0) + default
     self.units[key] = { value = default, unit = "px" }
@@ -201,9 +202,9 @@ local function _resolveUnit(self, raw, key, ref, ctx, opts)
   local isCalc = Element._Calc and Element._Calc.isCalc(raw)
   if type(raw) == "string" or isCalc then
     local value, unit = Element._Units.parse(raw)
-    self.units[key] = { value = value, unit = unit }
     local resolved = Element._Units.resolve(value, unit, ctx.vw, ctx.vh, ref)
     if type(resolved) ~= "number" then
+      if opts.nullable then return nil end
       Element._ErrorHandler:warn("Element", "LAY_003", {
         issue = key .. " resolution returned non-number value",
         type = type(resolved),
@@ -211,6 +212,7 @@ local function _resolveUnit(self, raw, key, ref, ctx, opts)
       })
       resolved = 0
     end
+    self.units[key] = { value = value, unit = unit }
     self[key] = (opts.offset or 0) + resolved
   else
     local val = raw
@@ -221,6 +223,27 @@ local function _resolveUnit(self, raw, key, ref, ctx, opts)
     self.units[key] = { value = raw, unit = "px" }
   end
   return self[key]
+end
+
+-- Module-level helper: clamp `value` to optional min/max constraints. Either bound may be nil.
+-- When both bounds are present and inverted (min > max), max wins (matches CSS behaviour).
+local function _clampSize(value, minVal, maxVal)
+  if minVal and value < minVal then value = minVal end
+  if maxVal and value > maxVal then value = maxVal end
+  return value
+end
+
+-- Module-level helper: re-resolve a stored unit spec against a new viewport/parent reference.
+-- Used by resize() to refresh min/max constraints declared with %/vw/vh units.
+local function _refreshUnit(self, key, ref, ctx, scaleAxis)
+  local u = self.units[key]
+  if not u or u.value == nil then return end
+  if u.unit == "px" then
+    self[key] = Element._Context.baseScale and (u.value * (scaleAxis == "x" and ctx.sx or ctx.sy)) or u.value
+    return
+  end
+  local resolved = Element._Units.resolve(u.value, u.unit, ctx.vw, ctx.vh, ref)
+  self[key] = type(resolved) == "number" and resolved or nil
 end
 
 ---@param props ElementProps
@@ -1039,6 +1062,22 @@ function Element.new(props)
     tempHeight = self:calculateAutoHeight()
     self.height = tempHeight
     self.units.height = { value = nil, unit = "auto" } -- Mark as auto-sized
+  end
+
+  local constraintParentW = self.parent and self.parent.width or viewportWidth
+  local constraintParentH = self.parent and self.parent.height or viewportHeight
+  _resolveUnit(self, props.minWidth, "minWidth", constraintParentW, _ctx, { scaleAxis = "x", nullable = true })
+  _resolveUnit(self, props.maxWidth, "maxWidth", constraintParentW, _ctx, { scaleAxis = "x", nullable = true })
+  _resolveUnit(self, props.minHeight, "minHeight", constraintParentH, _ctx, { scaleAxis = "y", nullable = true })
+  _resolveUnit(self, props.maxHeight, "maxHeight", constraintParentH, _ctx, { scaleAxis = "y", nullable = true })
+
+  if not self.autosizing.width then
+    self.width = _clampSize(tempWidth, self.minWidth, self.maxWidth)
+    tempWidth = self.width
+  end
+  if not self.autosizing.height then
+    self.height = _clampSize(tempHeight, self.minHeight, self.maxHeight)
+    tempHeight = self.height
   end
 
   --- child positioning ---
@@ -3365,12 +3404,15 @@ end
 ---@param newGameHeight number
 function Element:resize(newGameWidth, newGameHeight)
   self:recalculateUnits(newGameWidth, newGameHeight)
+  self:_refreshSizeConstraints(newGameWidth, newGameHeight)
 
   -- For non-auto-sized elements with viewport/percentage units, update content dimensions from border-box
   if not self.autosizing.width and self._borderBoxWidth and self.units.width.unit ~= "px" then
+    self._borderBoxWidth = _clampSize(self._borderBoxWidth, self.minWidth, self.maxWidth)
     self.width = math.max(0, self._borderBoxWidth - self.padding.left - self.padding.right)
   end
   if not self.autosizing.height and self._borderBoxHeight and self.units.height.unit ~= "px" then
+    self._borderBoxHeight = _clampSize(self._borderBoxHeight, self.minHeight, self.maxHeight)
     self.height = math.max(0, self._borderBoxHeight - self.padding.top - self.padding.bottom)
   end
 
@@ -3383,14 +3425,14 @@ function Element:resize(newGameWidth, newGameHeight)
   if self.autosizing.width then
     local contentWidth = self:calculateAutoWidth()
     -- BORDER-BOX MODEL: Add padding to get border-box, then subtract to get content
-    self._borderBoxWidth = contentWidth + self.padding.left + self.padding.right
-    self.width = contentWidth
+    self._borderBoxWidth = _clampSize(contentWidth + self.padding.left + self.padding.right, self.minWidth, self.maxWidth)
+    self.width = math.max(0, self._borderBoxWidth - self.padding.left - self.padding.right)
   end
   if self.autosizing.height then
     local contentHeight = self:calculateAutoHeight()
     -- BORDER-BOX MODEL: Add padding to get border-box, then subtract to get content
-    self._borderBoxHeight = contentHeight + self.padding.top + self.padding.bottom
-    self.height = contentHeight
+    self._borderBoxHeight = _clampSize(contentHeight + self.padding.top + self.padding.bottom, self.minHeight, self.maxHeight)
+    self.height = math.max(0, self._borderBoxHeight - self.padding.top - self.padding.bottom)
   end
 
   -- Re-resolve textSize if it uses viewport-relative units after dimensions are finalized
@@ -3398,6 +3440,17 @@ function Element:resize(newGameWidth, newGameHeight)
   self:layoutChildren()
   self.prevGameSize.width = newGameWidth
   self.prevGameSize.height = newGameHeight
+end
+
+function Element:_refreshSizeConstraints(newViewportWidth, newViewportHeight)
+  local scaleX, scaleY = Element._Context.getScaleFactors()
+  local ctx = { vw = newViewportWidth, vh = newViewportHeight, sx = scaleX, sy = scaleY }
+  local parentW = self.parent and self.parent.width or newViewportWidth
+  local parentH = self.parent and self.parent.height or newViewportHeight
+  _refreshUnit(self, "minWidth", parentW, ctx, "x")
+  _refreshUnit(self, "maxWidth", parentW, ctx, "x")
+  _refreshUnit(self, "minHeight", parentH, ctx, "y")
+  _refreshUnit(self, "maxHeight", parentH, ctx, "y")
 end
 
 --- Calculate text width for button

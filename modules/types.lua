@@ -76,6 +76,10 @@ local Transform = {}
 ---@field tabIndex number? -- Tab navigation order: >0 (explicit order, visited first), 0 or nil (natural document order), -1 (excluded from keyboard navigation)
 ---@field width number|string|CalcObject? -- Width of the element: number (px), string ("50%", "10vw"), or CalcObject from FlexLove.calc() (default: calculated automatically)
 ---@field height number|string|CalcObject? -- Height of the element: number (px), string ("50%", "10vh"), or CalcObject from FlexLove.calc() (default: calculated automatically)
+---@field minWidth number|string|CalcObject? -- Minimum width constraint: number (px), string ("50%", "10vw"), or CalcObject. Clamps both fixed `width` and the flex-distributed main size when horizontal.
+---@field maxWidth number|string|CalcObject? -- Maximum width constraint: number (px), string ("50%", "10vw"), or CalcObject. Clamps both fixed `width` and the flex-distributed main size when horizontal.
+---@field minHeight number|string|CalcObject? -- Minimum height constraint: number (px), string ("50%", "10vh"), or CalcObject. Clamps both fixed `height` and the flex-distributed main size when vertical.
+---@field maxHeight number|string|CalcObject? -- Maximum height constraint: number (px), string ("50%", "10vh"), or CalcObject. Clamps both fixed `height` and the flex-distributed main size when vertical.
 ---@field top number|string|CalcObject? -- Offset from top edge: number (px), string ("50%", "10vh"), or CalcObject (CSS-style positioning)
 ---@field right number|string|CalcObject? -- Offset from right edge: number (px), string ("50%", "10vw"), or CalcObject (CSS-style positioning)
 ---@field bottom number|string|CalcObject? -- Offset from bottom edge: number (px), string ("50%", "10vh"), or CalcObject (CSS-style positioning)
