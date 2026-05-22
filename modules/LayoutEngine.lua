@@ -29,10 +29,11 @@ local LayoutEngine = {}
 LayoutEngine.__index = LayoutEngine
 
 --- Initialize module with shared dependencies
----@param deps table Dependencies {ErrorHandler, Performance}
+---@param deps table Dependencies {ErrorHandler, Performance, utils}
 function LayoutEngine.init(deps)
   LayoutEngine._ErrorHandler = deps.ErrorHandler
   LayoutEngine._Performance = deps.Performance
+  LayoutEngine._Utils = deps.utils
 end
 
 ---@class LayoutEngineProps
@@ -338,15 +339,14 @@ function LayoutEngine:_calculateFlexSizes(children, availableMainSize, gap, isHo
     end
   end
 
-  -- Step 4: Return final main sizes (excluding margins)
+  -- Step 4: Return final main sizes (excluding margins), clamped to per-child min/max
   local mainSizes = {}
   for i, child in ipairs(children) do
     local childMargin = child.margin
-    if isHorizontal then
-      mainSizes[i] = math.max(0, hypotheticalSizes[i] - childMargin.left - childMargin.right)
-    else
-      mainSizes[i] = math.max(0, hypotheticalSizes[i] - childMargin.top - childMargin.bottom)
-    end
+    local marginSum = isHorizontal and (childMargin.left + childMargin.right) or (childMargin.top + childMargin.bottom)
+    local minBound = isHorizontal and child.minWidth or child.minHeight
+    local maxBound = isHorizontal and child.maxWidth or child.maxHeight
+    mainSizes[i] = LayoutEngine._Utils.clamp(math.max(0, hypotheticalSizes[i] - marginSum), minBound, maxBound)
   end
 
   return mainSizes
@@ -479,34 +479,46 @@ function LayoutEngine:layoutChildren()
         -- Horizontal flex: main-axis is width, cross-axis is height
         -- Adjust main-axis width if percentage-based
         if child.units and child.units.width and child.units.width.unit == "%" then
-          local newBorderBoxWidth = (child.units.width.value / 100) * availableMainSize
-          local newWidth = math.max(0, newBorderBoxWidth - child.padding.left - child.padding.right)
-          child.width = newWidth
+          local newBorderBoxWidth = LayoutEngine._Utils.clamp(
+            (child.units.width.value / 100) * availableMainSize,
+            child.minWidth,
+            child.maxWidth
+          )
           child._borderBoxWidth = newBorderBoxWidth
+          child.width = math.max(0, newBorderBoxWidth - child.padding.left - child.padding.right)
         end
         -- Adjust cross-axis height if percentage-based
         if child.units and child.units.height and child.units.height.unit == "%" then
-          local newBorderBoxHeight = (child.units.height.value / 100) * availableCrossSize
-          local newHeight = math.max(0, newBorderBoxHeight - child.padding.top - child.padding.bottom)
-          child.height = newHeight
+          local newBorderBoxHeight = LayoutEngine._Utils.clamp(
+            (child.units.height.value / 100) * availableCrossSize,
+            child.minHeight,
+            child.maxHeight
+          )
           child._borderBoxHeight = newBorderBoxHeight
+          child.height = math.max(0, newBorderBoxHeight - child.padding.top - child.padding.bottom)
         end
       else
         -- Vertical flex: main-axis is height, cross-axis is width
         -- Adjust main-axis height if percentage-based
         if child.units and child.units.height and child.units.height.unit == "%" then
-          local newBorderBoxHeight = (child.units.height.value / 100) * availableMainSize
-          local newHeight = math.max(0, newBorderBoxHeight - child.padding.top - child.padding.bottom)
-          child.height = newHeight
+          local newBorderBoxHeight = LayoutEngine._Utils.clamp(
+            (child.units.height.value / 100) * availableMainSize,
+            child.minHeight,
+            child.maxHeight
+          )
           child._borderBoxHeight = newBorderBoxHeight
+          child.height = math.max(0, newBorderBoxHeight - child.padding.top - child.padding.bottom)
         end
         -- Adjust cross-axis width if percentage-based
         if child.units and child.units.width and child.units.width.unit == "%" then
-          local newBorderBoxWidth = (child.units.width.value / 100) * availableCrossSize
-          newBorderBoxWidth = self.element:_adjustCrossAxisPercentageWidth(child, newBorderBoxWidth)
-          local newWidth = math.max(0, newBorderBoxWidth - child.padding.left - child.padding.right)
-          child.width = newWidth
+          local rawBorderBoxWidth = (child.units.width.value / 100) * availableCrossSize
+          local newBorderBoxWidth = LayoutEngine._Utils.clamp(
+            self.element:_adjustCrossAxisPercentageWidth(child, rawBorderBoxWidth),
+            child.minWidth,
+            child.maxWidth
+          )
           child._borderBoxWidth = newBorderBoxWidth
+          child.width = math.max(0, newBorderBoxWidth - child.padding.left - child.padding.right)
         end
       end
     end
@@ -848,7 +860,11 @@ function LayoutEngine:layoutChildren()
           -- STRETCH: Only apply if height was not explicitly set
           if childAutosizing and childAutosizing.height then
             -- STRETCH: Set border-box height to lineHeight minus margins, content area shrinks to fit
-            local availableHeight = lineHeight - childMarginTop - childMarginBottom
+            local availableHeight = LayoutEngine._Utils.clamp(
+              lineHeight - childMarginTop - childMarginBottom,
+              child.minHeight,
+              child.maxHeight
+            )
             child._borderBoxHeight = availableHeight
             child.height = math.max(0, availableHeight - childPadding.top - childPadding.bottom)
           end
@@ -893,7 +909,8 @@ function LayoutEngine:layoutChildren()
           -- STRETCH: Only apply if width was not explicitly set
           if childAutosizing and childAutosizing.width then
             -- STRETCH: Set border-box width to lineHeight minus margins, content area shrinks to fit
-            local availableWidth = lineHeight - childMarginLeft - childMarginRight
+            local availableWidth =
+              LayoutEngine._Utils.clamp(lineHeight - childMarginLeft - childMarginRight, child.minWidth, child.maxWidth)
             child._borderBoxWidth = availableWidth
             child.width = math.max(0, availableWidth - childPadding.left - childPadding.right)
           end

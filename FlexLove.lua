@@ -234,7 +234,7 @@ function flexlove.init(config)
     Theme.init({ ErrorHandler = flexlove._ErrorHandler, Color = Color, utils = utils })
   end
 
-  LayoutEngine.init({ ErrorHandler = flexlove._ErrorHandler, Performance = flexlove._Performance })
+  LayoutEngine.init({ ErrorHandler = flexlove._ErrorHandler, Performance = flexlove._Performance, utils = utils })
   EventHandler.init({
     ErrorHandler = flexlove._ErrorHandler,
     Performance = flexlove._Performance,

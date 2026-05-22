@@ -110,6 +110,13 @@ function TestMathUtils:testClamp_NegativeRange()
   luaunit.assertEquals(utils.clamp(0, -10, -1), -1)
 end
 
+function TestMathUtils:testClamp_NilBounds()
+  luaunit.assertEquals(utils.clamp(5, nil, nil), 5)
+  luaunit.assertEquals(utils.clamp(5, 10, nil), 10)
+  luaunit.assertEquals(utils.clamp(15, nil, 10), 10)
+  luaunit.assertEquals(utils.clamp(10, 20, 5), 5)
+end
+
 function TestMathUtils:testLerp_Boundaries()
   luaunit.assertEquals(utils.lerp(0, 10, 0), 0)
   luaunit.assertEquals(utils.lerp(0, 10, 1), 10)
