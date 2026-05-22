@@ -2985,6 +2985,9 @@ end
 --- Update element (propagate to children)
 ---@param dt number
 function Element:update(dt)
+	if self.display == false then
+		return
+	end
   -- Track active animations for performance warnings (only on root elements)
   if not self.parent then
     self:_trackActiveAnimations()
