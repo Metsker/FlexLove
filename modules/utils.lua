@@ -504,13 +504,20 @@ end
 
 -- Math utilities
 
---- Clamp a value between min and max
+--- Clamp a value between optional min/max bounds. Either bound may be nil.
+--- When both bounds are inverted (min > max), max wins (matches CSS behavior).
 ---@param value number Value to clamp
----@param min number Minimum value
----@param max number Maximum value
+---@param min number|nil Minimum value (nil = no lower bound)
+---@param max number|nil Maximum value (nil = no upper bound)
 ---@return number Clamped value
 local function clamp(value, min, max)
-  return math.max(min, math.min(value, max))
+  if min and value < min then
+    value = min
+  end
+  if max and value > max then
+    value = max
+  end
+  return value
 end
 
 --- Linear interpolation between two values

@@ -29,17 +29,11 @@ local LayoutEngine = {}
 LayoutEngine.__index = LayoutEngine
 
 --- Initialize module with shared dependencies
----@param deps table Dependencies {ErrorHandler, Performance}
+---@param deps table Dependencies {ErrorHandler, Performance, utils}
 function LayoutEngine.init(deps)
   LayoutEngine._ErrorHandler = deps.ErrorHandler
   LayoutEngine._Performance = deps.Performance
-end
-
--- Clamp `value` to optional min/max bounds. Either bound may be nil.
-local function _clampSize(value, minVal, maxVal)
-  if minVal and value < minVal then value = minVal end
-  if maxVal and value > maxVal then value = maxVal end
-  return value
+  LayoutEngine._Utils = deps.utils
 end
 
 ---@class LayoutEngineProps
@@ -352,7 +346,7 @@ function LayoutEngine:_calculateFlexSizes(children, availableMainSize, gap, isHo
     local marginSum = isHorizontal and (childMargin.left + childMargin.right) or (childMargin.top + childMargin.bottom)
     local minBound = isHorizontal and child.minWidth or child.minHeight
     local maxBound = isHorizontal and child.maxWidth or child.maxHeight
-    mainSizes[i] = _clampSize(math.max(0, hypotheticalSizes[i] - marginSum), minBound, maxBound)
+    mainSizes[i] = LayoutEngine._Utils.clamp(math.max(0, hypotheticalSizes[i] - marginSum), minBound, maxBound)
   end
 
   return mainSizes
@@ -485,15 +479,21 @@ function LayoutEngine:layoutChildren()
         -- Horizontal flex: main-axis is width, cross-axis is height
         -- Adjust main-axis width if percentage-based
         if child.units and child.units.width and child.units.width.unit == "%" then
-          local newBorderBoxWidth = _clampSize(
-            (child.units.width.value / 100) * availableMainSize, child.minWidth, child.maxWidth)
+          local newBorderBoxWidth = LayoutEngine._Utils.clamp(
+            (child.units.width.value / 100) * availableMainSize,
+            child.minWidth,
+            child.maxWidth
+          )
           child._borderBoxWidth = newBorderBoxWidth
           child.width = math.max(0, newBorderBoxWidth - child.padding.left - child.padding.right)
         end
         -- Adjust cross-axis height if percentage-based
         if child.units and child.units.height and child.units.height.unit == "%" then
-          local newBorderBoxHeight = _clampSize(
-            (child.units.height.value / 100) * availableCrossSize, child.minHeight, child.maxHeight)
+          local newBorderBoxHeight = LayoutEngine._Utils.clamp(
+            (child.units.height.value / 100) * availableCrossSize,
+            child.minHeight,
+            child.maxHeight
+          )
           child._borderBoxHeight = newBorderBoxHeight
           child.height = math.max(0, newBorderBoxHeight - child.padding.top - child.padding.bottom)
         end
@@ -501,17 +501,22 @@ function LayoutEngine:layoutChildren()
         -- Vertical flex: main-axis is height, cross-axis is width
         -- Adjust main-axis height if percentage-based
         if child.units and child.units.height and child.units.height.unit == "%" then
-          local newBorderBoxHeight = _clampSize(
-            (child.units.height.value / 100) * availableMainSize, child.minHeight, child.maxHeight)
+          local newBorderBoxHeight = LayoutEngine._Utils.clamp(
+            (child.units.height.value / 100) * availableMainSize,
+            child.minHeight,
+            child.maxHeight
+          )
           child._borderBoxHeight = newBorderBoxHeight
           child.height = math.max(0, newBorderBoxHeight - child.padding.top - child.padding.bottom)
         end
         -- Adjust cross-axis width if percentage-based
         if child.units and child.units.width and child.units.width.unit == "%" then
           local rawBorderBoxWidth = (child.units.width.value / 100) * availableCrossSize
-          local newBorderBoxWidth = _clampSize(
+          local newBorderBoxWidth = LayoutEngine._Utils.clamp(
             self.element:_adjustCrossAxisPercentageWidth(child, rawBorderBoxWidth),
-            child.minWidth, child.maxWidth)
+            child.minWidth,
+            child.maxWidth
+          )
           child._borderBoxWidth = newBorderBoxWidth
           child.width = math.max(0, newBorderBoxWidth - child.padding.left - child.padding.right)
         end
@@ -855,7 +860,11 @@ function LayoutEngine:layoutChildren()
           -- STRETCH: Only apply if height was not explicitly set
           if childAutosizing and childAutosizing.height then
             -- STRETCH: Set border-box height to lineHeight minus margins, content area shrinks to fit
-            local availableHeight = _clampSize(lineHeight - childMarginTop - childMarginBottom, child.minHeight, child.maxHeight)
+            local availableHeight = LayoutEngine._Utils.clamp(
+              lineHeight - childMarginTop - childMarginBottom,
+              child.minHeight,
+              child.maxHeight
+            )
             child._borderBoxHeight = availableHeight
             child.height = math.max(0, availableHeight - childPadding.top - childPadding.bottom)
           end
@@ -900,7 +909,8 @@ function LayoutEngine:layoutChildren()
           -- STRETCH: Only apply if width was not explicitly set
           if childAutosizing and childAutosizing.width then
             -- STRETCH: Set border-box width to lineHeight minus margins, content area shrinks to fit
-            local availableWidth = _clampSize(lineHeight - childMarginLeft - childMarginRight, child.minWidth, child.maxWidth)
+            local availableWidth =
+              LayoutEngine._Utils.clamp(lineHeight - childMarginLeft - childMarginRight, child.minWidth, child.maxWidth)
             child._borderBoxWidth = availableWidth
             child.width = math.max(0, availableWidth - childPadding.left - childPadding.right)
           end

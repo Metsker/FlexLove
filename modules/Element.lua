@@ -229,18 +229,6 @@ local function _resolveUnit(self, raw, key, ref, ctx, opts)
   return self[key]
 end
 
--- Module-level helper: clamp `value` to optional min/max constraints. Either bound may be nil.
--- When both bounds are present and inverted (min > max), max wins (matches CSS behaviour).
-local function _clampSize(value, minVal, maxVal)
-  if minVal and value < minVal then
-    value = minVal
-  end
-  if maxVal and value > maxVal then
-    value = maxVal
-  end
-  return value
-end
-
 -- Module-level helper: re-resolve a stored unit spec against a new viewport/parent reference.
 -- Used by resize() to refresh min/max constraints declared with %/vw/vh units.
 local function _refreshUnit(self, key, ref, ctx, scaleAxis)
@@ -1082,16 +1070,16 @@ function Element.new(props)
   _resolveUnit(self, props.maxHeight, "maxHeight", constraintParentH, _ctx, { scaleAxis = "y", nullable = true })
 
   if not self.autosizing.width then
-    self.width = _clampSize(tempWidth, self.minWidth, self.maxWidth)
+    self.width = Element._utils.clamp(tempWidth, self.minWidth, self.maxWidth)
     tempWidth = self.width
   else
-    self.width = _clampSize(self.width, self.minWidth, self.maxWidth)
+    self.width = Element._utils.clamp(self.width, self.minWidth, self.maxWidth)
   end
   if not self.autosizing.height then
-    self.height = _clampSize(tempHeight, self.minHeight, self.maxHeight)
+    self.height = Element._utils.clamp(tempHeight, self.minHeight, self.maxHeight)
     tempHeight = self.height
   else
-    self.height = _clampSize(self.height, self.minHeight, self.maxHeight)
+    self.height = Element._utils.clamp(self.height, self.minHeight, self.maxHeight)
   end
 
   --- child positioning ---
@@ -3422,11 +3410,11 @@ function Element:resize(newGameWidth, newGameHeight)
 
   -- For non-auto-sized elements with viewport/percentage units, update content dimensions from border-box
   if not self.autosizing.width and self._borderBoxWidth and self.units.width.unit ~= "px" then
-    self._borderBoxWidth = _clampSize(self._borderBoxWidth, self.minWidth, self.maxWidth)
+    self._borderBoxWidth = Element._utils.clamp(self._borderBoxWidth, self.minWidth, self.maxWidth)
     self.width = math.max(0, self._borderBoxWidth - self.padding.left - self.padding.right)
   end
   if not self.autosizing.height and self._borderBoxHeight and self.units.height.unit ~= "px" then
-    self._borderBoxHeight = _clampSize(self._borderBoxHeight, self.minHeight, self.maxHeight)
+    self._borderBoxHeight = Element._utils.clamp(self._borderBoxHeight, self.minHeight, self.maxHeight)
     self.height = math.max(0, self._borderBoxHeight - self.padding.top - self.padding.bottom)
   end
 
@@ -3440,14 +3428,14 @@ function Element:resize(newGameWidth, newGameHeight)
     local contentWidth = self:calculateAutoWidth()
     -- BORDER-BOX MODEL: Add padding to get border-box, then subtract to get content
     self._borderBoxWidth =
-      _clampSize(contentWidth + self.padding.left + self.padding.right, self.minWidth, self.maxWidth)
+      Element._utils.clamp(contentWidth + self.padding.left + self.padding.right, self.minWidth, self.maxWidth)
     self.width = math.max(0, self._borderBoxWidth - self.padding.left - self.padding.right)
   end
   if self.autosizing.height then
     local contentHeight = self:calculateAutoHeight()
     -- BORDER-BOX MODEL: Add padding to get border-box, then subtract to get content
     self._borderBoxHeight =
-      _clampSize(contentHeight + self.padding.top + self.padding.bottom, self.minHeight, self.maxHeight)
+      Element._utils.clamp(contentHeight + self.padding.top + self.padding.bottom, self.minHeight, self.maxHeight)
     self.height = math.max(0, self._borderBoxHeight - self.padding.top - self.padding.bottom)
   end
 
