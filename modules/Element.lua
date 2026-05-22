@@ -193,7 +193,9 @@ end
 local function _resolveUnit(self, raw, key, ref, ctx, opts)
   opts = opts or {}
   if raw == nil then
-    if opts.nullable then return nil end
+    if opts.nullable then
+      return nil
+    end
     local default = opts.default or 0
     self[key] = (opts.offset or 0) + default
     self.units[key] = { value = default, unit = "px" }
@@ -204,7 +206,9 @@ local function _resolveUnit(self, raw, key, ref, ctx, opts)
     local value, unit = Element._Units.parse(raw)
     local resolved = Element._Units.resolve(value, unit, ctx.vw, ctx.vh, ref)
     if type(resolved) ~= "number" then
-      if opts.nullable then return nil end
+      if opts.nullable then
+        return nil
+      end
       Element._ErrorHandler:warn("Element", "LAY_003", {
         issue = key .. " resolution returned non-number value",
         type = type(resolved),
@@ -228,8 +232,12 @@ end
 -- Module-level helper: clamp `value` to optional min/max constraints. Either bound may be nil.
 -- When both bounds are present and inverted (min > max), max wins (matches CSS behaviour).
 local function _clampSize(value, minVal, maxVal)
-  if minVal and value < minVal then value = minVal end
-  if maxVal and value > maxVal then value = maxVal end
+  if minVal and value < minVal then
+    value = minVal
+  end
+  if maxVal and value > maxVal then
+    value = maxVal
+  end
   return value
 end
 
@@ -237,7 +245,9 @@ end
 -- Used by resize() to refresh min/max constraints declared with %/vw/vh units.
 local function _refreshUnit(self, key, ref, ctx, scaleAxis)
   local u = self.units[key]
-  if not u or u.value == nil then return end
+  if not u or u.value == nil then
+    return
+  end
   if u.unit == "px" then
     self[key] = Element._Context.baseScale and (u.value * (scaleAxis == "x" and ctx.sx or ctx.sy)) or u.value
     return
@@ -1074,10 +1084,14 @@ function Element.new(props)
   if not self.autosizing.width then
     self.width = _clampSize(tempWidth, self.minWidth, self.maxWidth)
     tempWidth = self.width
+  else
+    self.width = _clampSize(self.width, self.minWidth, self.maxWidth)
   end
   if not self.autosizing.height then
     self.height = _clampSize(tempHeight, self.minHeight, self.maxHeight)
     tempHeight = self.height
+  else
+    self.height = _clampSize(self.height, self.minHeight, self.maxHeight)
   end
 
   --- child positioning ---
@@ -3425,13 +3439,15 @@ function Element:resize(newGameWidth, newGameHeight)
   if self.autosizing.width then
     local contentWidth = self:calculateAutoWidth()
     -- BORDER-BOX MODEL: Add padding to get border-box, then subtract to get content
-    self._borderBoxWidth = _clampSize(contentWidth + self.padding.left + self.padding.right, self.minWidth, self.maxWidth)
+    self._borderBoxWidth =
+      _clampSize(contentWidth + self.padding.left + self.padding.right, self.minWidth, self.maxWidth)
     self.width = math.max(0, self._borderBoxWidth - self.padding.left - self.padding.right)
   end
   if self.autosizing.height then
     local contentHeight = self:calculateAutoHeight()
     -- BORDER-BOX MODEL: Add padding to get border-box, then subtract to get content
-    self._borderBoxHeight = _clampSize(contentHeight + self.padding.top + self.padding.bottom, self.minHeight, self.maxHeight)
+    self._borderBoxHeight =
+      _clampSize(contentHeight + self.padding.top + self.padding.bottom, self.minHeight, self.maxHeight)
     self.height = math.max(0, self._borderBoxHeight - self.padding.top - self.padding.bottom)
   end
 
