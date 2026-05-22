@@ -2475,7 +2475,13 @@ function Element:addChild(child)
   if not child._explicitlyAbsolute then
     local sizeChanged = false
 
-    if self.autosizing.height then
+    local overflowX = self.overflowX or self.overflow
+    local overflowY = self.overflowY or self.overflow
+    local isScrollContainer =
+      overflowX == "scroll" or overflowX == "auto"
+      or overflowY == "scroll" or overflowY == "auto"
+
+    if self.autosizing.height and not isScrollContainer then
       local oldHeight = self.height
       local contentHeight = self:calculateAutoHeight()
       -- BORDER-BOX MODEL: Add padding to get border-box, then subtract to get content
@@ -2485,7 +2491,7 @@ function Element:addChild(child)
         sizeChanged = true
       end
     end
-    if self.autosizing.width then
+    if self.autosizing.width and not isScrollContainer then
       local oldWidth = self.width
       local contentWidth = self:calculateAutoWidth()
       -- BORDER-BOX MODEL: Add padding to get border-box, then subtract to get content

@@ -1242,27 +1242,28 @@ function flexlove.wheelmoved(dx, dy)
   local function findScrollableAtPosition(elements, x, y)
     for i = #elements, 1, -1 do
       local element = elements[i]
+      if element.display ~= false then
+        local bx = element.x
+        local by = element.y
+        local bw = element._borderBoxWidth or (element.width + element.padding.left + element.padding.right)
+        local bh = element._borderBoxHeight or (element.height + element.padding.top + element.padding.bottom)
 
-      local bx = element.x
-      local by = element.y
-      local bw = element._borderBoxWidth or (element.width + element.padding.left + element.padding.right)
-      local bh = element._borderBoxHeight or (element.height + element.padding.top + element.padding.bottom)
-
-      if x >= bx and x <= bx + bw and y >= by and y <= by + bh then
-        if #element.children > 0 then
-          local childResult = findScrollableAtPosition(element.children, x, y)
-          if childResult then
-            return childResult
+        if x >= bx and x <= bx + bw and y >= by and y <= by + bh then
+          if #element.children > 0 then
+            local childResult = findScrollableAtPosition(element.children, x, y)
+            if childResult then
+              return childResult
+            end
           end
-        end
 
-        local overflowX = element.overflowX or element.overflow
-        local overflowY = element.overflowY or element.overflow
-        if
-          (overflowX == "scroll" or overflowX == "auto" or overflowY == "scroll" or overflowY == "auto")
-          and (element._overflowX or element._overflowY)
-        then
-          return element
+          local overflowX = element.overflowX or element.overflow
+          local overflowY = element.overflowY or element.overflow
+          if
+            (overflowX == "scroll" or overflowX == "auto" or overflowY == "scroll" or overflowY == "auto")
+            and (element._overflowX or element._overflowY)
+          then
+            return element
+          end
         end
       end
     end
