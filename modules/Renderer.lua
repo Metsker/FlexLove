@@ -760,7 +760,7 @@ function Renderer:drawText(element)
 
   -- Apply password masking if enabled
   if element.passwordMode and displayText and displayText ~= "" and not isPlaceholder then
-    local maskedText = string.rep("•", utf8.len(displayText))
+    local maskedText = string.rep("•", UTF8.len(displayText))
     displayText = maskedText
     isPasswordMasked = true
   end
