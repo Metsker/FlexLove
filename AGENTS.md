@@ -79,7 +79,7 @@ CSS-style UI for LÖVE2D. **Retained mode only**. Public prop names, methods, an
 ## Intentionally out of scope right now
 
 - Sticky / `position: fixed` is recognised as a synonym for `"absolute"`; full sticky behaviour isn't implemented.
-- `flex-direction: row-reverse` / `column-reverse` are not implemented.
+- Reverse flex directions (`row-reverse`, `column-reverse`) are implemented via a final mirror pass at the end of `LayoutEngine:layoutChildren()` that walks each flex child's subtree by a single delta.
 - `borderStyle` values other than `"solid"` (passed through but not rendered).
 - Inline display, baseline alignment beyond stretch/flex-start/center/end, and CSS `box-sizing: content-box`. Border-box is the only model.
 - Per-element render caching: don't introduce caches that break the "edit a field, see it next frame" contract.

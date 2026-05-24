@@ -1069,7 +1069,9 @@ function Element.new(props)
   --- child positioning ---
   if props.gap then
     local flexDir = props.flexDirection or Element._utils.enums.FlexDirection.ROW
-    local containerSize = (flexDir == Element._utils.enums.FlexDirection.ROW) and self.width or self.height
+    local isHorizontalDir = flexDir == Element._utils.enums.FlexDirection.ROW
+      or flexDir == Element._utils.enums.FlexDirection.ROW_REVERSE
+    local containerSize = isHorizontalDir and self.width or self.height
     _resolveUnit(self, props.gap, "gap", containerSize, _ctx)
   else
     self.gap = 0

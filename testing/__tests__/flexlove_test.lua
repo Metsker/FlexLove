@@ -263,6 +263,78 @@ function TestFlexLove:testOnMouseEnterAndLeave()
   luaunit.assertEquals(leaves, 1)
 end
 
+function TestFlexLove:testFlexDirectionRowReverse()
+  local parent = FlexLove.new({
+    id = "rr-parent",
+    display = "flex",
+    flexDirection = "row-reverse",
+    justifyContent = "flex-start",
+    width = 300,
+    height = 50,
+    children = {
+      { id = "rr-a", width = 50, height = 50 },
+      { id = "rr-b", width = 50, height = 50 },
+      { id = "rr-c", width = 50, height = 50 },
+    },
+  })
+  local a, b, c = parent.children[1], parent.children[2], parent.children[3]
+  -- With row-reverse + flex-start, the first child sits flush against the right edge.
+  luaunit.assertEquals(a.x, parent.x + parent.width - a.width)
+  luaunit.assertEquals(b.x, a.x - b.width)
+  luaunit.assertEquals(c.x, b.x - c.width)
+  -- Cross axis unchanged.
+  luaunit.assertEquals(a.y, parent.y)
+end
+
+function TestFlexLove:testFlexDirectionColumnReverse()
+  local parent = FlexLove.new({
+    id = "cr-parent",
+    display = "flex",
+    flexDirection = "column-reverse",
+    justifyContent = "flex-start",
+    width = 50,
+    height = 300,
+    children = {
+      { id = "cr-a", width = 50, height = 50 },
+      { id = "cr-b", width = 50, height = 50 },
+      { id = "cr-c", width = 50, height = 50 },
+    },
+  })
+  local a, b, c = parent.children[1], parent.children[2], parent.children[3]
+  -- With column-reverse + flex-start, the first child sits flush against the bottom edge.
+  luaunit.assertEquals(a.y, parent.y + parent.height - a.height)
+  luaunit.assertEquals(b.y, a.y - b.height)
+  luaunit.assertEquals(c.y, b.y - c.height)
+  -- Cross axis unchanged.
+  luaunit.assertEquals(a.x, parent.x)
+end
+
+function TestFlexLove:testFlexDirectionRowReverseShiftsDescendants()
+  local parent = FlexLove.new({
+    id = "rrd-parent",
+    display = "flex",
+    flexDirection = "row-reverse",
+    width = 200,
+    height = 50,
+    children = {
+      {
+        id = "rrd-outer",
+        width = 80,
+        height = 50,
+        display = "flex",
+        flexDirection = "row",
+        children = { { id = "rrd-inner", width = 40, height = 50 } },
+      },
+    },
+  })
+  local outer = parent.children[1]
+  local inner = outer.children[1]
+  -- outer should be on the right edge of parent
+  luaunit.assertEquals(outer.x, parent.x + parent.width - outer.width)
+  -- inner should be flush against outer's left edge (still row-direction inside)
+  luaunit.assertEquals(inner.x, outer.x)
+end
+
 function TestFlexLove:testOnEventAndOnClickBothFire()
   local catchAll, typed = 0, 0
   local el = FlexLove.new({

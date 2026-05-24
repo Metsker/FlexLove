@@ -108,7 +108,7 @@ local Transform = {}
 ---@field maxFontSize number? -- Maximum text size in pixels for auto-scaling
 ---@field fontFamily string? -- Font family name from theme or path to font file (default: theme default or system default, inherits from parent)
 ---@field autoScaleFont boolean? -- Whether text should auto-scale with window size (default: true)
----@field flexDirection "row"|"column"? -- Direction of flex layout (default: "row"). `row-reverse`/`column-reverse` not yet implemented.
+---@field flexDirection "row"|"row-reverse"|"column"|"column-reverse"? -- CSS flex-direction (default: "row"). `row-reverse`/`column-reverse` mirror the main-axis position of each flex child and shift the child's subtree by the same delta.
 ---@field justifyContent JustifyContent? -- Alignment of items along main axis (default: FLEX_START)
 ---@field alignItems AlignItems? -- Alignment of items along cross axis (default: STRETCH)
 ---@field alignContent AlignContent? -- Alignment of lines in multi-line flex containers (default: STRETCH)

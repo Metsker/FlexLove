@@ -48,7 +48,7 @@ See `examples/basic_ui.lua` for a complete worked example.
 | --- | --- | --- |
 | `display` | `"block"` (default), `"flex"`, `"grid"`, `"none"` | `flex`/`grid` make this a container that lays out its children; `none` removes it from layout, render, and hit-testing |
 | `position` | `"static"`/`"relative"` (default), `"absolute"`, `"fixed"` | `absolute`/`fixed` detach from flow so `top`/`right`/`bottom`/`left` apply |
-| `flexDirection` | `"row"`, `"column"` | CSS values only. `row-reverse` / `column-reverse` not yet implemented. |
+| `flexDirection` | `"row"`, `"row-reverse"`, `"column"`, `"column-reverse"` | CSS values. `row-reverse` / `column-reverse` mirror the main-axis position of each child (and its subtree); `justifyContent` semantics flip accordingly. |
 | `justifyContent` | `"flex-start"`, `"center"`, `"flex-end"`, `"space-between"`, `"space-around"`, `"space-evenly"` | |
 | `alignItems` | `"stretch"`, `"flex-start"`, `"center"`, `"flex-end"`, `"baseline"` | |
 | `flexWrap` | `"nowrap"`, `"wrap"`, `"wrap-reverse"` | |
@@ -278,7 +278,7 @@ end
 | `textColor` | `color` |
 | `cornerRadius` | `borderRadius` |
 | `imagePath`, `objectFit`, `objectPosition`, `imageRepeat`, `imageOpacity` | `backgroundImage`, `backgroundSize`, `backgroundPosition`, `backgroundRepeat`, `backgroundOpacity` |
-| `flexDirection = "horizontal" \| "vertical"` | `flexDirection = "row" \| "column"` |
+| `flexDirection = "horizontal" \| "vertical"` | `flexDirection = "row" \| "row-reverse" \| "column" \| "column-reverse"` |
 | `addChild`, `clearChildren`, `getById`, `getElementAtPosition` | `appendChild`, `replaceChildren`, `getElementById`, `elementFromPoint` |
 | `textAlign = "top-left"` etc. (compound strings) | `textAlign = "start"\|"center"\|"end"\|"justify"` + `verticalAlign = "start"\|"center"\|"end"` |
 | `border = 2, borderColor = c` | `border = "2px solid #ff0000"` (or keep the table form) |
