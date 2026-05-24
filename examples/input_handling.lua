@@ -25,7 +25,7 @@ function InputExample:render()
     width = "80%",
     height = "80%",
     display = "flex",
-    flexDirection = "vertical",
+    flexDirection = "column",
     gap = 10,
     padding = { horizontal = 10, vertical = 10 },
   })
@@ -35,7 +35,7 @@ function InputExample:render()
     parent = flex,
     text = "Input Handling System Example",
     textAlign = "center",
-    textSize = "2xl",
+    fontSize = "2xl",
     width = "100%",
     height = "10%",
   })
@@ -44,7 +44,7 @@ function InputExample:render()
   local mouseSection = FlexLove.new({
     parent = flex,
     display = "flex",
-    flexDirection = "horizontal",
+    flexDirection = "row",
     justifyContent = "space-between",
     alignItems = "center",
     width = "100%",
@@ -58,7 +58,7 @@ function InputExample:render()
     parent = mouseSection,
     text = "Mouse Position: (" .. self.mousePosition.x .. ", " .. self.mousePosition.y .. ")",
     textAlign = "left",
-    textSize = "md",
+    fontSize = "md",
     width = "60%",
   })
 
@@ -90,7 +90,7 @@ function InputExample:render()
     parent = hoverArea,
     text = "Hover over me!",
     textAlign = "center",
-    textSize = "md",
+    fontSize = "md",
     width = "100%",
     height = "100%",
     color = self.isMouseOver and "#48bb78" or "#a0aec0", -- Green when hovered
@@ -100,7 +100,7 @@ function InputExample:render()
   local keyboardSection = FlexLove.new({
     parent = flex,
     display = "flex",
-    flexDirection = "horizontal",
+    flexDirection = "row",
     justifyContent = "space-between",
     alignItems = "center",
     width = "100%",
@@ -114,7 +114,7 @@ function InputExample:render()
     parent = keyboardSection,
     text = "Last Key Pressed: " .. (self.keyPressed or "None"),
     textAlign = "left",
-    textSize = "md",
+    fontSize = "md",
     width = "60%",
   })
 
@@ -124,7 +124,7 @@ function InputExample:render()
     themeComponent = "inputv2",
     text = "",
     textAlign = "left",
-    textSize = "md",
+    fontSize = "md",
     width = "30%",
     onEvent = function(_, event)
       if event.type == "textinput" then
@@ -139,7 +139,7 @@ function InputExample:render()
   local touchSection = FlexLove.new({
     parent = flex,
     display = "flex",
-    flexDirection = "horizontal",
+    flexDirection = "row",
     justifyContent = "space-between",
     alignItems = "center",
     width = "100%",
@@ -153,7 +153,7 @@ function InputExample:render()
     parent = touchSection,
     text = "Touch Position: (" .. self.touchPosition.x .. ", " .. self.touchPosition.y .. ")",
     textAlign = "left",
-    textSize = "md",
+    fontSize = "md",
     width = "60%",
   })
 
@@ -180,7 +180,7 @@ function InputExample:render()
     parent = touchArea,
     text = "Touch me!",
     textAlign = "center",
-    textSize = "md",
+    fontSize = "md",
     width = "100%",
     height = "100%",
   })
@@ -189,7 +189,7 @@ function InputExample:render()
   local statusSection = FlexLove.new({
     parent = flex,
     display = "flex",
-    flexDirection = "horizontal",
+    flexDirection = "row",
     justifyContent = "space-between",
     alignItems = "center",
     width = "100%",
@@ -203,7 +203,7 @@ function InputExample:render()
     parent = statusSection,
     text = "Hover Count: " .. self.hoverCount,
     textAlign = "left",
-    textSize = "md",
+    fontSize = "md",
     width = "30%",
   })
 

@@ -298,7 +298,7 @@ function TestElementCreation:test_managed_select_frame_options_stack_inside_fram
     id = "stacked_select_frame",
     width = 220,
     positioning = "flex",
-    flexDirection = "vertical",
+    flexDirection = "column",
     gap = 4,
     padding = 4,
   })
@@ -354,13 +354,13 @@ function TestElementCreation:test_managed_select_frame_expands_for_wide_option_c
     width = 640,
     height = 48,
     positioning = "flex",
-    flexDirection = "horizontal",
+    flexDirection = "row",
   })
 
   local dropdownFrame = FlexLove.new({
     id = "expanding_select_frame",
     positioning = "flex",
-    flexDirection = "vertical",
+    flexDirection = "column",
     gap = 2,
     padding = 12,
   })
@@ -370,7 +370,7 @@ function TestElementCreation:test_managed_select_frame_expands_for_wide_option_c
     parent = row,
     width = 180,
     height = 40,
-    textSize = 18,
+    fontSize = 18,
     selectParent = {
       value = "windowed",
       selectFrame = dropdownFrame,
@@ -383,7 +383,7 @@ function TestElementCreation:test_managed_select_frame_expands_for_wide_option_c
     width = "100%",
     height = 40,
     text = "Windowed",
-    textSize = 18,
+    fontSize = 18,
     selectOption = { value = "windowed", label = "Windowed" },
   })
 
@@ -394,7 +394,7 @@ function TestElementCreation:test_managed_select_frame_expands_for_wide_option_c
     width = "100%",
     height = 40,
     text = longLabel,
-    textSize = 18,
+    fontSize = 18,
     selectOption = { value = "desktop", label = longLabel },
   })
 
@@ -795,7 +795,7 @@ function TestElementUnits:test_resize_with_viewport_units()
 end
 
 function TestElementUnits:test_resize_with_textSize_scaling()
-  -- Test that textSize with viewport units calculates correctly
+  -- Test that fontSize with viewport units calculates correctly
   local element = FlexLove.new({
     id = "text_resize",
     x = 0,
@@ -803,15 +803,15 @@ function TestElementUnits:test_resize_with_textSize_scaling()
     width = 200,
     height = 100,
     text = "Test",
-    textSize = "2vh",
-    autoScaleText = true,
+    fontSize = "2vh",
+    autoScaleFont = true,
   })
 
   -- 2vh of 1080 = 21.6
-  luaunit.assertAlmostEquals(element.textSize, 21.6, 0.1)
+  luaunit.assertAlmostEquals(element.fontSize, 21.6, 0.1)
 
   -- Verify unit is stored
-  luaunit.assertEquals(element.units.textSize.unit, "vh")
+  luaunit.assertEquals(element.units.fontSize.unit, "vh")
 end
 
 -- ============================================================================
@@ -976,11 +976,11 @@ function TestElementFlex:test_element_with_flex_direction()
     width = 300,
     height = 200,
     positioning = "flex",
-    flexDirection = "horizontal",
+    flexDirection = "row",
   })
 
   luaunit.assertNotNil(element)
-  luaunit.assertEquals(element.flexDirection, "horizontal")
+  luaunit.assertEquals(element.flexDirection, "row")
 end
 
 function TestElementFlex:test_element_with_flex_properties()
@@ -991,7 +991,7 @@ function TestElementFlex:test_element_with_flex_properties()
     width = 300,
     height = 200,
     positioning = "flex",
-    flexDirection = "horizontal",
+    flexDirection = "row",
   })
 
   local element = FlexLove.new({
@@ -1140,12 +1140,12 @@ function TestElementStyling:test_element_with_corner_radius()
     y = 0,
     width = 100,
     height = 100,
-    cornerRadius = 10,
+    borderRadius = 10,
   })
 
   luaunit.assertNotNil(element)
   -- Corner radius might be stored as a table
-  luaunit.assertNotNil(element.cornerRadius)
+  luaunit.assertNotNil(element.borderRadius)
 end
 
 function TestElementStyling:test_element_with_text_align()
@@ -1193,7 +1193,7 @@ function TestElementStyling:test_element_with_border_color()
 end
 
 function TestElementStyling:test_element_with_text_color()
-  local textColor = Color.new(255, 0, 0, 1)
+  local color = Color.new(255, 0, 0, 1)
 
   local element = FlexLove.new({
     id = "test",
@@ -1202,10 +1202,10 @@ function TestElementStyling:test_element_with_text_color()
     width = 100,
     height = 100,
     text = "Red text",
-    textColor = textColor,
+    color = color,
   })
 
-  luaunit.assertEquals(element.textColor, textColor)
+  luaunit.assertEquals(element.color, color)
 end
 
 function TestElementStyling:test_element_with_background_color()
@@ -1231,12 +1231,12 @@ function TestElementStyling:test_element_with_corner_radius_table()
     y = 0,
     width = 100,
     height = 100,
-    cornerRadius = 10,
+    borderRadius = 10,
   })
 
-  luaunit.assertNotNil(element.cornerRadius)
-  luaunit.assertEquals(type(element.cornerRadius), "number")
-  luaunit.assertEquals(element.cornerRadius, 10)
+  luaunit.assertNotNil(element.borderRadius)
+  luaunit.assertEquals(type(element.borderRadius), "number")
+  luaunit.assertEquals(element.borderRadius, 10)
 
   -- Test non-uniform radius (should be stored as table)
   local element2 = FlexLove.new({
@@ -1245,15 +1245,15 @@ function TestElementStyling:test_element_with_corner_radius_table()
     y = 0,
     width = 100,
     height = 100,
-    cornerRadius = { topLeft = 5, topRight = 10, bottomLeft = 15, bottomRight = 20 },
+    borderRadius = { topLeft = 5, topRight = 10, bottomLeft = 15, bottomRight = 20 },
   })
 
-  luaunit.assertNotNil(element2.cornerRadius)
-  luaunit.assertEquals(type(element2.cornerRadius), "table")
-  luaunit.assertEquals(element2.cornerRadius.topLeft, 5)
-  luaunit.assertEquals(element2.cornerRadius.topRight, 10)
-  luaunit.assertEquals(element2.cornerRadius.bottomLeft, 15)
-  luaunit.assertEquals(element2.cornerRadius.bottomRight, 20)
+  luaunit.assertNotNil(element2.borderRadius)
+  luaunit.assertEquals(type(element2.borderRadius), "table")
+  luaunit.assertEquals(element2.borderRadius.topLeft, 5)
+  luaunit.assertEquals(element2.borderRadius.topRight, 10)
+  luaunit.assertEquals(element2.borderRadius.bottomLeft, 15)
+  luaunit.assertEquals(element2.borderRadius.bottomRight, 20)
 end
 
 function TestElementStyling:test_element_with_margin_table()
@@ -1316,7 +1316,7 @@ function TestElementMethods:test_element_addChild()
     height = 50,
   })
 
-  parent:addChild(child)
+  parent:appendChild(child)
   luaunit.assertEquals(#parent.children, 1)
   luaunit.assertEquals(parent.children[1], child)
   luaunit.assertEquals(child.parent, parent)
@@ -1428,7 +1428,7 @@ function TestElementScroll:test_scrollToTop()
     height = 200,
     overflow = "scroll",
     positioning = "flex",
-    flexDirection = "vertical",
+    flexDirection = "column",
   })
 
   -- Add content that overflows
@@ -1462,7 +1462,7 @@ function TestElementScroll:test_scrollToBottom()
     height = 200,
     overflow = "scroll",
     positioning = "flex",
-    flexDirection = "vertical",
+    flexDirection = "column",
   })
 
   -- Add overflowing content
@@ -1537,7 +1537,7 @@ function TestElementScroll:test_getScrollPercentage()
     height = 200,
     overflow = "scroll",
     positioning = "flex",
-    flexDirection = "vertical",
+    flexDirection = "column",
   })
 
   for i = 1, 10 do
@@ -1597,7 +1597,7 @@ function TestElementScroll:test_scrollBy_per_axis_deferral()
     height = 200,
     overflow = "scroll",
     positioning = "flex",
-    flexDirection = "vertical",
+    flexDirection = "column",
   })
 
   -- Children narrower than container (no X overflow) but taller (Y overflow)
@@ -1629,7 +1629,7 @@ function TestElementScroll:test_scrollBy_both_axes_valid()
     height = 200,
     overflow = "scroll",
     positioning = "flex",
-    flexDirection = "vertical",
+    flexDirection = "column",
   })
 
   -- Children wider and taller than container (both axes overflow)
@@ -1682,7 +1682,7 @@ function TestElementChildren:test_addChild()
     height = 50,
   })
 
-  parent:addChild(child)
+  parent:appendChild(child)
   luaunit.assertEquals(#parent.children, 1)
   luaunit.assertEquals(parent.children[1], child)
   luaunit.assertEquals(child.parent, parent)
@@ -1705,7 +1705,7 @@ function TestElementChildren:test_removeChild()
     height = 50,
   })
 
-  parent:addChild(child)
+  parent:appendChild(child)
   parent:removeChild(child)
 
   luaunit.assertEquals(#parent.children, 0)
@@ -1724,9 +1724,9 @@ function TestElementChildren:test_clearChildren()
   local child1 = FlexLove.new({ id = "child1", x = 0, y = 0, width = 50, height = 50 })
   local child2 = FlexLove.new({ id = "child2", x = 0, y = 0, width = 50, height = 50 })
 
-  parent:addChild(child1)
-  parent:addChild(child2)
-  parent:clearChildren()
+  parent:appendChild(child1)
+  parent:appendChild(child2)
+  parent:replaceChildren()
 
   luaunit.assertEquals(#parent.children, 0)
 end
@@ -1743,8 +1743,8 @@ function TestElementChildren:test_getChildCount()
   local child1 = FlexLove.new({ id = "child1", x = 0, y = 0, width = 50, height = 50 })
   local child2 = FlexLove.new({ id = "child2", x = 0, y = 0, width = 50, height = 50 })
 
-  parent:addChild(child1)
-  parent:addChild(child2)
+  parent:appendChild(child1)
+  parent:appendChild(child2)
 
   luaunit.assertEquals(parent:getChildCount(), 2)
 end
@@ -1767,7 +1767,7 @@ function TestElementChildren:test_addChild_triggers_autosize_recalc()
     height = 150,
   })
 
-  parent:addChild(child)
+  parent:appendChild(child)
 
   -- Parent should have resized
   luaunit.assertTrue(parent.width >= initialWidth)
@@ -1823,7 +1823,7 @@ function TestElementChildren:test_clearChildren_resets_autosize()
 
   local widthWithChildren = parent.width
 
-  parent:clearChildren()
+  parent:replaceChildren()
 
   -- Parent should shrink to minimal size
   luaunit.assertTrue(parent.width < widthWithChildren)
@@ -2072,13 +2072,13 @@ function TestElementAutoSizing:test_autosize_with_nested_flex()
     x = 0,
     y = 0,
     positioning = "flex",
-    flexDirection = "vertical",
+    flexDirection = "column",
   })
 
   local row1 = FlexLove.new({
     id = "row1",
     positioning = "flex",
-    flexDirection = "horizontal",
+    flexDirection = "row",
     parent = root,
   })
 
@@ -2137,7 +2137,7 @@ function TestElementAutoSizing:test_autosize_with_margin()
     x = 0,
     y = 0,
     positioning = "flex",
-    flexDirection = "horizontal",
+    flexDirection = "row",
   })
 
   -- Add two children with margins to test margin collapsing
@@ -2269,7 +2269,7 @@ function TestElementImage:test_image_with_opacity()
 
   element:setImageOpacity(0.5)
 
-  luaunit.assertEquals(element.imageOpacity, 0.5)
+  luaunit.assertEquals(element.backgroundOpacity, 0.5)
 end
 
 function TestElementImage:test_image_with_repeat()
@@ -2279,7 +2279,7 @@ function TestElementImage:test_image_with_repeat()
 
   element:setImageRepeat("repeat")
 
-  luaunit.assertEquals(element.imageRepeat, "repeat")
+  luaunit.assertEquals(element.backgroundRepeat, "repeat")
 end
 
 -- ============================================================================
@@ -2502,8 +2502,8 @@ function TestElementLayout:test_layoutChildren_with_children()
   local child1 = createBasicElement({ width = 50, height = 50 })
   local child2 = createBasicElement({ width = 50, height = 50 })
 
-  parent:addChild(child1)
-  parent:addChild(child2)
+  parent:appendChild(child1)
+  parent:appendChild(child2)
 
   parent:layoutChildren()
 
@@ -2517,7 +2517,7 @@ function TestElementLayout:test_checkPerformanceWarnings()
 
   -- Add many children to trigger warnings (reduced from 150 for performance)
   for i = 1, 30 do
-    parent:addChild(createBasicElement({ width = 10, height = 10 }))
+    parent:appendChild(createBasicElement({ width = 10, height = 10 }))
   end
 
   -- Should check performance
@@ -2589,8 +2589,8 @@ function TestElementHierarchy:test_getHierarchyDepth_nested()
   local child = createBasicElement({})
   local grandchild = createBasicElement({})
 
-  root:addChild(child)
-  child:addChild(grandchild)
+  root:appendChild(child)
+  child:appendChild(grandchild)
 
   luaunit.assertEquals(grandchild:getHierarchyDepth(), 2)
 end
@@ -2601,8 +2601,8 @@ function TestElementHierarchy:test_countElements()
   local child1 = createBasicElement({})
   local child2 = createBasicElement({})
 
-  root:addChild(child1)
-  root:addChild(child2)
+  root:appendChild(child1)
+  root:appendChild(child2)
 
   local count = root:countElements()
 
@@ -3148,7 +3148,7 @@ function TestConvenienceAPI:test_flexDirection_row_converts()
   })
 
   luaunit.assertNotNil(element)
-  luaunit.assertEquals(element.flexDirection, "horizontal")
+  luaunit.assertEquals(element.flexDirection, "row")
 end
 
 function TestConvenienceAPI:test_flexDirection_column_converts()
@@ -3161,7 +3161,7 @@ function TestConvenienceAPI:test_flexDirection_column_converts()
   })
 
   luaunit.assertNotNil(element)
-  luaunit.assertEquals(element.flexDirection, "vertical")
+  luaunit.assertEquals(element.flexDirection, "column")
 end
 
 function TestConvenienceAPI:test_padding_single_number()
@@ -3289,48 +3289,48 @@ function TestElementEdgeCases:test_element_invalid_opacity()
 end
 
 function TestElementEdgeCases:test_element_invalid_image_opacity()
-  -- imageOpacity > 1
+  -- backgroundOpacity > 1
   local success = pcall(function()
     FlexLove.new({
       id = "high_img_opacity",
       width = 100,
       height = 100,
-      imageOpacity = 3.0,
+      backgroundOpacity = 3.0,
     })
   end)
   luaunit.assertFalse(success)
 
-  -- Negative imageOpacity
+  -- Negative backgroundOpacity
   success = pcall(function()
     FlexLove.new({
       id = "negative_img_opacity",
       width = 100,
       height = 100,
-      imageOpacity = -1.0,
+      backgroundOpacity = -1.0,
     })
   end)
   luaunit.assertFalse(success)
 end
 
 function TestElementEdgeCases:test_element_invalid_text_size()
-  -- Zero textSize
+  -- Zero fontSize
   local success = pcall(function()
     FlexLove.new({
       id = "zero_text",
       width = 100,
       height = 100,
-      textSize = 0,
+      fontSize = 0,
     })
   end)
   luaunit.assertFalse(success)
 
-  -- Negative textSize
+  -- Negative fontSize
   success = pcall(function()
     FlexLove.new({
       id = "negative_text",
       width = 100,
       height = 100,
-      textSize = -12,
+      fontSize = -12,
     })
   end)
   luaunit.assertFalse(success)
@@ -3385,7 +3385,7 @@ function TestElementEdgeCases:test_element_invalid_object_fit()
       id = "invalid_fit",
       width = 100,
       height = 100,
-      objectFit = "stretch",
+      backgroundSize = "stretch",
     })
   end)
   luaunit.assertFalse(success) -- Should error (validateEnum)
@@ -3396,7 +3396,7 @@ function TestElementEdgeCases:test_element_nonexistent_image()
     id = "no_image",
     width = 100,
     height = 100,
-    imagePath = "/nonexistent/path/to/image.png",
+    backgroundImage = "/nonexistent/path/to/image.png",
   })
   luaunit.assertNotNil(element)
 end
@@ -3422,7 +3422,7 @@ function TestElementEdgeCases:test_add_nil_child()
   })
 
   local success = pcall(function()
-    parent:addChild(nil)
+    parent:appendChild(nil)
   end)
   luaunit.assertFalse(success) -- Should error
 end
@@ -3462,7 +3462,7 @@ function TestElementEdgeCases:test_clear_children_empty()
     height = 200,
   })
 
-  parent:clearChildren() -- Should not crash
+  parent:replaceChildren() -- Should not crash
   luaunit.assertEquals(#parent.children, 0)
 end
 
@@ -3480,8 +3480,8 @@ function TestElementEdgeCases:test_clear_children_twice()
     parent = parent,
   })
 
-  parent:clearChildren()
-  parent:clearChildren()
+  parent:replaceChildren()
+  parent:replaceChildren()
   luaunit.assertEquals(#parent.children, 0)
 end
 
@@ -3598,21 +3598,21 @@ function TestElementEdgeCases:test_draw_nil_backdrop()
 end
 
 function TestElementEdgeCases:test_invalid_corner_radius()
-  -- String cornerRadius
+  -- String borderRadius
   local element = FlexLove.new({
     id = "test",
     width = 100,
     height = 100,
-    cornerRadius = "invalid",
+    borderRadius = "invalid",
   })
   luaunit.assertNotNil(element)
 
-  -- Negative cornerRadius
+  -- Negative borderRadius
   element = FlexLove.new({
     id = "test2",
     width = 100,
     height = 100,
-    cornerRadius = -10,
+    borderRadius = -10,
   })
   luaunit.assertNotNil(element)
 end
@@ -3622,14 +3622,14 @@ function TestElementEdgeCases:test_partial_corner_radius()
     id = "test",
     width = 100,
     height = 100,
-    cornerRadius = {
+    borderRadius = {
       topLeft = 10,
       -- Missing other corners
     },
   })
   luaunit.assertNotNil(element)
-  luaunit.assertEquals(element.cornerRadius.topLeft, 10)
-  luaunit.assertEquals(element.cornerRadius.topRight, 0)
+  luaunit.assertEquals(element.borderRadius.topLeft, 10)
+  luaunit.assertEquals(element.borderRadius.topRight, 0)
 end
 
 function TestElementEdgeCases:test_invalid_border()

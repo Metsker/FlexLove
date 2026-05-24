@@ -42,7 +42,7 @@ function TestDeferredImageLoading:test_constructor_does_not_load_image()
   local element = FlexLove.new({
     width = 100,
     height = 100,
-    imagePath = "nonexistent/test.png",
+    backgroundImage = "nonexistent/test.png",
     onImageLoad = function()
       onLoadCalled = true
     end,
@@ -64,7 +64,7 @@ function TestDeferredImageLoading:test_cached_image_loaded_immediately_callback_
   local element = FlexLove.new({
     width = 100,
     height = 100,
-    imagePath = "test/cached.png",
+    backgroundImage = "test/cached.png",
     onImageLoad = function(el, img)
       onLoadCalled = true
       loadedImage = img
@@ -86,7 +86,7 @@ function TestDeferredImageLoading:test_non_cached_image_triggers_error_after_upd
   local element = FlexLove.new({
     width = 100,
     height = 100,
-    imagePath = "nonexistent/bad.png",
+    backgroundImage = "nonexistent/bad.png",
     onImageError = function(el, err)
       onErrorCalled = true
       errorMsg = err
@@ -123,12 +123,12 @@ function TestDeferredImageLoading:test_direct_image_works_synchronously()
   luaunit.assertEquals(loadedImage, mockImage, "Loaded image should match the direct image")
 end
 
--- Constructor does not crash with imagePath and no callbacks
+-- Constructor does not crash with backgroundImage and no callbacks
 function TestDeferredImageLoading:test_imagePath_does_not_crash()
   local element = FlexLove.new({
     width = 100,
     height = 100,
-    imagePath = "nonexistent/image.png",
+    backgroundImage = "nonexistent/image.png",
   })
   luaunit.assertNotNil(element)
 end

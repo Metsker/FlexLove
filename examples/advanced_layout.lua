@@ -15,7 +15,7 @@ local window = FlexLove.new({
   height = "80%",
   themeComponent = "framev3",
   display = "flex",
-  flexDirection = "vertical",
+  flexDirection = "column",
   gap = 20,
   padding = { horizontal = 20, vertical = 20 },
 })
@@ -25,7 +25,7 @@ FlexLove.new({
   parent = window,
   text = "Advanced Layout Example",
   textAlign = "center",
-  textSize = "3xl",
+  fontSize = "3xl",
   width = "100%",
 })
 
@@ -33,7 +33,7 @@ FlexLove.new({
 local flexContainer = FlexLove.new({
   parent = window,
   display = "flex",
-  flexDirection = "horizontal",
+  flexDirection = "row",
   justifyContent = "space-between",
   alignItems = "stretch",
   gap = 15,
@@ -45,7 +45,7 @@ local leftPanel = FlexLove.new({
   parent = flexContainer,
   width = "40%",
   display = "flex",
-  flexDirection = "vertical",
+  flexDirection = "column",
   gap = 10,
   padding = { horizontal = 10, vertical = 10 },
 })
@@ -54,7 +54,7 @@ FlexLove.new({
   parent = leftPanel,
   text = "True Grid Layout (3x3)",
   textAlign = "center",
-  textSize = "lg",
+  fontSize = "lg",
   width = "100%",
 })
 
@@ -77,7 +77,7 @@ for i = 1, 9 do
     themeComponent = "buttonv2",
     text = "Cell " .. i,
     textAlign = "center",
-    textSize = "md",
+    fontSize = "md",
     onEvent = function(_, event)
       if event.type == "release" then
         print("Grid cell " .. i .. " clicked")
@@ -91,7 +91,7 @@ local rightPanel = FlexLove.new({
   parent = flexContainer,
   width = "55%",
   display = "flex",
-  flexDirection = "vertical",
+  flexDirection = "column",
   gap = 10,
 })
 
@@ -99,7 +99,7 @@ FlexLove.new({
   parent = rightPanel,
   text = "Grid with Headers (4x4)",
   textAlign = "center",
-  textSize = "lg",
+  fontSize = "lg",
   width = "100%",
 })
 
@@ -123,7 +123,7 @@ local scheduleGrid = FlexLove.new({
 })
 
 local accentColor = Theme.getColor("primary")
-local textColor = Theme.getColor("text")
+local color = Theme.getColor("text")
 
 -- Top-left corner cell (empty)
 FlexLove.new({
@@ -135,12 +135,12 @@ for _, header in ipairs(columnHeaders) do
   FlexLove.new({
     parent = scheduleGrid,
     text = header,
-    textColor = textColor,
+    color = color,
     textAlign = "center",
     backgroundColor = Color.new(0, 0, 0, 0.3),
     border = { top = true, right = true, bottom = true, left = true },
     borderColor = accentColor,
-    textSize = 12,
+    fontSize = 12,
   })
 end
 
@@ -151,11 +151,11 @@ for i, rowHeader in ipairs(rowHeaders) do
     parent = scheduleGrid,
     text = rowHeader,
     backgroundColor = Color.new(0, 0, 0, 0.3),
-    textColor = textColor,
+    color = color,
     textAlign = "center",
     border = { top = true, right = true, bottom = true, left = true },
     borderColor = accentColor,
-    textSize = 10,
+    fontSize = 10,
   })
 
   -- Data cells
@@ -167,7 +167,7 @@ for i, rowHeader in ipairs(rowHeaders) do
       textAlign = "center",
       border = { top = true, right = true, bottom = true, left = true },
       borderColor = Color.new(0.5, 0.5, 0.5, 1.0),
-      textSize = 12,
+      fontSize = 12,
       themeComponent = "buttonv2",
       onEvent = function(elem, event)
         if event.type == "click" then
@@ -184,7 +184,7 @@ end
 local footer = FlexLove.new({
   parent = window,
   display = "flex",
-  flexDirection = "horizontal",
+  flexDirection = "row",
   justifyContent = "space-between",
   alignItems = "center",
   gap = 15,
@@ -195,7 +195,7 @@ FlexLove.new({
   parent = footer,
   text = "Progress:",
   textAlign = "start",
-  textSize = "md",
+  fontSize = "md",
 })
 
 local progressContainer = FlexLove.new({
@@ -204,7 +204,7 @@ local progressContainer = FlexLove.new({
   height = "30%",
   themeComponent = "framev3",
   display = "flex",
-  flexDirection = "horizontal",
+  flexDirection = "row",
   alignItems = "center",
   gap = 5,
 })
@@ -221,5 +221,5 @@ FlexLove.new({
   parent = footer,
   text = "70%",
   textAlign = "end",
-  textSize = "md",
+  fontSize = "md",
 })

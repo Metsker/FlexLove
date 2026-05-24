@@ -5,16 +5,16 @@ local UTF8 = require((...):match("(.-)[^%.]+$") .. "UTF8")
 ---@field borderColor Color
 ---@field opacity number
 ---@field border {top:boolean, right:boolean, bottom:boolean, left:boolean}
----@field cornerRadius {topLeft:number, topRight:number, bottomLeft:number, bottomRight:number}
+---@field borderRadius {topLeft:number, topRight:number, bottomLeft:number, bottomRight:number}
 ---@field theme string?
 ---@field themeComponent string?
 ---@field _themeState string
----@field imagePath string?
+---@field backgroundImage string?
 ---@field image love.Image?
 ---@field _loadedImage love.Image?
----@field objectFit string
----@field objectPosition string
----@field imageOpacity number
+---@field backgroundSize string
+---@field backgroundPosition string
+---@field backgroundOpacity number
 ---@field contentBlur {intensity:number, quality:number}?
 ---@field backdropBlur {intensity:number, quality:number}?
 ---@field _blurInstance table?
@@ -79,7 +79,7 @@ function Renderer.new(config, deps)
   }
 
   -- Corner radius
-  self.cornerRadius = config.cornerRadius
+  self.borderRadius = config.borderRadius
     or {
       topLeft = 0,
       topRight = 0,
@@ -93,13 +93,13 @@ function Renderer.new(config, deps)
   self._themeState = "normal"
 
   -- Image properties
-  self.imagePath = config.imagePath
+  self.backgroundImage = config.backgroundImage
   self.image = config.image
   self._loadedImage = nil
-  self.objectFit = config.objectFit or "fill"
-  self.objectPosition = config.objectPosition or "center center"
-  self.imageOpacity = config.imageOpacity or 1
-  self.imageRepeat = config.imageRepeat or "no-repeat"
+  self.backgroundSize = config.backgroundSize or "fill"
+  self.backgroundPosition = config.backgroundPosition or "center center"
+  self.backgroundOpacity = config.backgroundOpacity or 1
+  self.backgroundRepeat = config.backgroundRepeat or "no-repeat"
   self.imageTint = config.imageTint
 
   -- Blur effects
@@ -108,8 +108,8 @@ function Renderer.new(config, deps)
   self._blurInstance = nil
 
   -- Load image if path provided
-  if self.imagePath and not self.image then
-    local loadedImage, err = ImageCache.load(self.imagePath)
+  if self.backgroundImage and not self.image then
+    local loadedImage, err = ImageCache.load(self.backgroundImage)
     if loadedImage then
       self._loadedImage = loadedImage
     else
@@ -177,7 +177,7 @@ function Renderer:_drawBackground(x, y, width, height, drawBackgroundColor)
     drawBackgroundColor.a * self.opacity
   )
   love.graphics.setColor(backgroundWithOpacity:toRGBA())
-  self._RoundedRect.draw("fill", x, y, width, height, self.cornerRadius)
+  self._RoundedRect.draw("fill", x, y, width, height, self.borderRadius)
 end
 
 --- Draw image layer
@@ -209,19 +209,19 @@ function Renderer:_drawImage(
   local imageWidth = contentWidth
   local imageHeight = contentHeight
 
-  -- Combine element opacity with imageOpacity
-  local finalOpacity = self.opacity * self.imageOpacity
+  -- Combine element opacity with backgroundOpacity
+  local finalOpacity = self.opacity * self.backgroundOpacity
 
-  -- Apply cornerRadius clipping if set
+  -- Apply borderRadius clipping if set
   local hasCornerRadius = false
-  if self.cornerRadius then
-    if type(self.cornerRadius) == "number" then
-      hasCornerRadius = self.cornerRadius > 0
+  if self.borderRadius then
+    if type(self.borderRadius) == "number" then
+      hasCornerRadius = self.borderRadius > 0
     else
-      hasCornerRadius = self.cornerRadius.topLeft > 0
-        or self.cornerRadius.topRight > 0
-        or self.cornerRadius.bottomLeft > 0
-        or self.cornerRadius.bottomRight > 0
+      hasCornerRadius = self.borderRadius.topLeft > 0
+        or self.borderRadius.topRight > 0
+        or self.borderRadius.bottomLeft > 0
+        or self.borderRadius.bottomRight > 0
     end
   end
 
@@ -229,7 +229,7 @@ function Renderer:_drawImage(
     -- Use stencil to clip image to rounded corners
     local success, err = pcall(function()
       love.graphics.stencil(function()
-        self._RoundedRect.draw("fill", x, y, borderBoxWidth, borderBoxHeight, self.cornerRadius)
+        self._RoundedRect.draw("fill", x, y, borderBoxWidth, borderBoxHeight, self.borderRadius)
       end, "replace", 1)
       love.graphics.setStencilTest("greater", 0)
     end)
@@ -238,20 +238,20 @@ function Renderer:_drawImage(
       -- Check if it's a stencil buffer error
       if err and err:match("stencil") then
         local cornerRadiusStr
-        if type(self.cornerRadius) == "number" then
-          cornerRadiusStr = tostring(self.cornerRadius)
+        if type(self.borderRadius) == "number" then
+          cornerRadiusStr = tostring(self.borderRadius)
         else
           cornerRadiusStr = string.format(
             "TL:%d TR:%d BL:%d BR:%d",
-            self.cornerRadius.topLeft,
-            self.cornerRadius.topRight,
-            self.cornerRadius.bottomLeft,
-            self.cornerRadius.bottomRight
+            self.borderRadius.topLeft,
+            self.borderRadius.topRight,
+            self.borderRadius.bottomLeft,
+            self.borderRadius.bottomRight
           )
         end
         Renderer._ErrorHandler:warn("Renderer", "IMG_001", {
-          imagePath = self.imagePath or "unknown",
-          cornerRadius = cornerRadiusStr,
+          backgroundImage = self.backgroundImage or "unknown",
+          borderRadius = cornerRadiusStr,
           error = tostring(err),
         })
         -- Continue without corner radius
@@ -264,7 +264,7 @@ function Renderer:_drawImage(
   end
 
   -- Draw the image based on repeat mode
-  if self.imageRepeat and self.imageRepeat ~= "no-repeat" then
+  if self.backgroundRepeat and self.backgroundRepeat ~= "no-repeat" then
     -- Use tiled rendering
     self._ImageRenderer.drawTiled(
       self._loadedImage,
@@ -272,7 +272,7 @@ function Renderer:_drawImage(
       imageY,
       imageWidth,
       imageHeight,
-      self.imageRepeat,
+      self.backgroundRepeat,
       finalOpacity,
       self.imageTint
     )
@@ -284,8 +284,8 @@ function Renderer:_drawImage(
       imageY,
       imageWidth,
       imageHeight,
-      self.objectFit,
-      self.objectPosition,
+      self.backgroundSize,
+      self.backgroundPosition,
       finalOpacity,
       self.imageTint
     )
@@ -392,7 +392,7 @@ function Renderer:_drawBorders(x, y, borderBoxWidth, borderBoxHeight)
       self._Color.new(self.borderColor.r, self.borderColor.g, self.borderColor.b, self.borderColor.a * self.opacity)
     love.graphics.setColor(borderColorWithOpacity:toRGBA())
     love.graphics.setLineWidth(self.border)
-    self._RoundedRect.draw("line", x, y, borderBoxWidth, borderBoxHeight, self.cornerRadius)
+    self._RoundedRect.draw("line", x, y, borderBoxWidth, borderBoxHeight, self.borderRadius)
     love.graphics.setLineWidth(1) -- Reset to default
     return
   end
@@ -412,7 +412,7 @@ function Renderer:_drawBorders(x, y, borderBoxWidth, borderBoxHeight)
   if uniformWidth then
     -- Draw complete rounded rectangle border with uniform width
     love.graphics.setLineWidth(self.border.top)
-    self._RoundedRect.draw("line", x, y, borderBoxWidth, borderBoxHeight, self.cornerRadius)
+    self._RoundedRect.draw("line", x, y, borderBoxWidth, borderBoxHeight, self.borderRadius)
     love.graphics.setLineWidth(1) -- Reset to default
   else
     -- Draw individual borders with varying widths (without rounded corners for partial/varying borders)
@@ -467,25 +467,25 @@ function Renderer:draw(element, backdropCanvas)
   if element.border ~= nil then
     self.border = element.border
   end
-  self.cornerRadius = element.cornerRadius
+  self.borderRadius = element.borderRadius
   self.themeComponent = element.themeComponent
   self.theme = element.theme or self.theme
-  self.imagePath = element.imagePath
+  self.backgroundImage = element.backgroundImage
   self.image = element.image
   if element._loadedImage ~= nil then
     self._loadedImage = element._loadedImage
   end
-  if element.objectFit ~= nil then
-    self.objectFit = element.objectFit
+  if element.backgroundSize ~= nil then
+    self.backgroundSize = element.backgroundSize
   end
-  if element.objectPosition ~= nil then
-    self.objectPosition = element.objectPosition
+  if element.backgroundPosition ~= nil then
+    self.backgroundPosition = element.backgroundPosition
   end
-  if element.imageOpacity ~= nil then
-    self.imageOpacity = element.imageOpacity
+  if element.backgroundOpacity ~= nil then
+    self.backgroundOpacity = element.backgroundOpacity
   end
-  if element.imageRepeat ~= nil then
-    self.imageRepeat = element.imageRepeat
+  if element.backgroundRepeat ~= nil then
+    self.backgroundRepeat = element.backgroundRepeat
   end
   self.imageTint = element.imageTint
   self.contentBlur = element.contentBlur
@@ -532,7 +532,7 @@ function Renderer:draw(element, backdropCanvas)
     local blurInstance = self:getBlurInstance()
     if blurInstance then
       -- Use cached blur in immediate mode if element has an ID
-      local elementId = element.id and element.id ~= "" and element.id or nil
+      local blurCacheId = element.id and element.id ~= "" and element.id or nil
       blurInstance:applyBackdropCached(
         self.backdropBlur.radius,
         element.x,
@@ -540,7 +540,7 @@ function Renderer:draw(element, backdropCanvas)
         borderBoxWidth,
         borderBoxHeight,
         backdropCanvas,
-        elementId
+        blurCacheId
       )
     end
   end
@@ -581,7 +581,7 @@ end
 ---@param element table Reference to the parent Element instance
 ---@return love.Font
 function Renderer:getFont(element)
-  return self._utils.getFont(element.textSize, element.fontFamily, element.themeComponent, element._themeManager)
+  return self._utils.getFont(element.fontSize, element.fontFamily, element.themeComponent, element._themeManager)
 end
 
 --- Wrap a line of text based on element's textWrap mode
@@ -806,22 +806,17 @@ function Renderer:drawText(element)
   end
 
   if displayText and displayText ~= "" then
-    local textColor = isPlaceholder
-        and self._Color.new(
-          element.textColor.r * 0.5,
-          element.textColor.g * 0.5,
-          element.textColor.b * 0.5,
-          element.textColor.a * 0.5
-        )
-      or element.textColor
-    local textColorWithOpacity = self._Color.new(textColor.r, textColor.g, textColor.b, textColor.a * self.opacity)
+    local color = isPlaceholder
+        and self._Color.new(element.color.r * 0.5, element.color.g * 0.5, element.color.b * 0.5, element.color.a * 0.5)
+      or element.color
+    local textColorWithOpacity = self._Color.new(color.r, color.g, color.b, color.a * self.opacity)
     love.graphics.setColor(textColorWithOpacity:toRGBA())
 
     local origFont = love.graphics.getFont()
-    if element.textSize then
+    if element.fontSize then
       -- Use cached font instead of creating new one every frame
       local font =
-        self._utils.getFont(element.textSize, element.fontFamily, element.themeComponent, element._themeManager)
+        self._utils.getFont(element.fontSize, element.fontFamily, element.themeComponent, element._themeManager)
       love.graphics.setFont(font)
     end
     local font = love.graphics.getFont()
@@ -917,7 +912,7 @@ function Renderer:drawText(element)
 
     -- Draw cursor for focused editable elements (even if text is empty)
     if element._textEditor and element._textEditor:isFocused() and element._textEditor._cursorVisible then
-      local cursorColor = element.cursorColor or element.textColor
+      local cursorColor = element.cursorColor or element.color
       local cursorWithOpacity =
         self._Color.new(cursorColor.r, cursorColor.g, cursorColor.b, cursorColor.a * self.opacity)
       love.graphics.setColor(cursorWithOpacity:toRGBA())
@@ -983,7 +978,7 @@ function Renderer:drawText(element)
       end
     end
 
-    if element.textSize then
+    if element.fontSize then
       love.graphics.setFont(origFont)
     end
   end
@@ -997,9 +992,9 @@ function Renderer:drawText(element)
   then
     -- Set up font for cursor rendering
     local origFont = love.graphics.getFont()
-    if element.textSize then
+    if element.fontSize then
       local font =
-        self._utils.getFont(element.textSize, element.fontFamily, element.themeComponent, element._themeManager)
+        self._utils.getFont(element.fontSize, element.fontFamily, element.themeComponent, element._themeManager)
       love.graphics.setFont(font)
     end
 
@@ -1019,12 +1014,12 @@ function Renderer:drawText(element)
     local contentY = element.y + textPaddingTop
 
     -- Draw cursor
-    local cursorColor = element.cursorColor or element.textColor
+    local cursorColor = element.cursorColor or element.color
     local cursorWithOpacity = self._Color.new(cursorColor.r, cursorColor.g, cursorColor.b, cursorColor.a * self.opacity)
     love.graphics.setColor(cursorWithOpacity:toRGBA())
     love.graphics.rectangle("fill", contentX, contentY, 2, textHeight)
 
-    if element.textSize then
+    if element.fontSize then
       love.graphics.setFont(origFont)
     end
   end
@@ -1265,7 +1260,7 @@ end
 ---@param borderBoxHeight number Border box height
 function Renderer:drawPressedState(x, y, borderBoxWidth, borderBoxHeight)
   love.graphics.setColor(0.5, 0.5, 0.5, 0.3 * self.opacity) -- Semi-transparent gray for pressed state with opacity
-  self._RoundedRect.draw("fill", x, y, borderBoxWidth, borderBoxHeight, self.cornerRadius)
+  self._RoundedRect.draw("fill", x, y, borderBoxWidth, borderBoxHeight, self.borderRadius)
 end
 
 --- Cleanup renderer resources

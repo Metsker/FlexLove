@@ -456,7 +456,7 @@ local function lerpColor(startColor, finalColor, easedT, ColorModule)
   return ColorModule.lerp(colorA, colorB, easedT)
 end
 
---- Helper function to interpolate table values (padding, margin, cornerRadius)
+--- Helper function to interpolate table values (padding, margin, borderRadius)
 ---@param startTable table Starting table
 ---@param finalTable table Final table
 ---@param easedT number Eased time (0-1)
@@ -714,7 +714,7 @@ function Animation:lerpKeyframes(prevFrame, nextFrame, easedT)
     x = true,
     y = true,
     gap = true,
-    imageOpacity = true,
+    backgroundOpacity = true,
     scrollbarWidth = true,
     borderWidth = true,
     fontSize = true,
@@ -724,7 +724,7 @@ function Animation:lerpKeyframes(prevFrame, nextFrame, easedT)
   local colorSet = {
     backgroundColor = true,
     borderColor = true,
-    textColor = true,
+    color = true,
     scrollbarColor = true,
     scrollbarBackgroundColor = true,
     imageTint = true,
@@ -733,7 +733,7 @@ function Animation:lerpKeyframes(prevFrame, nextFrame, easedT)
   local tableSet = {
     padding = true,
     margin = true,
-    cornerRadius = true,
+    borderRadius = true,
   }
 
   for key in pairs(keys) do
@@ -825,7 +825,7 @@ function Animation:interpolate()
     "x",
     "y",
     "gap",
-    "imageOpacity",
+    "backgroundOpacity",
     "scrollbarWidth",
     "borderWidth",
     "fontSize",
@@ -835,7 +835,7 @@ function Animation:interpolate()
   local colorProperties = {
     "backgroundColor",
     "borderColor",
-    "textColor",
+    "color",
     "scrollbarColor",
     "scrollbarBackgroundColor",
     "imageTint",
@@ -844,7 +844,7 @@ function Animation:interpolate()
   local tableProperties = {
     "padding",
     "margin",
-    "cornerRadius",
+    "borderRadius",
   }
 
   for _, prop in ipairs(numericProperties) do

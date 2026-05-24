@@ -23,16 +23,16 @@ end
 
 --- Load an image from file path with caching
 --- Returns cached image if already loaded, otherwise loads and caches it
----@param imagePath string -- Path to image file
+---@param backgroundImage string -- Path to image file
 ---@param loadImageData boolean? -- Optional: also load ImageData for pixel access (default: false)
 ---@return love.Image|nil -- Image object or nil on error
 ---@return string|nil -- Error message if loading failed
-function ImageCache.load(imagePath, loadImageData)
-  if not imagePath or type(imagePath) ~= "string" or imagePath == "" then
+function ImageCache.load(backgroundImage, loadImageData)
+  if not backgroundImage or type(backgroundImage) ~= "string" or backgroundImage == "" then
     return nil, "Invalid image path: path must be a non-empty string"
   end
 
-  local normalizedPath = utils.normalizePath(imagePath)
+  local normalizedPath = utils.normalizePath(backgroundImage)
 
   if ImageCache._cache[normalizedPath] then
     return ImageCache._cache[normalizedPath].image, nil
@@ -43,11 +43,11 @@ function ImageCache.load(imagePath, loadImageData)
     if ErrorHandler then
       ErrorHandler:warn("ImageCache", "RES_004", {
         resourceType = "image",
-        path = imagePath,
+        path = backgroundImage,
         error = tostring(imageOrError),
       })
     end
-    return nil, string.format("Failed to load image '%s': %s", imagePath, tostring(imageOrError))
+    return nil, string.format("Failed to load image '%s': %s", backgroundImage, tostring(imageOrError))
   end
 
   local image = imageOrError
@@ -60,7 +60,7 @@ function ImageCache.load(imagePath, loadImageData)
     elseif ErrorHandler then
       ErrorHandler:warn("ImageCache", "RES_004", {
         resourceType = "image data",
-        path = imagePath,
+        path = backgroundImage,
         error = tostring(dataOrError),
       })
     end
@@ -75,40 +75,40 @@ function ImageCache.load(imagePath, loadImageData)
 end
 
 --- Get a cached image without loading
----@param imagePath string -- Path to image file
+---@param backgroundImage string -- Path to image file
 ---@return love.Image|nil -- Cached image or nil if not found
-function ImageCache.get(imagePath)
-  if not imagePath or type(imagePath) ~= "string" then
+function ImageCache.get(backgroundImage)
+  if not backgroundImage or type(backgroundImage) ~= "string" then
     return nil
   end
 
-  local normalizedPath = utils.normalizePath(imagePath)
+  local normalizedPath = utils.normalizePath(backgroundImage)
   local cached = ImageCache._cache[normalizedPath]
   return cached and cached.image or nil
 end
 
 --- Get cached ImageData for an image
----@param imagePath string -- Path to image file
+---@param backgroundImage string -- Path to image file
 ---@return love.ImageData|nil -- Cached ImageData or nil if not found
-function ImageCache.getImageData(imagePath)
-  if not imagePath or type(imagePath) ~= "string" then
+function ImageCache.getImageData(backgroundImage)
+  if not backgroundImage or type(backgroundImage) ~= "string" then
     return nil
   end
 
-  local normalizedPath = utils.normalizePath(imagePath)
+  local normalizedPath = utils.normalizePath(backgroundImage)
   local cached = ImageCache._cache[normalizedPath]
   return cached and cached.imageData or nil
 end
 
 --- Remove a specific image from cache
----@param imagePath string -- Path to image file to remove
+---@param backgroundImage string -- Path to image file to remove
 ---@return boolean -- True if image was removed, false if not found
-function ImageCache.remove(imagePath)
-  if not imagePath or type(imagePath) ~= "string" then
+function ImageCache.remove(backgroundImage)
+  if not backgroundImage or type(backgroundImage) ~= "string" then
     return false
   end
 
-  local normalizedPath = utils.normalizePath(imagePath)
+  local normalizedPath = utils.normalizePath(backgroundImage)
   if ImageCache._cache[normalizedPath] then
     local cached = ImageCache._cache[normalizedPath]
     if cached.image then

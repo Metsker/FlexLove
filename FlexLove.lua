@@ -567,7 +567,7 @@ function flexlove._handleSelectPointerDismissal()
 
   if isLeftDown and not wasLeftDown then
     local mx, my = love.mouse.getPosition()
-    local target = flexlove.getElementAtPosition(mx, my)
+    local target = flexlove.elementFromPoint(mx, my)
     local openSelects = {}
 
     for _, element in ipairs(flexlove.topElements) do
@@ -589,7 +589,7 @@ end
 ---@param x number
 ---@param y number
 ---@return Element?
-function flexlove.getElementAtPosition(x, y)
+function flexlove.elementFromPoint(x, y)
   local candidates = {}
   local blockingElements = {}
 
@@ -613,9 +613,20 @@ function flexlove.getElementAtPosition(x, y)
         return
       end
 
-      if
-        (element.onEvent or element.editable or element._selectState or element.selectOption) and not element.disabled
-      then
+      local isInteractive = element.onEvent
+        or element.onClick
+        or element.onMouseDown
+        or element.onMouseUp
+        or element.onMouseEnter
+        or element.onMouseLeave
+        or element.onMouseMove
+        or element.onDrag
+        or element.onContextMenu
+        or element.onAuxClick
+        or element.editable
+        or element._selectState
+        or element.selectOption
+      if isInteractive and not element.disabled then
         table.insert(candidates, element)
       end
 
@@ -685,7 +696,7 @@ function flexlove.update(dt)
   flexlove._manageGC()
 
   local mx, my = love.mouse.getPosition()
-  local topElement = flexlove.getElementAtPosition(mx, my)
+  local topElement = flexlove.elementFromPoint(mx, my)
 
   flexlove._activeEventElement = topElement
   flexlove._handleSelectPointerDismissal()
@@ -1057,7 +1068,7 @@ end
 --- Find an element by its ID anywhere in the tree.
 ---@param id string
 ---@return Element|nil
-function flexlove.getById(id)
+function flexlove.getElementById(id)
   if not id or id == "" then
     return nil
   end

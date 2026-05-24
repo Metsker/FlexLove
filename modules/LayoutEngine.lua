@@ -80,7 +80,7 @@ function LayoutEngine.new(props, deps)
 
   -- Layout configuration
   self.positioning = props.positioning or Positioning.FLEX
-  self.flexDirection = props.flexDirection or FlexDirection.HORIZONTAL
+  self.flexDirection = props.flexDirection or FlexDirection.ROW
   self.justifyContent = props.justifyContent or JustifyContent.FLEX_START
   self.alignItems = props.alignItems or AlignItems.STRETCH
   self.alignContent = props.alignContent or AlignContent.STRETCH
@@ -462,7 +462,7 @@ function LayoutEngine:layoutChildren()
     scrollbarReservedWidth, scrollbarReservedHeight = self.element._scrollManager:getReservedSpace(self.element)
   end
 
-  if self.flexDirection == self._FlexDirection.HORIZONTAL then
+  if self.flexDirection == self._FlexDirection.ROW then
     availableMainSize = self.element.width - scrollbarReservedWidth
     availableCrossSize = self.element.height - scrollbarReservedHeight
   else
@@ -473,7 +473,7 @@ function LayoutEngine:layoutChildren()
   -- Keep percentage-sized children in sync when container dimensions change.
   -- Managed select frames rely on this so `width = "100%"` options expand with the dropdown.
   if scrollbarReservedWidth > 0 or scrollbarReservedHeight > 0 or self.element:_shouldSyncPercentageDimensions() then
-    local isHorizontal = self.flexDirection == self._FlexDirection.HORIZONTAL
+    local isHorizontal = self.flexDirection == self._FlexDirection.ROW
     for _, child in ipairs(flexChildren) do
       if isHorizontal then
         -- Horizontal flex: main-axis is width, cross-axis is height
@@ -536,7 +536,7 @@ function LayoutEngine:layoutChildren()
     local currentLineSize = 0
 
     -- Performance optimization: hoist enum comparisons outside loop
-    local isHorizontal = self.flexDirection == self._FlexDirection.HORIZONTAL
+    local isHorizontal = self.flexDirection == self._FlexDirection.ROW
     local gapSize = self.gap
     local viewportWidth, viewportHeight = self._Units.getViewport()
 
@@ -610,7 +610,7 @@ function LayoutEngine:layoutChildren()
 
   -- Apply flex sizing to each line BEFORE calculating line heights
   -- Performance optimization: hoist enum comparison outside loop
-  local isHorizontal = self.flexDirection == self._FlexDirection.HORIZONTAL
+  local isHorizontal = self.flexDirection == self._FlexDirection.ROW
   local mainAxisOverflow = nil
   if isHorizontal then
     mainAxisOverflow = self.element.overflowX or self.element.overflow
@@ -675,7 +675,7 @@ function LayoutEngine:layoutChildren()
   local totalLinesHeight = 0
 
   -- Performance optimization: hoist enum comparison outside loop (already hoisted above)
-  -- local isHorizontal = self.flexDirection == self._FlexDirection.HORIZONTAL
+  -- local isHorizontal = self.flexDirection == self._FlexDirection.ROW
 
   for lineIndex, line in ipairs(lines) do
     local maxCrossSize = 0
@@ -761,7 +761,7 @@ function LayoutEngine:layoutChildren()
     -- Calculate total size of children in this line (including padding and margins)
     -- BORDER-BOX MODEL: Use border-box dimensions for layout calculations
     -- Performance optimization: hoist flexDirection check outside loop
-    local isHorizontal = self.flexDirection == self._FlexDirection.HORIZONTAL
+    local isHorizontal = self.flexDirection == self._FlexDirection.ROW
     local totalChildrenSize = 0
     for _, child in ipairs(line) do
       local childMargin = child.margin
@@ -833,7 +833,7 @@ function LayoutEngine:layoutChildren()
         effectiveAlign = alignItems
       end
 
-      if self.flexDirection == self._FlexDirection.HORIZONTAL then
+      if self.flexDirection == self._FlexDirection.ROW then
         -- Horizontal layout: main axis is X, cross axis is Y
         -- Position child at border box (x, y represents top-left including padding)
         -- CSS-compliant: absolute children don't affect flex positioning, so no reserved space offset
@@ -1037,7 +1037,7 @@ function LayoutEngine:calculateAutoWidth()
     return contentWidth
   end
 
-  local isHorizontal = self.flexDirection == self._FlexDirection.HORIZONTAL
+  local isHorizontal = self.flexDirection == self._FlexDirection.ROW
 
   if isHorizontal then
     -- HORIZONTAL flex with potential wrapping
@@ -1120,7 +1120,7 @@ function LayoutEngine:calculateAutoHeight()
     return height
   end
 
-  local isVertical = self.flexDirection == self._FlexDirection.VERTICAL
+  local isVertical = self.flexDirection == self._FlexDirection.COLUMN
 
   if isVertical then
     -- VERTICAL flex with potential wrapping
@@ -1302,62 +1302,62 @@ function LayoutEngine:recalculateUnits(newViewportWidth, newViewportHeight)
     end
   end
 
-  -- Recalculate textSize if auto-scaling is enabled or using viewport/element-relative units
-  if self.element.autoScaleText and self.element.units.textSize.value then
-    local unit = self.element.units.textSize.unit
-    local value = self.element.units.textSize.value
+  -- Recalculate fontSize if auto-scaling is enabled or using viewport/element-relative units
+  if self.element.autoScaleFont and self.element.units.fontSize.value then
+    local unit = self.element.units.fontSize.unit
+    local value = self.element.units.fontSize.value
 
     if unit == "px" and self._Context.baseScale then
       -- With base scaling: scale pixel values relative to base resolution
-      self.element.textSize = value * scaleY
+      self.element.fontSize = value * scaleY
     elseif unit == "px" then
       -- Without base scaling but auto-scaling enabled: text doesn't scale
-      self.element.textSize = value
+      self.element.fontSize = value
     elseif unit == "%" or unit == "vh" then
       -- Percentage and vh are relative to viewport height
-      self.element.textSize = Units.resolve(value, unit, newViewportWidth, newViewportHeight, newViewportHeight)
+      self.element.fontSize = Units.resolve(value, unit, newViewportWidth, newViewportHeight, newViewportHeight)
     elseif unit == "vw" then
       -- vw is relative to viewport width
-      self.element.textSize = Units.resolve(value, unit, newViewportWidth, newViewportHeight, newViewportWidth)
+      self.element.fontSize = Units.resolve(value, unit, newViewportWidth, newViewportHeight, newViewportWidth)
     else
-      self.element.textSize = Units.resolve(value, unit, newViewportWidth, newViewportHeight, nil)
+      self.element.fontSize = Units.resolve(value, unit, newViewportWidth, newViewportHeight, nil)
     end
 
     -- Apply min/max constraints (with base scaling)
-    local minSize = self.element.minTextSize
-      and (self._Context.baseScale and (self.element.minTextSize * scaleY) or self.element.minTextSize)
-    local maxSize = self.element.maxTextSize
-      and (self._Context.baseScale and (self.element.maxTextSize * scaleY) or self.element.maxTextSize)
+    local minSize = self.element.minFontSize
+      and (self._Context.baseScale and (self.element.minFontSize * scaleY) or self.element.minFontSize)
+    local maxSize = self.element.maxFontSize
+      and (self._Context.baseScale and (self.element.maxFontSize * scaleY) or self.element.maxFontSize)
 
-    if minSize and self.element.textSize < minSize then
-      self.element.textSize = minSize
+    if minSize and self.element.fontSize < minSize then
+      self.element.fontSize = minSize
     end
-    if maxSize and self.element.textSize > maxSize then
-      self.element.textSize = maxSize
+    if maxSize and self.element.fontSize > maxSize then
+      self.element.fontSize = maxSize
     end
 
     -- Protect against too-small text sizes (minimum 1px)
-    if self.element.textSize < 1 then
-      self.element.textSize = 1 -- Minimum 1px
+    if self.element.fontSize < 1 then
+      self.element.fontSize = 1 -- Minimum 1px
     end
-  elseif self.element.units.textSize.unit == "px" and self.element.units.textSize.value and self._Context.baseScale then
+  elseif self.element.units.fontSize.unit == "px" and self.element.units.fontSize.value and self._Context.baseScale then
     -- No auto-scaling but base scaling is set: reapply base scaling to pixel text sizes
-    self.element.textSize = self.element.units.textSize.value * scaleY
+    self.element.fontSize = self.element.units.fontSize.value * scaleY
 
     -- Protect against too-small text sizes (minimum 1px)
-    if self.element.textSize < 1 then
-      self.element.textSize = 1 -- Minimum 1px
+    if self.element.fontSize < 1 then
+      self.element.fontSize = 1 -- Minimum 1px
     end
   end
 
-  -- Final protection: ensure textSize is always at least 1px (catches all edge cases)
-  if self.element.text and self.element.textSize and self.element.textSize < 1 then
-    self.element.textSize = 1 -- Minimum 1px
+  -- Final protection: ensure fontSize is always at least 1px (catches all edge cases)
+  if self.element.text and self.element.fontSize and self.element.fontSize < 1 then
+    self.element.fontSize = 1 -- Minimum 1px
   end
 
   -- Recalculate gap if using viewport or percentage units
   if self.element.units.gap.unit ~= "px" then
-    local containerSize = (self.flexDirection == self._FlexDirection.HORIZONTAL)
+    local containerSize = (self.flexDirection == self._FlexDirection.ROW)
         and (self.element.parent and self.element.parent.width or newViewportWidth)
       or (self.element.parent and self.element.parent.height or newViewportHeight)
     self.element.gap = Units.resolve(
@@ -1379,7 +1379,7 @@ function LayoutEngine:recalculateUnits(newViewportWidth, newViewportHeight)
     -- flexBasis uses parent main-axis size for percentage resolution.
     local parentMainIsHorizontal = true
     if self.element.parent and self.element.parent.flexDirection then
-      parentMainIsHorizontal = self.element.parent.flexDirection == self._FlexDirection.HORIZONTAL
+      parentMainIsHorizontal = self.element.parent.flexDirection == self._FlexDirection.ROW
     end
     local parentSize = newViewportWidth
     if self.element.parent then

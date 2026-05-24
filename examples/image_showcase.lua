@@ -20,7 +20,7 @@ function lv.draw()
     width = "100vw",
     height = "100vh",
     display = "flex",
-    flexDirection = "vertical",
+    flexDirection = "column",
     gap = 20,
     backgroundColor = Color.new(0.95, 0.95, 0.95, 1),
     overflow = "scroll",
@@ -31,8 +31,8 @@ function lv.draw()
   FlexLove.new({
     parent = container,
     text = "FlexLove Image Showcase",
-    textSize = "xxl",
-    textColor = Color.new(0.2, 0.2, 0.2, 1),
+    fontSize = "xxl",
+    color = Color.new(0.2, 0.2, 0.2, 1),
     textAlign = "center",
     textWrap = "word",
     width = "100%",
@@ -44,15 +44,15 @@ function lv.draw()
   local fitSection = FlexLove.new({
     parent = container,
     width = "100%",
-    flexDirection = "vertical",
+    flexDirection = "column",
     gap = 10,
   })
 
   FlexLove.new({
     parent = fitSection,
     text = "Object-Fit Modes",
-    textSize = "lg",
-    textColor = Color.new(0.3, 0.3, 0.3, 1),
+    fontSize = "lg",
+    color = Color.new(0.3, 0.3, 0.3, 1),
     textWrap = "word",
     width = "100%",
     z = 1000,
@@ -63,7 +63,7 @@ function lv.draw()
     parent = fitSection,
     width = "100%",
     display = "flex",
-    flexDirection = "horizontal",
+    flexDirection = "row",
     gap = 15,
     justifyContent = "space-between",
     alignItems = "flex-start",
@@ -86,10 +86,10 @@ function lv.draw()
       width = size.width,
       height = size.height,
       display = "flex",
-      flexDirection = "vertical",
+      flexDirection = "column",
       gap = 5,
       backgroundColor = Color.new(1, 1, 1, 1),
-      cornerRadius = 8,
+      borderRadius = 8,
       padding = { top = 10, right = 10, bottom = 10, left = 10 },
     })
 
@@ -98,15 +98,15 @@ function lv.draw()
       width = size.imgWidth,
       height = size.imgHeight,
       backgroundColor = Color.new(0.9, 0.9, 0.9, 1),
-      imagePath = "sample.jpg",
-      objectFit = mode,
+      backgroundImage = "sample.jpg",
+      backgroundSize = mode,
     })
 
     FlexLove.new({
       parent = fitBox,
       text = mode,
-      textSize = "sm",
-      textColor = Color.new(0.4, 0.4, 0.4, 1),
+      fontSize = "sm",
+      color = Color.new(0.4, 0.4, 0.4, 1),
       textAlign = "center",
       textWrap = "word",
       width = "100%",
@@ -119,15 +119,15 @@ function lv.draw()
   local posSection = FlexLove.new({
     parent = container,
     width = "100%",
-    flexDirection = "vertical",
+    flexDirection = "column",
     gap = 10,
   })
 
   FlexLove.new({
     parent = posSection,
     text = "Object-Position",
-    textSize = "lg",
-    textColor = Color.new(0.3, 0.3, 0.3, 1),
+    fontSize = "lg",
+    color = Color.new(0.3, 0.3, 0.3, 1),
     textWrap = "word",
     width = "100%",
     z = 1000,
@@ -138,7 +138,7 @@ function lv.draw()
     parent = posSection,
     width = "100%",
     display = "flex",
-    flexDirection = "horizontal",
+    flexDirection = "row",
     gap = 15,
     justifyContent = "space-between",
     alignItems = "flex-start",
@@ -161,10 +161,10 @@ function lv.draw()
       width = size.width,
       height = size.height,
       display = "flex",
-      flexDirection = "vertical",
+      flexDirection = "column",
       gap = 5,
       backgroundColor = Color.new(1, 1, 1, 1),
-      cornerRadius = 8,
+      borderRadius = 8,
       padding = { top = 10, right = 10, bottom = 10, left = 10 },
     })
 
@@ -173,16 +173,16 @@ function lv.draw()
       width = size.imgWidth,
       height = size.imgHeight,
       backgroundColor = Color.new(0.9, 0.9, 0.9, 1),
-      imagePath = "sample.jpg",
-      objectFit = "none",
-      objectPosition = pos,
+      backgroundImage = "sample.jpg",
+      backgroundSize = "none",
+      backgroundPosition = pos,
     })
 
     FlexLove.new({
       parent = posBox,
       text = pos,
-      textSize = "xs",
-      textColor = Color.new(0.4, 0.4, 0.4, 1),
+      fontSize = "xs",
+      color = Color.new(0.4, 0.4, 0.4, 1),
       textAlign = "center",
       textWrap = "word",
       width = "100%",
@@ -195,15 +195,15 @@ function lv.draw()
   local tileSection = FlexLove.new({
     parent = container,
     width = "100%",
-    flexDirection = "vertical",
+    flexDirection = "column",
     gap = 10,
   })
 
   FlexLove.new({
     parent = tileSection,
     text = "Image Tiling (Repeat Modes)",
-    textSize = "lg",
-    textColor = Color.new(0.3, 0.3, 0.3, 1),
+    fontSize = "lg",
+    color = Color.new(0.3, 0.3, 0.3, 1),
     textWrap = "word",
     width = "100%",
     z = 1000,
@@ -214,7 +214,7 @@ function lv.draw()
     parent = tileSection,
     width = "100%",
     display = "flex",
-    flexDirection = "horizontal",
+    flexDirection = "row",
     gap = 20,
     justifyContent = "space-between",
     alignItems = "flex-start",
@@ -236,10 +236,10 @@ function lv.draw()
       width = size.width,
       height = size.height,
       display = "flex",
-      flexDirection = "vertical",
+      flexDirection = "column",
       gap = 5,
       backgroundColor = Color.new(1, 1, 1, 1),
-      cornerRadius = 8,
+      borderRadius = 8,
       padding = { top = 10, right = 10, bottom = 10, left = 10 },
     })
 
@@ -248,15 +248,15 @@ function lv.draw()
       width = size.imgWidth,
       height = size.imgHeight,
       backgroundColor = Color.new(0.9, 0.9, 0.9, 1),
-      imagePath = "sample.jpg",
-      imageRepeat = mode,
+      backgroundImage = "sample.jpg",
+      backgroundRepeat = mode,
     })
 
     FlexLove.new({
       parent = tileBox,
       text = mode,
-      textSize = "sm",
-      textColor = Color.new(0.4, 0.4, 0.4, 1),
+      fontSize = "sm",
+      color = Color.new(0.4, 0.4, 0.4, 1),
       textAlign = "center",
       textWrap = "word",
       width = "100%",
@@ -269,15 +269,15 @@ function lv.draw()
   local tintSection = FlexLove.new({
     parent = container,
     width = "100%",
-    flexDirection = "vertical",
+    flexDirection = "column",
     gap = 10,
   })
 
   FlexLove.new({
     parent = tintSection,
     text = "Image Tinting & Opacity",
-    textSize = "lg",
-    textColor = Color.new(0.3, 0.3, 0.3, 1),
+    fontSize = "lg",
+    color = Color.new(0.3, 0.3, 0.3, 1),
     textWrap = "word",
     width = "100%",
     z = 1000,
@@ -288,7 +288,7 @@ function lv.draw()
     parent = tintSection,
     width = "100%",
     display = "flex",
-    flexDirection = "horizontal",
+    flexDirection = "row",
     gap = 15,
     justifyContent = "space-between",
     alignItems = "flex-start",
@@ -318,10 +318,10 @@ function lv.draw()
       width = size.width,
       height = size.height,
       display = "flex",
-      flexDirection = "vertical",
+      flexDirection = "column",
       gap = 5,
       backgroundColor = Color.new(1, 1, 1, 1),
-      cornerRadius = 8,
+      borderRadius = 8,
       padding = { top = 10, right = 10, bottom = 10, left = 10 },
     })
 
@@ -330,16 +330,16 @@ function lv.draw()
       width = size.imgWidth,
       height = size.imgHeight,
       backgroundColor = Color.new(0.9, 0.9, 0.9, 1),
-      imagePath = "sample.jpg",
+      backgroundImage = "sample.jpg",
       imageTint = tint.color,
-      imageOpacity = tint.opacity,
+      backgroundOpacity = tint.opacity,
     })
 
     FlexLove.new({
       parent = tintBox,
       text = tint.name,
-      textSize = "xs",
-      textColor = Color.new(0.4, 0.4, 0.4, 1),
+      fontSize = "xs",
+      color = Color.new(0.4, 0.4, 0.4, 1),
       textAlign = "center",
       textWrap = "word",
       width = "100%",
@@ -352,8 +352,8 @@ function lv.draw()
   FlexLove.new({
     parent = container,
     text = "Image showcase demonstrating various FlexLove image properties",
-    textSize = "xs",
-    textColor = Color.new(0.5, 0.5, 0.5, 1),
+    fontSize = "xs",
+    color = Color.new(0.5, 0.5, 0.5, 1),
     textAlign = "center",
     textWrap = "word",
     width = "100%",

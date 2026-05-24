@@ -6,7 +6,7 @@ local enums = {
   ---@enum Positioning
   Positioning = { ABSOLUTE = "absolute", RELATIVE = "relative", FLEX = "flex", GRID = "grid" },
   ---@enum FlexDirection
-  FlexDirection = { HORIZONTAL = "horizontal", VERTICAL = "vertical", ROW = "row", COLUMN = "column" },
+  FlexDirection = { ROW = "row", COLUMN = "column" },
   ---@enum JustifyContent
   JustifyContent = {
     FLEX_START = "flex-start",
@@ -344,12 +344,12 @@ function FONT_CACHE.get(size, fontPath)
 end
 
 --- Get font for text size (cached)
----@param textSize number?
+---@param fontSize number?
 ---@param fontPath string?
 ---@return love.Font
-function FONT_CACHE.getFont(textSize, fontPath)
-  if textSize then
-    return FONT_CACHE.get(textSize, fontPath)
+function FONT_CACHE.getFont(fontSize, fontPath)
+  if fontSize then
+    return FONT_CACHE.get(fontSize, fontPath)
   else
     return love.graphics.getFont()
   end
@@ -380,14 +380,14 @@ local function resolveFontPath(fontFamily, themeComponent, themeManager)
 end
 
 --- Get font for element (resolves from theme or fontFamily)
----@param textSize number? Text size in pixels
+---@param fontSize number? Text size in pixels
 ---@param fontFamily string? Font family name or direct path
 ---@param themeComponent string? Theme component name
 ---@param themeManager table? ThemeManager instance
 ---@return love.Font
-local function getFont(textSize, fontFamily, themeComponent, themeManager)
+local function getFont(fontSize, fontFamily, themeComponent, themeManager)
   local fontPath = resolveFontPath(fontFamily, themeComponent, themeManager)
-  return FONT_CACHE.getFont(textSize, fontPath)
+  return FONT_CACHE.getFont(fontSize, fontPath)
 end
 
 --- Apply content auto-sizing multiplier to a dimension
@@ -550,19 +550,19 @@ end
 
 --- Safely load an image with error handling
 --- Returns both Image and ImageData to avoid deprecated getData() API
----@param imagePath string Path to image file
+---@param backgroundImage string Path to image file
 ---@return love.Image?, love.ImageData?, string? Returns image, imageData, or nil with error message
-local function safeLoadImage(imagePath)
+local function safeLoadImage(backgroundImage)
   local success, imageData = pcall(function()
-    return love.image.newImageData(imagePath)
+    return love.image.newImageData(backgroundImage)
   end)
 
   if not success then
-    local errorMsg = string.format("Failed to load image data: %s - %s", imagePath, tostring(imageData))
+    local errorMsg = string.format("Failed to load image data: %s - %s", backgroundImage, tostring(imageData))
     if ErrorHandler then
       ErrorHandler:warn("utils", "RES_004", {
         resourceType = "image data",
-        path = imagePath,
+        path = backgroundImage,
         error = tostring(imageData),
       })
     end
@@ -576,11 +576,11 @@ local function safeLoadImage(imagePath)
   if imageSuccess then
     return image, imageData, nil
   else
-    local errorMsg = string.format("Failed to create image: %s - %s", imagePath, tostring(image))
+    local errorMsg = string.format("Failed to create image: %s - %s", backgroundImage, tostring(image))
     if ErrorHandler then
       ErrorHandler:warn("utils", "RES_004", {
         resourceType = "image",
-        path = imagePath,
+        path = backgroundImage,
         error = tostring(image),
       })
     end

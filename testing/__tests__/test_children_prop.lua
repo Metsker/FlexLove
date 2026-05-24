@@ -343,13 +343,13 @@ function TestChildrenPropIntegration:test_issue5_style_grid_example()
     width = 400,
     height = 300,
     positioning = "flex",
-    flexDirection = "vertical",
+    flexDirection = "column",
     gap = 8,
     padding = { horizontal = 16, vertical = 16 },
     children = {
       {
         text = "BILLS",
-        textSize = 32,
+        fontSize = 32,
         textAlign = "start",
         width = "100%",
       },
@@ -409,7 +409,7 @@ function TestChildrenPropIntegration:test_children_with_flex_properties()
     width = 300,
     height = 200,
     positioning = "flex",
-    flexDirection = "horizontal",
+    flexDirection = "row",
     children = {
       { width = 100, height = 100, flexGrow = 1 },
       { width = 100, height = 100, flexGrow = 2 },

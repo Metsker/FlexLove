@@ -26,7 +26,7 @@ function TestScrollbarPlacement:test_reserve_space_with_percentage_height_childr
     width = 200,
     height = 200,
     positioning = "flex",
-    flexDirection = "horizontal",
+    flexDirection = "row",
     overflow = "scroll", -- Always shows scrollbars
     scrollbarPlacement = "reserve-space",
   })
@@ -90,7 +90,7 @@ function TestScrollbarPlacement:test_overlay_mode_no_size_adjustment()
     width = 200,
     height = 200,
     positioning = "flex",
-    flexDirection = "horizontal",
+    flexDirection = "row",
     overflow = "scroll",
     scrollbarPlacement = "overlay",
   })
@@ -206,7 +206,7 @@ function TestScrollbarPlacement:test_scrollbar_balance_horizontal()
     width = 200,
     height = 200,
     positioning = "flex",
-    flexDirection = "horizontal",
+    flexDirection = "row",
     overflow = "scroll",
     scrollbarPlacement = "reserve-space",
     scrollbarBalance = true,

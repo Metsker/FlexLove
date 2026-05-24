@@ -35,7 +35,7 @@ function SliderExample:create_slider(parent, label, min, max, initial_value, dis
     width = "100%",
     height = "5vh",
     display = "flex",
-    flexDirection = "horizontal",
+    flexDirection = "row",
     justifyContent = "space-between",
     alignItems = "center",
     gap = 10,
@@ -46,7 +46,7 @@ function SliderExample:create_slider(parent, label, min, max, initial_value, dis
     parent = row,
     text = label,
     textAlign = "start",
-    textSize = "md",
+    fontSize = "md",
     width = "30%",
   })
 
@@ -55,7 +55,7 @@ function SliderExample:create_slider(parent, label, min, max, initial_value, dis
     width = "50%",
     height = "100%",
     display = "flex",
-    flexDirection = "horizontal",
+    flexDirection = "row",
     alignItems = "center",
     gap = 5,
   })
@@ -83,7 +83,7 @@ function SliderExample:create_slider(parent, label, min, max, initial_value, dis
     width = "80%",
     height = "75%",
     display = "flex",
-    flexDirection = "horizontal",
+    flexDirection = "row",
     themeComponent = "framev3",
     onEvent = function(elem, event)
       convert_x_to_percentage(event.x, elem.x, elem.width)
@@ -104,7 +104,7 @@ function SliderExample:create_slider(parent, label, min, max, initial_value, dis
     parent = slider_container,
     text = string.format("%d", value * display_multiplier),
     textAlign = "center",
-    textSize = "md",
+    fontSize = "md",
     width = "15%",
   })
 end
@@ -119,7 +119,7 @@ function SliderExample:render_example()
     height = "80%",
     themeComponent = "framev3",
     display = "flex",
-    flexDirection = "vertical",
+    flexDirection = "column",
     justifySelf = "center",
     justifyContent = "flex-start",
     alignItems = "center",
@@ -132,7 +132,7 @@ function SliderExample:render_example()
     parent = window,
     text = "Slider Example",
     textAlign = "center",
-    textSize = "3xl",
+    fontSize = "3xl",
     width = "100%",
     margin = { top = "-4%", bottom = "4%" },
   })
@@ -143,7 +143,7 @@ function SliderExample:render_example()
     width = "100%",
     height = "100%",
     display = "flex",
-    flexDirection = "vertical",
+    flexDirection = "column",
     padding = { top = "4%" },
     gap = 20,
   })

@@ -522,24 +522,24 @@ function TestImageRendererElementIntegration:setUp()
 end
 
 function TestImageRendererElementIntegration:testElementImageRepeatProperty()
-  -- Test that Element accepts imageRepeat property
+  -- Test that Element accepts backgroundRepeat property
   local element = self.Flexlove.new({
     width = 200,
     height = 200,
-    imageRepeat = "repeat",
+    backgroundRepeat = "repeat",
   })
 
-  luaunit.assertEquals(element.imageRepeat, "repeat")
+  luaunit.assertEquals(element.backgroundRepeat, "repeat")
 end
 
 function TestImageRendererElementIntegration:testElementImageRepeatDefault()
-  -- Test that imageRepeat defaults to "no-repeat"
+  -- Test that backgroundRepeat defaults to "no-repeat"
   local element = self.Flexlove.new({
     width = 200,
     height = 200,
   })
 
-  luaunit.assertEquals(element.imageRepeat, "no-repeat")
+  luaunit.assertEquals(element.backgroundRepeat, "no-repeat")
 end
 
 function TestImageRendererElementIntegration:testElementSetImageRepeat()
@@ -550,7 +550,7 @@ function TestImageRendererElementIntegration:testElementSetImageRepeat()
   })
 
   element:setImageRepeat("repeat-x")
-  luaunit.assertEquals(element.imageRepeat, "repeat-x")
+  luaunit.assertEquals(element.backgroundRepeat, "repeat-x")
 end
 
 function TestImageRendererElementIntegration:testElementImageTintProperty()
@@ -586,7 +586,7 @@ function TestImageRendererElementIntegration:testElementSetImageOpacity()
   })
 
   element:setImageOpacity(0.7)
-  luaunit.assertEquals(element.imageOpacity, 0.7)
+  luaunit.assertEquals(element.backgroundOpacity, 0.7)
 end
 
 if not _G.RUNNING_ALL_TESTS then

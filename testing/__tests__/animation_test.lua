@@ -1135,12 +1135,12 @@ function TestAnimationProperties:test_color_animation_multiple_colors()
     start = {
       backgroundColor = Color.new(1, 0, 0, 1),
       borderColor = Color.new(0, 1, 0, 1),
-      textColor = Color.new(0, 0, 1, 1),
+      color = Color.new(0, 0, 1, 1),
     },
     final = {
       backgroundColor = Color.new(0, 1, 0, 1),
       borderColor = Color.new(0, 0, 1, 1),
-      textColor = Color.new(1, 0, 0, 1),
+      color = Color.new(1, 0, 0, 1),
     },
   })
 
@@ -1149,7 +1149,7 @@ function TestAnimationProperties:test_color_animation_multiple_colors()
 
   luaunit.assertNotNil(result.backgroundColor)
   luaunit.assertNotNil(result.borderColor)
-  luaunit.assertNotNil(result.textColor)
+  luaunit.assertNotNil(result.color)
 
   -- Mid-point should be (0.5, 0.5, 0.5) for backgroundColor
   luaunit.assertAlmostEquals(result.backgroundColor.r, 0.5, 0.01)
@@ -1187,14 +1187,14 @@ end
 function TestAnimationProperties:test_numeric_animation_image_opacity()
   local anim = Animation.new({
     duration = 1,
-    start = { imageOpacity = 0 },
-    final = { imageOpacity = 1 },
+    start = { backgroundOpacity = 0 },
+    final = { backgroundOpacity = 1 },
   })
 
   anim:update(0.5)
   local result = anim:interpolate()
 
-  luaunit.assertAlmostEquals(result.imageOpacity, 0.5, 0.01)
+  luaunit.assertAlmostEquals(result.backgroundOpacity, 0.5, 0.01)
 end
 
 function TestAnimationProperties:test_numeric_animation_border_width()
@@ -1226,19 +1226,19 @@ end
 function TestAnimationProperties:test_numeric_animation_multiple_properties()
   local anim = Animation.new({
     duration = 1,
-    start = { gap = 0, imageOpacity = 0, borderWidth = 1 },
-    final = { gap = 20, imageOpacity = 1, borderWidth = 5 },
+    start = { gap = 0, backgroundOpacity = 0, borderWidth = 1 },
+    final = { gap = 20, backgroundOpacity = 1, borderWidth = 5 },
   })
 
   anim:update(0.5)
   local result = anim:interpolate()
 
   luaunit.assertAlmostEquals(result.gap, 10, 0.01)
-  luaunit.assertAlmostEquals(result.imageOpacity, 0.5, 0.01)
+  luaunit.assertAlmostEquals(result.backgroundOpacity, 0.5, 0.01)
   luaunit.assertAlmostEquals(result.borderWidth, 3, 0.01)
 end
 
--- Test Table Property Animation (padding, margin, cornerRadius)
+-- Test Table Property Animation (padding, margin, borderRadius)
 function TestAnimationProperties:test_table_animation_padding()
   local anim = Animation.new({
     duration = 1,
@@ -1274,16 +1274,16 @@ end
 function TestAnimationProperties:test_table_animation_corner_radius()
   local anim = Animation.new({
     duration = 1,
-    start = { cornerRadius = { topLeft = 0, topRight = 0, bottomLeft = 0, bottomRight = 0 } },
-    final = { cornerRadius = { topLeft = 10, topRight = 10, bottomLeft = 10, bottomRight = 10 } },
+    start = { borderRadius = { topLeft = 0, topRight = 0, bottomLeft = 0, bottomRight = 0 } },
+    final = { borderRadius = { topLeft = 10, topRight = 10, bottomLeft = 10, bottomRight = 10 } },
   })
 
   anim:update(0.5)
   local result = anim:interpolate()
 
-  luaunit.assertNotNil(result.cornerRadius)
-  luaunit.assertAlmostEquals(result.cornerRadius.topLeft, 5, 0.01)
-  luaunit.assertAlmostEquals(result.cornerRadius.topRight, 5, 0.01)
+  luaunit.assertNotNil(result.borderRadius)
+  luaunit.assertAlmostEquals(result.borderRadius.topLeft, 5, 0.01)
+  luaunit.assertAlmostEquals(result.borderRadius.topRight, 5, 0.01)
 end
 
 function TestAnimationProperties:test_table_animation_partial_keys()

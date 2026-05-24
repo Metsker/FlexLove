@@ -1,0 +1,24 @@
+std = "love"
+
+[rules]
+# Type-declaration tables (e.g. `local ElementProps = {}`) intentionally unused.
+# Prefix with `_` if you want to silence per-call.
+unused_variable = "allow"
+
+# Pre-existing patterns: branches with identical bodies for clarity / defensive
+# parity. Reactivate when refactoring those sites.
+if_same_then_else = "allow"
+
+# LuaJIT `continue` and Lua 5.2+ `goto :label:` are used in a few hot loops.
+# selene 0.30's lua51 parser flags them; we ship targeting 5.1+, LuaJIT, and 5.4.
+parse_error = "allow"
+
+shadowing = "warn"
+multiple_statements = "allow"
+empty_if = "allow"
+mixed_table = "allow"
+parenthese_conditions = "allow"
+divide_by_zero = "allow"
+manual_table_clone = "allow"
+high_cyclomatic_complexity = "allow"
+incorrect_standard_library_use = "warn"

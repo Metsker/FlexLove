@@ -72,7 +72,7 @@ end
 function TestDisplayLayout:test_display_none_child_takes_no_space_in_flex()
   local parent = FlexLove.new({
     display = "flex",
-    flexDirection = "horizontal",
+    flexDirection = "row",
     width = 500,
     height = 100,
     children = {
@@ -93,7 +93,7 @@ end
 function TestDisplayLayout:test_display_none_toggling_at_runtime()
   local parent = FlexLove.new({
     display = "flex",
-    flexDirection = "horizontal",
+    flexDirection = "row",
     width = 300,
     height = 100,
     children = {

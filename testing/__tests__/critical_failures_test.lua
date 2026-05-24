@@ -116,7 +116,7 @@ function TestCriticalFailures:test_flex_overflow_positioning()
     width = 100,
     height = 100,
     positioning = "flex",
-    flexDirection = "horizontal",
+    flexDirection = "row",
     flexWrap = "nowrap",
   })
 
@@ -224,7 +224,7 @@ function TestCriticalFailures:test_image_path_special_characters()
     FlexLove.new({
       width = 100,
       height = 100,
-      imagePath = "../../../etc/passwd", -- Path traversal attempt
+      backgroundImage = "../../../etc/passwd", -- Path traversal attempt
     })
   end)
 
@@ -407,7 +407,7 @@ function TestCriticalFailures:test_ninepatch_padding_nil_dereference()
     components = {
       container = {
         ninePatch = {
-          imagePath = "themes/metal.lua", -- Invalid path to trigger edge case
+          backgroundImage = "themes/metal.lua", -- Invalid path to trigger edge case
           contentPadding = { top = 10, left = 10, right = 10, bottom = 10 },
         },
       },
@@ -445,7 +445,7 @@ function TestCriticalFailures:test_malformed_ninepatch_data()
       components = {
         container = {
           ninePatch = {
-            -- Missing imagePath
+            -- Missing backgroundImage
             contentPadding = { top = 10, left = 10 }, -- Incomplete padding
           },
         },
@@ -480,7 +480,7 @@ function TestCriticalFailures:test_scroll_overflow_immediate_mode_integration()
       height = 150,
       overflow = "scroll",
       positioning = "flex",
-      flexDirection = "vertical",
+      flexDirection = "column",
     })
 
     -- Add children that exceed container height
@@ -541,7 +541,7 @@ function TestCriticalFailures:test_nested_flex_conflicting_alignment()
     width = 400,
     height = 400,
     positioning = "flex",
-    flexDirection = "vertical",
+    flexDirection = "column",
     alignItems = "stretch",
     justifyContent = "center",
   })
@@ -551,7 +551,7 @@ function TestCriticalFailures:test_nested_flex_conflicting_alignment()
     height = 200,
     -- Auto width (should stretch)
     positioning = "flex",
-    flexDirection = "horizontal",
+    flexDirection = "row",
     alignItems = "flex-end",
     justifyContent = "space-between",
   })
@@ -606,7 +606,7 @@ function TestCriticalFailures:test_image_resize_during_load()
   local element = FlexLove.new({
     width = 100,
     height = 100,
-    imagePath = "nonexistent.png", -- Won't load, but should handle gracefully
+    backgroundImage = "nonexistent.png", -- Won't load, but should handle gracefully
   })
 
   FlexLove.resize()

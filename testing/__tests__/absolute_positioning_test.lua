@@ -96,7 +96,7 @@ function TestAbsolutePositioning:testAbsoluteDoesNotAffectFlexLayout()
   -- Create a flex parent
   local parent = FlexLove.new({
     positioning = "flex",
-    flexDirection = "horizontal",
+    flexDirection = "row",
     width = 400,
     height = 400,
   })
@@ -230,7 +230,7 @@ end
 function TestAbsolutePositioning:testExplicitlyAbsoluteFlagIsSet()
   local parent = FlexLove.new({
     positioning = "flex",
-    flexDirection = "horizontal",
+    flexDirection = "row",
     width = 400,
     height = 400,
   })

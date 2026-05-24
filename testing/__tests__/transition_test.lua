@@ -127,12 +127,12 @@ function TestSetTransitionGroup:test_setTransitionGroup_applies_to_all_propertie
   el:setTransitionGroup("colors", { duration = 0.3 }, {
     "backgroundColor",
     "borderColor",
-    "textColor",
+    "color",
   })
 
   luaunit.assertNotNil(el.transitions.backgroundColor)
   luaunit.assertNotNil(el.transitions.borderColor)
-  luaunit.assertNotNil(el.transitions.textColor)
+  luaunit.assertNotNil(el.transitions.color)
   luaunit.assertEquals(el.transitions.backgroundColor.duration, 0.3)
 end
 

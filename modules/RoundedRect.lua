@@ -5,10 +5,10 @@ local RoundedRect = {}
 ---@param y number
 ---@param width number
 ---@param height number
----@param cornerRadius {topLeft:number, topRight:number, bottomLeft:number, bottomRight:number}|number
+---@param borderRadius {topLeft:number, topRight:number, bottomLeft:number, bottomRight:number}|number
 ---@param segments number? -- Number of segments per corner arc (default: 10)
 ---@return table -- Array of vertices for love.graphics.polygon
-function RoundedRect.getPoints(x, y, width, height, cornerRadius, segments)
+function RoundedRect.getPoints(x, y, width, height, borderRadius, segments)
   segments = segments or 10
   local points = {}
 
@@ -28,19 +28,19 @@ function RoundedRect.getPoints(x, y, width, height, cornerRadius, segments)
   end
 
   -- Handle uniform corner radius (number)
-  if type(cornerRadius) == "number" then
-    cornerRadius = {
-      topLeft = cornerRadius,
-      topRight = cornerRadius,
-      bottomLeft = cornerRadius,
-      bottomRight = cornerRadius,
+  if type(borderRadius) == "number" then
+    borderRadius = {
+      topLeft = borderRadius,
+      topRight = borderRadius,
+      bottomLeft = borderRadius,
+      bottomRight = borderRadius,
     }
   end
 
-  local r1 = math.min(cornerRadius.topLeft, width / 2, height / 2)
-  local r2 = math.min(cornerRadius.topRight, width / 2, height / 2)
-  local r3 = math.min(cornerRadius.bottomRight, width / 2, height / 2)
-  local r4 = math.min(cornerRadius.bottomLeft, width / 2, height / 2)
+  local r1 = math.min(borderRadius.topLeft, width / 2, height / 2)
+  local r2 = math.min(borderRadius.topRight, width / 2, height / 2)
+  local r3 = math.min(borderRadius.bottomRight, width / 2, height / 2)
+  local r4 = math.min(borderRadius.bottomLeft, width / 2, height / 2)
 
   -- Top-right corner
   addArc(x + width - r2, y + r2, r2, -math.pi / 2, 0)
@@ -63,34 +63,34 @@ end
 ---@param y number
 ---@param width number
 ---@param height number
----@param cornerRadius {topLeft:number, topRight:number, bottomLeft:number, bottomRight:number}|number|nil
-function RoundedRect.draw(mode, x, y, width, height, cornerRadius)
-  -- OPTIMIZATION: Handle nil cornerRadius (no rounding)
-  if not cornerRadius then
+---@param borderRadius {topLeft:number, topRight:number, bottomLeft:number, bottomRight:number}|number|nil
+function RoundedRect.draw(mode, x, y, width, height, borderRadius)
+  -- OPTIMIZATION: Handle nil borderRadius (no rounding)
+  if not borderRadius then
     love.graphics.rectangle(mode, x, y, width, height)
     return
   end
 
   -- Handle uniform corner radius (number)
-  if type(cornerRadius) == "number" then
-    if cornerRadius <= 0 then
+  if type(borderRadius) == "number" then
+    if borderRadius <= 0 then
       love.graphics.rectangle(mode, x, y, width, height)
       return
     end
     -- Convert to table format for processing
-    cornerRadius = {
-      topLeft = cornerRadius,
-      topRight = cornerRadius,
-      bottomLeft = cornerRadius,
-      bottomRight = cornerRadius,
+    borderRadius = {
+      topLeft = borderRadius,
+      topRight = borderRadius,
+      bottomLeft = borderRadius,
+      bottomRight = borderRadius,
     }
   end
 
   -- Check if any corners are rounded
-  local hasRoundedCorners = cornerRadius.topLeft > 0
-    or cornerRadius.topRight > 0
-    or cornerRadius.bottomLeft > 0
-    or cornerRadius.bottomRight > 0
+  local hasRoundedCorners = borderRadius.topLeft > 0
+    or borderRadius.topRight > 0
+    or borderRadius.bottomLeft > 0
+    or borderRadius.bottomRight > 0
 
   if not hasRoundedCorners then
     -- No rounded corners, use regular rectangle
@@ -98,7 +98,7 @@ function RoundedRect.draw(mode, x, y, width, height, cornerRadius)
     return
   end
 
-  local points = RoundedRect.getPoints(x, y, width, height, cornerRadius)
+  local points = RoundedRect.getPoints(x, y, width, height, borderRadius)
 
   if mode == "fill" then
     love.graphics.polygon("fill", points)
@@ -113,11 +113,11 @@ end
 ---@param y number
 ---@param width number
 ---@param height number
----@param cornerRadius {topLeft:number, topRight:number, bottomLeft:number, bottomRight:number}|number|nil
+---@param borderRadius {topLeft:number, topRight:number, bottomLeft:number, bottomRight:number}|number|nil
 ---@return function
-function RoundedRect.stencilFunction(x, y, width, height, cornerRadius)
+function RoundedRect.stencilFunction(x, y, width, height, borderRadius)
   return function()
-    RoundedRect.draw("fill", x, y, width, height, cornerRadius)
+    RoundedRect.draw("fill", x, y, width, height, borderRadius)
   end
 end
 

@@ -230,7 +230,7 @@ function TestThemeColor:setUp()
     colors = {
       primary = Color.new(1, 0, 0, 1),
       secondary = Color.new(0, 1, 0, 1),
-      textColor = Color.new(0.5, 0.5, 0.5, 1),
+      color = Color.new(0.5, 0.5, 0.5, 1),
     },
   }
   self.theme = Theme.new(def)

@@ -31,7 +31,7 @@ local ThemeManager = {}
 
 ---@class AnimationProps
 ---@field duration number -- Duration in seconds
----@field start table -- Starting values (can contain: width, height, opacity, x, y, gap, imageOpacity, backgroundColor, borderColor, textColor, padding, margin, cornerRadius, transform, etc.)
+---@field start table -- Starting values (can contain: width, height, opacity, x, y, gap, backgroundOpacity, backgroundColor, borderColor, color, padding, margin, borderRadius, transform, etc.)
 ---@field final table -- Final values (same properties as start)
 ---@field easing string? -- Easing function name: "linear", "easeInQuad", "easeOutQuad", "easeInOutQuad", "easeInCubic", "easeOutCubic", "easeInOutCubic", "easeInQuart", "easeOutQuart", "easeInExpo", "easeOutExpo" (default: "linear")
 ---@field keyframes AnimationKeyframe[]? -- Array of keyframes for complex animations
@@ -68,7 +68,7 @@ local Transform = {}
 --=====================================--
 ---@class ElementProps
 ---@field id string? -- Unique identifier for the element (auto-generated if not provided)
----@field children ElementProps[]|Element[]? -- Declarative children. Each entry may be either a prop table (constructs a new child) or a pre-built Element instance (reparented into this element)
+---@field children ElementProps[]|Element[]? -- Declarative children, **read exactly once during construction**. Each entry is either a prop table (constructed and attached in place) or a pre-built Element instance (reparented into this element). After `Element.new` returns, this prop is discarded; the `element.children` field holds the live array of attached children. Reassigning `element.children = {...}` does NOT re-run construction - use `appendChild` / `removeChild` / `replaceChildren` / `setParent` for runtime mutation.
 ---@field x number|string|CalcObject? -- X coordinate: number (px), string ("50%", "10vw"), or CalcObject from FlexLove.calc() (default: 0)
 ---@field y number|string|CalcObject? -- Y coordinate: number (px), string ("50%", "10vh"), or CalcObject from FlexLove.calc() (default: 0)
 ---@field z number? -- Z-index for layering (default: 0, clamped to -999..999)
@@ -83,26 +83,32 @@ local Transform = {}
 ---@field right number|string|CalcObject? -- Offset from right edge: number (px), string ("50%", "10vw"), or CalcObject (CSS-style positioning)
 ---@field bottom number|string|CalcObject? -- Offset from bottom edge: number (px), string ("50%", "10vh"), or CalcObject (CSS-style positioning)
 ---@field left number|string|CalcObject? -- Offset from left edge: number (px), string ("50%", "10vw"), or CalcObject (CSS-style positioning)
----@field border Border? -- Border configuration for the element
----@field borderColor Color? -- Color of the border (default: black)
+---@field border string|number|Border? -- CSS shorthand `"2px solid #fff"`, a uniform width number, or a per-side table { top, right, bottom, left }.
+---@field borderTop string|number? -- Per-side CSS shorthand or width.
+---@field borderRight string|number? -- Per-side CSS shorthand or width.
+---@field borderBottom string|number? -- Per-side CSS shorthand or width.
+---@field borderLeft string|number? -- Per-side CSS shorthand or width.
+---@field borderColor Color? -- Border colour. Falls back to the colour parsed out of the `border` shorthand.
+---@field borderStyle "solid"|"dashed"|"dotted"|"double"|"none"? -- Currently only `solid` is rendered; others are stored but not drawn.
 ---@field opacity number? -- Element opacity 0-1 (default: 1)
 ---@field visibility "visible"|"hidden"? -- Element visibility (default: "visible")
 ---@field display "block"|"flex"|"grid"|"none"? -- CSS display mode. "block" (default) participates in layout but does not lay out its children as a container; "flex"/"grid" enable container layout for children; "none" removes the element from layout, rendering, and hit testing.
 ---@field position "static"|"relative"|"absolute"|"fixed"? -- CSS position scheme. "static"/"relative" (default) use natural flow; "absolute"/"fixed" detach from flow so top/right/bottom/left coordinates apply.
 ---@field backgroundColor Color? -- Background color (default: transparent)
----@field cornerRadius number|{topLeft:number?, topRight:number?, bottomLeft:number?, bottomRight:number?}? -- Corner radius: number (all corners) or table for individual corners (default: 0)
+---@field borderRadius number|{topLeft:number?, topRight:number?, bottomLeft:number?, bottomRight:number?}? -- Corner radius: number (all corners) or table for individual corners (default: 0)
 ---@field gap number|string|CalcObject? -- Space between children elements: number (px), string ("50%", "10vw"), or CalcObject from FlexLove.calc() (default: 0)
 ---@field padding number|string|CalcObject|{top:number|string|CalcObject?, right:number|string|CalcObject?, bottom:number|string|CalcObject?, left:number|string|CalcObject?, horizontal:number|string|CalcObject?, vertical:number|string|CalcObject?}? -- Padding around children: single value, string, CalcObject for all sides, or table for individual sides (default: {top=0, right=0, bottom=0, left=0})
 ---@field margin number|string|CalcObject|{top:number|string|CalcObject?, right:number|string|CalcObject?, bottom:number|string|CalcObject?, left:number|string|CalcObject?, horizontal:number|string|CalcObject?, vertical:number|string|CalcObject?}? -- Margin around element: single value, string, CalcObject for all sides, or table for individual sides (default: {top=0, right=0, bottom=0, left=0})
 ---@field text string? -- Text content to display (default: nil)
----@field textAlign TextAlignSpec? -- Alignment of the text content: simple string, compound string ("top-left"), or {horizontal, vertical} table (default: START)
----@field textColor Color? -- Color of the text content (default: black or theme text color)
----@field textSize number|string? -- Font size: number (px), string with units ("2vh", "10%"), or preset ("xxs"|"xs"|"sm"|"md"|"lg"|"xl"|"xxl"|"3xl"|"4xl") (default: "md" or 12px)
----@field minTextSize number? -- Minimum text size in pixels for auto-scaling
----@field maxTextSize number? -- Maximum text size in pixels for auto-scaling
+---@field textAlign "start"|"center"|"end"|"justify"? -- Horizontal text alignment (default: "start")
+---@field verticalAlign "start"|"center"|"end"? -- Vertical text alignment (default: "start")
+---@field color Color? -- Color of the text content (default: black or theme text color)
+---@field fontSize number|string? -- Font size: number (px), string with units ("2vh", "10%"), or preset ("xxs"|"xs"|"sm"|"md"|"lg"|"xl"|"xxl"|"3xl"|"4xl") (default: "md" or 12px)
+---@field minFontSize number? -- Minimum text size in pixels for auto-scaling
+---@field maxFontSize number? -- Maximum text size in pixels for auto-scaling
 ---@field fontFamily string? -- Font family name from theme or path to font file (default: theme default or system default, inherits from parent)
----@field autoScaleText boolean? -- Whether text should auto-scale with window size (default: true)
----@field flexDirection FlexDirection? -- Direction of flex layout: "horizontal"|"vertical"|"row"|"column" (row→horizontal, column→vertical, default: HORIZONTAL)
+---@field autoScaleFont boolean? -- Whether text should auto-scale with window size (default: true)
+---@field flexDirection "row"|"column"? -- Direction of flex layout (default: "row"). `row-reverse`/`column-reverse` not yet implemented.
 ---@field justifyContent JustifyContent? -- Alignment of items along main axis (default: FLEX_START)
 ---@field alignItems AlignItems? -- Alignment of items along cross axis (default: STRETCH)
 ---@field alignContent AlignContent? -- Alignment of lines in multi-line flex containers (default: STRETCH)
@@ -113,8 +119,26 @@ local Transform = {}
 ---@field flexBasis number|string|CalcObject? -- Initial size before growing/shrinking: number (px), string ("50%", "10vw", "auto"), or CalcObject (default: "auto")
 ---@field justifySelf JustifySelf? -- Alignment of the item itself along main axis (default: AUTO)
 ---@field alignSelf AlignSelf? -- Alignment of the item itself along cross axis (default: AUTO)
----@field onEvent fun(element:Element, event:InputEvent)? -- Callback function for interaction events
----@field onEventDeferred boolean? -- Whether onEvent callback should be deferred until after canvases are released (default: false)
+---@field onEvent fun(element:Element, event:InputEvent)? -- Catch-all callback. Receives every event type (click/press/release/hover/unhover/drag/touch*). Fires alongside any matching typed handlers below.
+---@field onEventDeferred boolean? -- Whether onEvent should be deferred until after canvases are released (default: false)
+---@field onClick fun(element:Element, event:InputEvent)? -- Fires on left-click release.
+---@field onClickDeferred boolean?
+---@field onMouseDown fun(element:Element, event:InputEvent)? -- Fires when any mouse button is pressed (press).
+---@field onMouseDownDeferred boolean?
+---@field onMouseUp fun(element:Element, event:InputEvent)? -- Fires when any mouse button is released (release).
+---@field onMouseUpDeferred boolean?
+---@field onMouseEnter fun(element:Element, event:InputEvent)? -- Fires when the pointer enters the element (hover).
+---@field onMouseEnterDeferred boolean?
+---@field onMouseLeave fun(element:Element, event:InputEvent)? -- Fires when the pointer leaves the element (unhover).
+---@field onMouseLeaveDeferred boolean?
+---@field onMouseMove fun(element:Element, event:InputEvent)? -- Fires on pointer movement while interacting.
+---@field onMouseMoveDeferred boolean?
+---@field onDrag fun(element:Element, event:InputEvent)? -- Fires while a button is held and the pointer moves.
+---@field onDragDeferred boolean?
+---@field onContextMenu fun(element:Element, event:InputEvent)? -- Fires on right-click.
+---@field onContextMenuDeferred boolean?
+---@field onAuxClick fun(element:Element, event:InputEvent)? -- Fires on middle-click.
+---@field onAuxClickDeferred boolean?
 ---@field onFocus fun(element:Element)? -- Callback when element receives focus
 ---@field onFocusDeferred boolean? -- Whether onFocus callback should be deferred (default: false)
 ---@field dropFocusOnSelection boolean? -- Override keyboard-navigation focus drop after Enter/Space activation (default: nil, uses KeyboardNavigation.config.dropFocusOnSelection)
@@ -135,7 +159,7 @@ local Transform = {}
 ---@field touchEnabled boolean? -- Whether the element responds to touch events (default: true)
 ---@field multiTouchEnabled boolean? -- Whether the element supports multiple simultaneous touches (default: false)
 ---@field transform TransformProps? -- Transform properties for animations and styling
----@field transition TransitionProps? -- Transition settings for animations
+---@field transition string|TransitionProps? -- CSS `transition` shorthand (`"opacity 300ms ease-in-out"`, `"opacity 0.3s, width 0.5s linear 0.1s"`), or a legacy table form. Parsed into `self.transitions[property]` entries.
 ---@field customDraw fun(element:Element)? -- Custom rendering callback called after standard rendering but before visual feedback (default: nil)
 ---@field gridRows number|table? -- Number of equal 1fr rows, or array of track specs (e.g. {"1fr","100px","auto"})
 ---@field gridColumns number|table? -- Number of equal 1fr columns, or array of track specs (e.g. {"1fr","100px","auto"})
@@ -165,7 +189,7 @@ local Transform = {}
 ---@field scrollable boolean? -- Whether text is scrollable (default: false for single-line, true for multi-line)
 ---@field autoGrow boolean? -- Whether element auto-grows with text (default: false for single-line, true for multi-line)
 ---@field selectOnFocus boolean? -- Whether to select all text on focus (default: false)
----@field cursorColor Color? -- Cursor color (default: nil, uses textColor)
+---@field cursorColor Color? -- Cursor color (default: nil, uses color)
 ---@field selectionColor Color? -- Selection background color (default: nil, uses theme or default)
 ---@field cursorBlinkRate number? -- Cursor blink rate in seconds (default: 0.5)
 ---@field selectParent SelectParentProps? -- Parent-owned select/dropdown state and callbacks
@@ -186,12 +210,12 @@ local Transform = {}
 ---@field scrollbarPlacement "reserve-space"|"overlay"? -- Scrollbar rendering mode: "reserve-space" (reduces content area, default) or "overlay" (renders over content)
 ---@field scrollbarBalance boolean? -- When true, reserve scrollbar space on both sides of content for visual balance (default: false)
 ---@field hideScrollbars boolean|{vertical:boolean, horizontal:boolean}? -- Hide scrollbars (boolean for both, or table for individual control, default: false)
----@field imagePath string? -- Path to image file (auto-loads via ImageCache)
+---@field backgroundImage string? -- Path to image file (auto-loads via ImageCache)
 ---@field image love.Image? -- Image object to display
----@field objectFit "fill"|"contain"|"cover"|"scale-down"|"none"? -- Image fit mode (default: "fill")
----@field objectPosition string? -- Image position like "center center", "top left", "50% 50%" (default: "center center")
----@field imageOpacity number? -- Image opacity 0-1 (default: 1, combines with element opacity)
----@field imageRepeat "no-repeat"|"repeat"|"repeat-x"|"repeat-y"|"space"|"round"? -- Image repeat/tiling mode (default: "no-repeat")
+---@field backgroundSize "fill"|"contain"|"cover"|"scale-down"|"none"? -- Image fit mode (default: "fill")
+---@field backgroundPosition string? -- Image position like "center center", "top left", "50% 50%" (default: "center center")
+---@field backgroundOpacity number? -- Image opacity 0-1 (default: 1, combines with element opacity)
+---@field backgroundRepeat "no-repeat"|"repeat"|"repeat-x"|"repeat-y"|"space"|"round"? -- Image repeat/tiling mode (default: "no-repeat")
 ---@field imageTint Color? -- Color to tint the image (default: nil/white, no tint)
 ---@field onImageLoad fun(element:Element, image:love.Image)? -- Callback when image loads successfully
 ---@field onImageLoadDeferred boolean? -- Whether onImageLoad callback should be deferred (default: false)
@@ -536,7 +560,7 @@ local ThemeModule = {}
 ---@field beginFrame fun()
 ---@field endFrame fun()
 ---@field draw fun(gameDrawFunc:function|nil, postDrawFunc:function|nil)
----@field getElementAtPosition fun(x:number, y:number): Element?
+---@field elementFromPoint fun(x:number, y:number): Element?
 ---@field update fun(dt:number)
 ---@field collectGarbage fun(mode:string?, stepSize:number?): number?
 ---@field setGCStrategy fun(strategy:"auto"|"periodic"|"manual"|"disabled")
@@ -549,7 +573,7 @@ local ThemeModule = {}
 ---@field touchreleased fun(id:lightuserdata, x:number, y:number, dx:number, dy:number, pressure:number)
 ---@field getActiveTouchCount fun(): number
 ---@field getTouchOwner fun(touchId:string): Element?
----@field getById fun(id:string): Element?
+---@field getElementById fun(id:string): Element?
 ---@field destroy fun()
 ---@field new fun(props:ElementProps, callback:function?): Element?
 ---@field getStateCount fun(): number

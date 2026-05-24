@@ -1,18 +1,16 @@
 --[[
   Example: basic_ui.lua
-  Demonstrates the CSS-style retained-mode API:
+  Shows the CSS/DOM-aligned retained-mode API:
     - display: flex | grid | block | none
     - position: relative | absolute
-    - children: build trees declaratively, either with prop tables OR
-      pre-constructed Element instances
-    - direct mutation of backgroundColor, opacity, onEvent, etc. takes
+    - children: prop tables OR pre-built Element instances
+    - DOM-style typed event handlers (onClick, onMouseEnter, ...)
+    - border shorthand (`"2px solid #fff"`) and transition shorthand
+      (`"backgroundColor 200ms ease-in-out"`)
+    - direct mutation of backgroundColor / opacity / typed handlers takes
       effect on the next frame without setProperty()
 
-  Pair with main.lua hooks:
-    function love.load()  require("examples.basic_ui") end
-    function love.update(dt) FlexLove.update(dt) end
-    function love.draw()  FlexLove.draw() end
-    function love.mousepressed(x, y, button) ... end   -- forward to FlexLove
+  Pair with the standard LÖVE hooks (see README quick-start).
 ]]
 
 local FlexLove = require("FlexLove")
@@ -21,14 +19,12 @@ local Color = FlexLove.Color
 FlexLove.init()
 
 local pressCount = 0
-local button -- forward declaration: we mutate the button below
+local button -- forward declaration; we attach it via `children` below
 
--- Build a small UI tree in one declaration. `children` accepts either
--- prop tables (constructed in place) or pre-built Element instances.
 local root = FlexLove.new({
   id = "root",
   display = "flex",
-  flexDirection = "vertical",
+  flexDirection = "column",
   justifyContent = "center",
   alignItems = "center",
   gap = 12,
@@ -38,58 +34,58 @@ local root = FlexLove.new({
   children = {
     {
       id = "title",
-      text = "FlexLove - retained mode",
-      textColor = Color.new(1, 1, 1, 1),
-      textSize = "2vh",
+      text = "FlexLove",
+      color = Color.new(1, 1, 1, 1),
+      fontSize = "2vh",
     },
     {
       id = "counter",
       text = "Pressed 0 times",
-      textColor = Color.new(0.7, 0.85, 1, 1),
-      textSize = "3vh",
+      color = Color.new(0.7, 0.85, 1, 1),
+      fontSize = "3vh",
     },
   },
 })
 
--- Build the button standalone, then attach it via the children prop of a
--- separate row. This is the recommended pattern for any component you
--- want to refer back to from your own code.
+-- Build the button standalone so we can reference it from event handlers.
+-- Typed onClick is preferred over the catch-all onEvent for new code.
 button = FlexLove.new({
   id = "press-me",
   width = 160,
   height = 40,
   backgroundColor = Color.fromHex("#3a78ff"),
-  cornerRadius = 6,
+  border = "2px solid #ffffff",
+  borderRadius = 6,
+  transition = "backgroundColor 200ms ease-out",
   text = "Press me",
-  textColor = Color.new(1, 1, 1, 1),
-  onEvent = function(self, event)
-    if event.type == "release" then
-      pressCount = pressCount + 1
-      -- Direct mutation: no setProperty() call required.
-      FlexLove.getById("counter").text = string.format("Pressed %d times", pressCount)
-      -- Toggle background color on the button itself.
-      if pressCount % 2 == 0 then
-        self.backgroundColor = Color.fromHex("#3a78ff")
-      else
-        self.backgroundColor = Color.fromHex("#ff6a3a")
-      end
+  color = Color.new(1, 1, 1, 1),
+  onClick = function(self)
+    pressCount = pressCount + 1
+    FlexLove.getElementById("counter").text = string.format("Pressed %d times", pressCount)
+    if pressCount % 2 == 0 then
+      self.backgroundColor = Color.fromHex("#3a78ff")
+    else
+      self.backgroundColor = Color.fromHex("#ff6a3a")
     end
+  end,
+  onMouseEnter = function(self)
+    self.opacity = 0.85
+  end,
+  onMouseLeave = function(self)
+    self.opacity = 1
   end,
 })
 
--- Reparent the standalone button into the root by reusing the children prop
--- with an already-built Element instance.
-FlexLove.new({
+-- Attach the standalone button under root via a row. Children accept Element
+-- instances directly; reparenting from topElements is automatic.
+local row = FlexLove.new({
   id = "button-row",
   display = "flex",
-  flexDirection = "horizontal",
+  flexDirection = "row",
   justifyContent = "center",
   width = "100%",
   children = { button },
 })
-
--- The above row was created without a parent so it sat in topElements;
--- attaching it under root keeps the tree clean.
-root:addChild(FlexLove.getById("button-row"))
+root:appendChild(row)
 
 return root

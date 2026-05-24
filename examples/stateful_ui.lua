@@ -24,7 +24,7 @@ function StatefulUIExample:render()
     width = "80%",
     height = "80%",
     display = "flex",
-    flexDirection = "vertical",
+    flexDirection = "column",
     gap = 10,
     padding = { horizontal = 10, vertical = 10 },
   })
@@ -34,7 +34,7 @@ function StatefulUIExample:render()
     parent = flex,
     text = "Stateful Interactive UI Example",
     textAlign = "center",
-    textSize = "2xl",
+    fontSize = "2xl",
     width = "100%",
     height = "10%",
   })
@@ -43,7 +43,7 @@ function StatefulUIExample:render()
   local counterSection = FlexLove.new({
     parent = flex,
     display = "flex",
-    flexDirection = "horizontal",
+    flexDirection = "row",
     justifyContent = "space-between",
     alignItems = "center",
     width = "100%",
@@ -57,7 +57,7 @@ function StatefulUIExample:render()
     parent = counterSection,
     text = "Counter: " .. self.counter,
     textAlign = "left",
-    textSize = "lg",
+    fontSize = "lg",
     width = "40%",
   })
 
@@ -95,7 +95,7 @@ function StatefulUIExample:render()
   local toggleSection = FlexLove.new({
     parent = flex,
     display = "flex",
-    flexDirection = "horizontal",
+    flexDirection = "row",
     justifyContent = "space-between",
     alignItems = "center",
     width = "100%",
@@ -109,7 +109,7 @@ function StatefulUIExample:render()
     parent = toggleSection,
     text = "Toggle Switch: " .. tostring(self.isToggled),
     textAlign = "left",
-    textSize = "lg",
+    fontSize = "lg",
     width = "40%",
   })
 
@@ -128,7 +128,7 @@ function StatefulUIExample:render()
     parent = toggleButton,
     text = self.isToggled and "ON" or "OFF",
     textAlign = "center",
-    textSize = "sm",
+    fontSize = "sm",
     width = "100%",
     height = "100%",
     color = "#ffffff", -- White text
@@ -147,7 +147,7 @@ function StatefulUIExample:render()
   local inputSection = FlexLove.new({
     parent = flex,
     display = "flex",
-    flexDirection = "horizontal",
+    flexDirection = "row",
     justifyContent = "space-between",
     alignItems = "center",
     width = "100%",
@@ -161,7 +161,7 @@ function StatefulUIExample:render()
     parent = inputSection,
     text = "Input Value:",
     textAlign = "left",
-    textSize = "lg",
+    fontSize = "lg",
     width = "30%",
   })
 
@@ -170,7 +170,7 @@ function StatefulUIExample:render()
     themeComponent = "inputv2",
     text = self.inputValue,
     textAlign = "left",
-    textSize = "md",
+    fontSize = "md",
     width = "50%",
     onEvent = function(_, event)
       if event.type == "textinput" then
@@ -184,7 +184,7 @@ function StatefulUIExample:render()
   local dropdownSection = FlexLove.new({
     parent = flex,
     display = "flex",
-    flexDirection = "horizontal",
+    flexDirection = "row",
     justifyContent = "space-between",
     alignItems = "center",
     width = "100%",
@@ -198,7 +198,7 @@ function StatefulUIExample:render()
     parent = dropdownSection,
     text = "Selected Option:",
     textAlign = "left",
-    textSize = "lg",
+    fontSize = "lg",
     width = "30%",
   })
 
@@ -207,7 +207,7 @@ function StatefulUIExample:render()
     themeComponent = "dropdownv2",
     text = self.selectedOption,
     textAlign = "left",
-    textSize = "md",
+    fontSize = "md",
     width = "50%",
     options = { "option1", "option2", "option3" },
     onEvent = function(_, event)
@@ -222,7 +222,7 @@ function StatefulUIExample:render()
   local statusIndicator = FlexLove.new({
     parent = flex,
     display = "flex",
-    flexDirection = "horizontal",
+    flexDirection = "row",
     justifyContent = "space-between",
     alignItems = "center",
     width = "100%",
@@ -236,7 +236,7 @@ function StatefulUIExample:render()
     parent = statusIndicator,
     text = "Current State - Counter: " .. self.counter .. ", Toggle: " .. tostring(self.isToggled),
     textAlign = "left",
-    textSize = "sm",
+    fontSize = "sm",
     width = "70%",
   })
 

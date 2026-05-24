@@ -481,13 +481,13 @@ local ErrorCodes = {
       code = "FLEXLOVE_ELEM_001",
       category = "VAL",
       description = "Invalid text size",
-      suggestion = "textSize must be greater than 0",
+      suggestion = "fontSize must be greater than 0",
     },
     ELEM_002 = {
       code = "FLEXLOVE_ELEM_002",
       category = "VAL",
       description = "Invalid text size unit",
-      suggestion = "textSize unit must be one of: px, %, vw, vh, or presets: xs, sm, md, lg, xl, xxl, 2xl, 3xl, 4xl",
+      suggestion = "fontSize unit must be one of: px, %, vw, vh, or presets: xs, sm, md, lg, xl, xxl, 2xl, 3xl, 4xl",
     },
     ELEM_003 = {
       code = "FLEXLOVE_ELEM_003",

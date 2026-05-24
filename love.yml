@@ -1,0 +1,55 @@
+base: lua53
+name: love
+globals:
+  love:
+    any: true
+  jit:
+    any: true
+  bit:
+    any: true
+  utf8:
+    any: true
+  unpack:
+    args:
+      - type: any
+      - type: number
+        required: false
+      - type: number
+        required: false
+  # Lua 5.4 / LuaJIT extensions over 5.1.
+  math.atan:
+    args:
+      - type: number
+      - type: number
+        required: false
+  math.tointeger:
+    args:
+      - type: any
+  math.type:
+    args:
+      - type: any
+  collectgarbage:
+    args:
+      - type: string
+        required: false
+      - type: any
+        required: false
+  table.unpack:
+    args:
+      - type: any
+      - type: number
+        required: false
+      - type: number
+        required: false
+  table.pack:
+    method: false
+    args:
+      - type: any
+        required: false
+  # Roblox/Luau extension, guarded with `table.create and table.create(...)`.
+  table.create:
+    method: false
+    args:
+      - type: number
+      - type: any
+        required: false

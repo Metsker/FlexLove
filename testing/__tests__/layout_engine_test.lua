@@ -93,7 +93,7 @@ function TestLayoutEngineNew:testNewWithDefaults()
   local layout = LayoutEngine.new({}, deps)
   luaunit.assertNotNil(layout)
   luaunit.assertEquals(layout.positioning, utils.enums.Positioning.FLEX)
-  luaunit.assertEquals(layout.flexDirection, utils.enums.FlexDirection.HORIZONTAL)
+  luaunit.assertEquals(layout.flexDirection, utils.enums.FlexDirection.ROW)
   luaunit.assertEquals(layout.justifyContent, utils.enums.JustifyContent.FLEX_START)
   luaunit.assertEquals(layout.alignItems, utils.enums.AlignItems.STRETCH)
   luaunit.assertEquals(layout.alignContent, utils.enums.AlignContent.STRETCH)
@@ -104,7 +104,7 @@ end
 function TestLayoutEngineNew:testNewWithCustomProps()
   local layout = LayoutEngine.new({
     positioning = utils.enums.Positioning.GRID,
-    flexDirection = utils.enums.FlexDirection.VERTICAL,
+    flexDirection = utils.enums.FlexDirection.COLUMN,
     justifyContent = utils.enums.JustifyContent.CENTER,
     alignItems = utils.enums.AlignItems.CENTER,
     gap = 20,
@@ -113,7 +113,7 @@ function TestLayoutEngineNew:testNewWithCustomProps()
   }, deps)
 
   luaunit.assertEquals(layout.positioning, utils.enums.Positioning.GRID)
-  luaunit.assertEquals(layout.flexDirection, utils.enums.FlexDirection.VERTICAL)
+  luaunit.assertEquals(layout.flexDirection, utils.enums.FlexDirection.COLUMN)
   luaunit.assertEquals(layout.justifyContent, utils.enums.JustifyContent.CENTER)
   luaunit.assertEquals(layout.alignItems, utils.enums.AlignItems.CENTER)
   luaunit.assertEquals(layout.gap, 20)
@@ -157,7 +157,7 @@ end
 
 function TestLayoutEngineAutoWidth:testAutoWidthNoChildren()
   local layout = LayoutEngine.new({
-    flexDirection = utils.enums.FlexDirection.HORIZONTAL,
+    flexDirection = utils.enums.FlexDirection.ROW,
   }, deps)
 
   local mockElement = {
@@ -174,7 +174,7 @@ end
 
 function TestLayoutEngineAutoWidth:testAutoWidthHorizontalWithGap()
   local layout = LayoutEngine.new({
-    flexDirection = utils.enums.FlexDirection.HORIZONTAL,
+    flexDirection = utils.enums.FlexDirection.ROW,
     gap = 10,
   }, deps)
 
@@ -212,7 +212,7 @@ end
 
 function TestLayoutEngineAutoWidth:testAutoWidthVerticalTakesMax()
   local layout = LayoutEngine.new({
-    flexDirection = utils.enums.FlexDirection.VERTICAL,
+    flexDirection = utils.enums.FlexDirection.COLUMN,
     gap = 10,
   }, deps)
 
@@ -250,7 +250,7 @@ end
 
 function TestLayoutEngineAutoWidth:testAutoWidthSkipsAbsoluteChildren()
   local layout = LayoutEngine.new({
-    flexDirection = utils.enums.FlexDirection.HORIZONTAL,
+    flexDirection = utils.enums.FlexDirection.ROW,
     gap = 10,
   }, deps)
 
@@ -288,7 +288,7 @@ end
 
 function TestLayoutEngineAutoWidth:testAutoWidthWithZeroGap()
   local layout = LayoutEngine.new({
-    flexDirection = utils.enums.FlexDirection.HORIZONTAL,
+    flexDirection = utils.enums.FlexDirection.ROW,
     gap = 0,
   }, deps)
 
@@ -319,7 +319,7 @@ end
 
 function TestLayoutEngineAutoWidth:testAutoWidthWithTextAndChildren()
   local layout = LayoutEngine.new({
-    flexDirection = utils.enums.FlexDirection.HORIZONTAL,
+    flexDirection = utils.enums.FlexDirection.ROW,
     gap = 10,
   }, deps)
 
@@ -357,7 +357,7 @@ end
 
 function TestLayoutEngineAutoHeight:testAutoHeightNoChildren()
   local layout = LayoutEngine.new({
-    flexDirection = utils.enums.FlexDirection.VERTICAL,
+    flexDirection = utils.enums.FlexDirection.COLUMN,
   }, deps)
 
   local mockElement = {
@@ -374,7 +374,7 @@ end
 
 function TestLayoutEngineAutoHeight:testAutoHeightVerticalWithGap()
   local layout = LayoutEngine.new({
-    flexDirection = utils.enums.FlexDirection.VERTICAL,
+    flexDirection = utils.enums.FlexDirection.COLUMN,
     gap = 5,
   }, deps)
 
@@ -412,7 +412,7 @@ end
 
 function TestLayoutEngineAutoHeight:testAutoHeightHorizontalTakesMax()
   local layout = LayoutEngine.new({
-    flexDirection = utils.enums.FlexDirection.HORIZONTAL,
+    flexDirection = utils.enums.FlexDirection.ROW,
     gap = 5,
   }, deps)
 
@@ -450,7 +450,7 @@ end
 
 function TestLayoutEngineAutoHeight:testAutoHeightSkipsAbsoluteChildren()
   local layout = LayoutEngine.new({
-    flexDirection = utils.enums.FlexDirection.VERTICAL,
+    flexDirection = utils.enums.FlexDirection.COLUMN,
     gap = 5,
   }, deps)
 
@@ -488,7 +488,7 @@ end
 
 function TestLayoutEngineAutoHeight:testAutoHeightWithSingleChild()
   local layout = LayoutEngine.new({
-    flexDirection = utils.enums.FlexDirection.VERTICAL,
+    flexDirection = utils.enums.FlexDirection.COLUMN,
     gap = 10,
   }, deps)
 
@@ -759,7 +759,7 @@ function TestLayoutEdgeCases:test_percentage_width_with_auto_parent_warns()
     -- width not specified - auto-sizing width
     height = 200,
     positioning = "flex",
-    flexDirection = "horizontal",
+    flexDirection = "row",
   })
 
   FlexLove.new({
@@ -785,7 +785,7 @@ function TestLayoutEdgeCases:test_percentage_height_with_auto_parent_warns()
     width = 200,
     -- height not specified - auto-sizing height
     positioning = "flex",
-    flexDirection = "vertical",
+    flexDirection = "column",
   })
 
   FlexLove.new({
@@ -811,7 +811,7 @@ function TestLayoutEdgeCases:test_pixel_width_with_auto_parent_no_warn()
     -- width not specified - auto-sizing
     height = 200,
     positioning = "flex",
-    flexDirection = "horizontal",
+    flexDirection = "row",
   })
 
   FlexLove.new({
@@ -1027,7 +1027,7 @@ function TestLayoutEdgeCases:test_css_positioning_ignored_in_flex()
     width = 400,
     height = 400,
     positioning = "flex",
-    flexDirection = "horizontal",
+    flexDirection = "row",
   })
 
   local child = FlexLove.new({
@@ -1149,7 +1149,7 @@ function TestOverflowDetection:test_main_axis_scroll_keeps_default_items_unshrun
     width = 100,
     height = 100,
     positioning = "flex",
-    flexDirection = "horizontal",
+    flexDirection = "row",
     overflowX = "scroll",
     overflowY = "hidden",
   })
@@ -1181,7 +1181,7 @@ function TestOverflowDetection:test_main_axis_scroll_keeps_default_items_unshrun
     width = 120,
     height = 100,
     positioning = "flex",
-    flexDirection = "vertical",
+    flexDirection = "column",
     overflowY = "scroll",
     overflowX = "hidden",
   })
@@ -1269,7 +1269,7 @@ function TestOverflowDetection:test_overflow_with_multiple_children()
     height = 200,
     overflow = "scroll",
     positioning = "flex",
-    flexDirection = "vertical",
+    flexDirection = "column",
   })
 
   -- Add multiple children that together exceed container
@@ -1322,7 +1322,7 @@ function TestOverflowDetection:test_overflow_with_margins()
     width = 200,
     height = 200,
     positioning = "flex",
-    flexDirection = "horizontal",
+    flexDirection = "row",
     overflow = "scroll",
   })
 
@@ -1780,7 +1780,7 @@ function TestManagedSelectHooks:test_managed_select_frame_suppresses_percentage_
     y = 0,
     height = 200,
     positioning = "flex",
-    flexDirection = "horizontal",
+    flexDirection = "row",
   })
 
   FlexLove.new({
@@ -1924,7 +1924,7 @@ end
 function TestMinMax:test_flex_grow_clamped_by_maxWidth_redistributes()
   local container = FlexLove.new({
     width = 600, height = 100,
-    positioning = "flex", flexDirection = "horizontal", gap = 0,
+    positioning = "flex", flexDirection = "row", gap = 0,
   })
   local capped = FlexLove.new({ width = 100, height = 50, flexGrow = 1, maxWidth = 200, parent = container })
   local free = FlexLove.new({ width = 100, height = 50, flexGrow = 1, parent = container })
@@ -1936,7 +1936,7 @@ end
 function TestMinMax:test_cross_axis_stretch_clamped_by_maxHeight()
   local container = FlexLove.new({
     width = 400, height = 300,
-    positioning = "flex", flexDirection = "horizontal",
+    positioning = "flex", flexDirection = "row",
     alignItems = "stretch", gap = 0,
   })
   local child = FlexLove.new({ width = 100, maxHeight = 100, parent = container })

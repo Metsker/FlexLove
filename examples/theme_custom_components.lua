@@ -21,7 +21,7 @@ function ThemeExample:render()
     width = "80%",
     height = "80%",
     display = "flex",
-    flexDirection = "vertical",
+    flexDirection = "column",
     gap = 10,
     padding = { horizontal = 10, vertical = 10 },
   })
@@ -31,7 +31,7 @@ function ThemeExample:render()
     parent = flex,
     text = "Theming and Custom Components Example",
     textAlign = "center",
-    textSize = "2xl",
+    fontSize = "2xl",
     width = "100%",
     height = "10%",
   })
@@ -40,7 +40,7 @@ function ThemeExample:render()
   local themeSelector = FlexLove.new({
     parent = flex,
     display = "flex",
-    flexDirection = "horizontal",
+    flexDirection = "row",
     justifyContent = "space-between",
     alignItems = "center",
     width = "100%",
@@ -54,7 +54,7 @@ function ThemeExample:render()
     parent = themeSelector,
     text = "Current Theme: " .. self.themes[self.themeIndex],
     textAlign = "left",
-    textSize = "md",
+    fontSize = "md",
     width = "50%",
   })
 
@@ -77,7 +77,7 @@ function ThemeExample:render()
   local customCard = FlexLove.new({
     parent = flex,
     display = "flex",
-    flexDirection = "vertical",
+    flexDirection = "column",
     justifyContent = "center",
     alignItems = "center",
     width = "100%",
@@ -91,7 +91,7 @@ function ThemeExample:render()
     parent = customCard,
     text = "Custom Card Component",
     textAlign = "center",
-    textSize = "lg",
+    fontSize = "lg",
     width = "100%",
     height = "30%",
   })
@@ -100,7 +100,7 @@ function ThemeExample:render()
     parent = customCard,
     text = "This demonstrates how to create reusable components with theme support",
     textAlign = "center",
-    textSize = "sm",
+    fontSize = "sm",
     width = "100%",
     height = "50%",
     color = "#a0aec0", -- Light gray text
@@ -110,7 +110,7 @@ function ThemeExample:render()
   local statusIndicator = FlexLove.new({
     parent = flex,
     display = "flex",
-    flexDirection = "horizontal",
+    flexDirection = "row",
     justifyContent = "space-between",
     alignItems = "center",
     width = "100%",
@@ -124,7 +124,7 @@ function ThemeExample:render()
     parent = statusIndicator,
     text = "Status: Active",
     textAlign = "left",
-    textSize = "md",
+    fontSize = "md",
     width = "50%",
   })
 

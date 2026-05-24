@@ -23,11 +23,11 @@ end
 ---@param boundsWidth number -- Width of the bounds to fit within
 ---@param boundsHeight number -- Height of the bounds to fit within
 ---@param fitMode string? -- One of: "fill", "contain", "cover", "scale-down", "none" (default: "fill")
----@param objectPosition string? -- Position like "center center", "top left", "50% 50%" (default: "center center")
+---@param backgroundPosition string? -- Position like "center center", "top left", "50% 50%" (default: "center center")
 ---@return {sx: number, sy: number, sw: number, sh: number, dx: number, dy: number, dw: number, dh: number, scaleX: number, scaleY: number}
-function ImageRenderer.calculateFit(imageWidth, imageHeight, boundsWidth, boundsHeight, fitMode, objectPosition)
+function ImageRenderer.calculateFit(imageWidth, imageHeight, boundsWidth, boundsHeight, fitMode, backgroundPosition)
   fitMode = fitMode or "fill"
-  objectPosition = objectPosition or "center center"
+  backgroundPosition = backgroundPosition or "center center"
 
   if imageWidth <= 0 or imageHeight <= 0 or boundsWidth <= 0 or boundsHeight <= 0 then
     ErrorHandler:error("ImageRenderer", "VAL_002", {
@@ -66,7 +66,7 @@ function ImageRenderer.calculateFit(imageWidth, imageHeight, boundsWidth, bounds
     result.dh = imageHeight * scale
 
     -- Apply object-position for letterbox alignment
-    local posX, posY = ImageRenderer._parsePosition(objectPosition)
+    local posX, posY = ImageRenderer._parsePosition(backgroundPosition)
     result.dx = (boundsWidth - result.dw) * posX
     result.dy = (boundsHeight - result.dh) * posY
   elseif fitMode == "cover" then
@@ -79,7 +79,7 @@ function ImageRenderer.calculateFit(imageWidth, imageHeight, boundsWidth, bounds
     local scaledHeight = imageHeight * scale
 
     -- Apply object-position for crop alignment
-    local posX, posY = ImageRenderer._parsePosition(objectPosition)
+    local posX, posY = ImageRenderer._parsePosition(backgroundPosition)
 
     -- Calculate which part of the scaled image to show
     local cropX = (scaledWidth - boundsWidth) * posX
@@ -103,17 +103,24 @@ function ImageRenderer.calculateFit(imageWidth, imageHeight, boundsWidth, bounds
     result.dh = imageHeight
 
     -- Apply object-position
-    local posX, posY = ImageRenderer._parsePosition(objectPosition)
+    local posX, posY = ImageRenderer._parsePosition(backgroundPosition)
     result.dx = (boundsWidth - imageWidth) * posX
     result.dy = (boundsHeight - imageHeight) * posY
   elseif fitMode == "scale-down" then
     -- Use none or contain, whichever is smaller
     if imageWidth <= boundsWidth and imageHeight <= boundsHeight then
       -- Image fits naturally, use "none"
-      return ImageRenderer.calculateFit(imageWidth, imageHeight, boundsWidth, boundsHeight, "none", objectPosition)
+      return ImageRenderer.calculateFit(imageWidth, imageHeight, boundsWidth, boundsHeight, "none", backgroundPosition)
     else
       -- Image too large, use "contain"
-      return ImageRenderer.calculateFit(imageWidth, imageHeight, boundsWidth, boundsHeight, "contain", objectPosition)
+      return ImageRenderer.calculateFit(
+        imageWidth,
+        imageHeight,
+        boundsWidth,
+        boundsHeight,
+        "contain",
+        backgroundPosition
+      )
     end
   else
     ErrorHandler:warn("ImageRenderer", "VAL_007", {
@@ -121,7 +128,7 @@ function ImageRenderer.calculateFit(imageWidth, imageHeight, boundsWidth, bounds
       fallback = "fill",
     })
     -- Use 'fill' as fallback
-    return ImageRenderer.calculateFit(imageWidth, imageHeight, boundsWidth, boundsHeight, "fill", objectPosition)
+    return ImageRenderer.calculateFit(imageWidth, imageHeight, boundsWidth, boundsHeight, "fill", backgroundPosition)
   end
 
   return result
@@ -199,20 +206,20 @@ end
 ---@param width number -- Width of bounds
 ---@param height number -- Height of bounds
 ---@param fitMode string? -- Object-fit mode (default: "fill")
----@param objectPosition string? -- Object-position (default: "center center")
+---@param backgroundPosition string? -- Object-position (default: "center center")
 ---@param opacity number? -- Opacity 0-1 (default: 1)
 ---@param tintColor Color? -- Color to tint the image (default: white/no tint)
-function ImageRenderer.draw(image, x, y, width, height, fitMode, objectPosition, opacity, tintColor)
+function ImageRenderer.draw(image, x, y, width, height, fitMode, backgroundPosition, opacity, tintColor)
   if not image then
     return -- Nothing to draw
   end
 
   opacity = opacity or 1
   fitMode = fitMode or "fill"
-  objectPosition = objectPosition or "center center"
+  backgroundPosition = backgroundPosition or "center center"
 
   local imgWidth, imgHeight = image:getDimensions()
-  local params = ImageRenderer.calculateFit(imgWidth, imgHeight, width, height, fitMode, objectPosition)
+  local params = ImageRenderer.calculateFit(imgWidth, imgHeight, width, height, fitMode, backgroundPosition)
 
   -- Save current color
   local r, g, b, a = love.graphics.getColor()

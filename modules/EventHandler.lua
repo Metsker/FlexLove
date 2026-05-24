@@ -166,8 +166,19 @@ function EventHandler:processMouseEvents(element, mx, my, isHovering, isActiveEl
     end
   end
 
-  -- Can only process events if we have handler, element is enabled, and is active or dragging or has tracked press
-  local canProcessEvents = (self.onEvent or element.editable or element._selectState or element.selectOption)
+  -- Can only process events if we have a handler (catch-all or DOM-typed), the
+  -- element is enabled, and is active or dragging or has a tracked press.
+  local hasAnyHandler = self.onEvent
+    or element.onClick
+    or element.onMouseDown
+    or element.onMouseUp
+    or element.onMouseEnter
+    or element.onMouseLeave
+    or element.onMouseMove
+    or element.onDrag
+    or element.onContextMenu
+    or element.onAuxClick
+  local canProcessEvents = (hasAnyHandler or element.editable or element._selectState or element.selectOption)
     and element.visibility ~= "hidden"
     and not element.disabled
     and (isActiveElement or isDragging or hasTrackedPress)
@@ -768,28 +779,52 @@ function EventHandler:isButtonPressed(button)
   return self._pressed[button] == true
 end
 
---- Invoke the onEvent callback, optionally deferring it if onEventDeferred is true
----@param element Element The element that triggered the event
----@param event InputEvent The event data
+--- Map FlexLove event.type -> DOM-style per-event prop name. Multiple props can fire
+--- for one event (e.g. "click" fires onClick; "release" fires onMouseUp; "hover"
+--- fires onMouseEnter; "drag" fires onMouseMove). Callers can use the catch-all
+--- onEvent for typed dispatch, the typed prop directly, or both.
+local TYPED_PROPS = {
+  click = { "onClick" },
+  press = { "onMouseDown" },
+  release = { "onMouseUp" },
+  rightclick = { "onContextMenu" },
+  middleclick = { "onAuxClick" },
+  hover = { "onMouseEnter" },
+  unhover = { "onMouseLeave" },
+  drag = { "onMouseMove", "onDrag" },
+}
+
+--- Invoke onEvent and any typed handlers (onClick, onMouseDown, ...) that match
+--- the event type. onEventDeferred / per-handler `*Deferred` flags route the call
+--- through FlexLove.deferCallback so canvas-incompatible work can be deferred.
+---@param element Element
+---@param event InputEvent
 function EventHandler:_invokeCallback(element, event)
-  if not self.onEvent then
-    return
+  local function fire(fn, deferred)
+    if not fn then
+      return
+    end
+    if deferred then
+      local FlexLove = package.loaded["FlexLove"] or package.loaded["libs.FlexLove"]
+      if FlexLove and FlexLove.deferCallback then
+        FlexLove.deferCallback(function()
+          fn(element, event)
+        end)
+      else
+        EventHandler._ErrorHandler:error("EventHandler", "SYS_003", { eventType = event.type })
+      end
+    else
+      fn(element, event)
+    end
   end
 
-  if self.onEventDeferred then
-    -- Get FlexLove module to defer the callback
-    local FlexLove = package.loaded["FlexLove"] or package.loaded["libs.FlexLove"]
-    if FlexLove and FlexLove.deferCallback then
-      FlexLove.deferCallback(function()
-        self.onEvent(element, event)
-      end)
-    else
-      EventHandler._ErrorHandler:error("EventHandler", "SYS_003", {
-        eventType = event.type,
-      })
+  fire(self.onEvent, self.onEventDeferred)
+
+  local typedNames = TYPED_PROPS[event.type]
+  if typedNames then
+    for _, propName in ipairs(typedNames) do
+      fire(element[propName], element[propName .. "Deferred"])
     end
-  else
-    self.onEvent(element, event)
   end
 end
 

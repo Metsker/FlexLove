@@ -70,13 +70,13 @@ end
 function TestFlexLove:testGetById()
   FlexLove.new({ id = "alpha", width = 10, height = 10 })
   FlexLove.new({ id = "beta", width = 10, height = 10 })
-  local alpha = FlexLove.getById("alpha")
+  local alpha = FlexLove.getElementById("alpha")
   luaunit.assertNotNil(alpha)
   luaunit.assertEquals(alpha.id, "alpha")
 end
 
 function TestFlexLove:testGetByIdNotFound()
-  luaunit.assertNil(FlexLove.getById("never"))
+  luaunit.assertNil(FlexLove.getElementById("never"))
 end
 
 function TestFlexLove:testCalcReturnsCalcObject()
@@ -210,4 +210,84 @@ function TestFlexLove:testDirectAssignmentOnEvent()
   luaunit.assertTrue(fired)
 end
 
-os.exit(luaunit.LuaUnit.run())
+function TestFlexLove:testBorderShorthandString()
+  local el = FlexLove.new({ width = 10, height = 10, border = "3px solid #ff0000" })
+  luaunit.assertEquals(el.border.top, 3)
+  luaunit.assertEquals(el.border.right, 3)
+  luaunit.assertEquals(el.border.bottom, 3)
+  luaunit.assertEquals(el.border.left, 3)
+  luaunit.assertEquals(el.borderStyle, "solid")
+  luaunit.assertEquals(el.borderColor.r, 1)
+  luaunit.assertEquals(el.borderColor.g, 0)
+  luaunit.assertEquals(el.borderColor.b, 0)
+end
+
+function TestFlexLove:testBorderShorthandPerSide()
+  local el = FlexLove.new({ width = 10, height = 10, borderTop = "2px solid #00ff00", borderLeft = "4px" })
+  luaunit.assertEquals(el.border.top, 2)
+  luaunit.assertEquals(el.border.left, 4)
+  luaunit.assertEquals(el.border.right, false)
+  luaunit.assertEquals(el.border.bottom, false)
+end
+
+function TestFlexLove:testTransitionShorthandSingle()
+  local el = FlexLove.new({ width = 10, height = 10, transition = "opacity 300ms ease-in-out" })
+  luaunit.assertNotNil(el.transitions)
+  luaunit.assertNotNil(el.transitions.opacity)
+  luaunit.assertEquals(el.transitions.opacity.duration, 0.3)
+  luaunit.assertEquals(el.transitions.opacity.easing, "easeInOutCubic")
+end
+
+function TestFlexLove:testOnClickProp()
+  local fired = 0
+  local el = FlexLove.new({
+    width = 10,
+    height = 10,
+    onClick = function() fired = fired + 1 end,
+  })
+  -- Simulate a click event through the EventHandler's invocation path.
+  el._eventHandler:_invokeCallback(el, { type = "click", button = 1 })
+  luaunit.assertEquals(fired, 1)
+end
+
+function TestFlexLove:testOnMouseEnterAndLeave()
+  local enters, leaves = 0, 0
+  local el = FlexLove.new({
+    width = 10, height = 10,
+    onMouseEnter = function() enters = enters + 1 end,
+    onMouseLeave = function() leaves = leaves + 1 end,
+  })
+  el._eventHandler:_invokeCallback(el, { type = "hover" })
+  el._eventHandler:_invokeCallback(el, { type = "unhover" })
+  luaunit.assertEquals(enters, 1)
+  luaunit.assertEquals(leaves, 1)
+end
+
+function TestFlexLove:testOnEventAndOnClickBothFire()
+  local catchAll, typed = 0, 0
+  local el = FlexLove.new({
+    width = 10, height = 10,
+    onEvent = function(_, e) if e.type == "click" then catchAll = catchAll + 1 end end,
+    onClick = function() typed = typed + 1 end,
+  })
+  el._eventHandler:_invokeCallback(el, { type = "click", button = 1 })
+  luaunit.assertEquals(catchAll, 1)
+  luaunit.assertEquals(typed, 1)
+end
+
+function TestFlexLove:testTransitionShorthandMultiple()
+  local el = FlexLove.new({
+    width = 10,
+    height = 10,
+    transition = "opacity 0.5s linear, width 200ms ease-out 0.1s",
+  })
+  luaunit.assertEquals(el.transitions.opacity.duration, 0.5)
+  luaunit.assertEquals(el.transitions.opacity.easing, "linear")
+  luaunit.assertEquals(el.transitions.width.duration, 0.2)
+  luaunit.assertEquals(el.transitions.width.easing, "easeOutCubic")
+  luaunit.assertEquals(el.transitions.width.delay, 0.1)
+end
+
+if not _G.RUNNING_ALL_TESTS then
+  os.exit(luaunit.LuaUnit.run())
+end

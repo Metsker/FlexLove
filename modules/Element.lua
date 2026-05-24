@@ -56,17 +56,17 @@
 ---@field opacity number
 ---@field visibility string
 ---@field transform table|nil
----@field cornerRadius number|{topLeft:number, topRight:number, bottomLeft:number, bottomRight:number}|nil
+---@field borderRadius number|{topLeft:number, topRight:number, bottomLeft:number, bottomRight:number}|nil
 ---@field text string|nil
 ---@field textAlign string|table|nil
 ---@field textAlignHorizontal string
 ---@field textAlignVertical string
----@field imagePath string|nil
+---@field backgroundImage string|nil
 ---@field image table|nil
----@field objectFit string
----@field objectPosition string
----@field imageOpacity number
----@field imageRepeat string
+---@field backgroundSize string
+---@field backgroundPosition string
+---@field backgroundOpacity number
+---@field backgroundRepeat string
 ---@field imageTint Color|nil
 ---@field onImageLoad fun(self: Element, image: table)|nil
 ---@field onImageLoadDeferred boolean
@@ -75,11 +75,11 @@
 ---@field prevGameSize {width:number, height:number}
 ---@field autosizing {width:boolean, height:boolean}
 ---@field units table
----@field minTextSize number|nil
----@field maxTextSize number|nil
----@field autoScaleText boolean
+---@field minFontSize number|nil
+---@field maxFontSize number|nil
+---@field autoScaleFont boolean
 ---@field fontFamily string|nil
----@field textSize number
+---@field fontSize number
 ---@field width number
 ---@field height number
 ---@field x number
@@ -92,7 +92,7 @@
 ---@field padding {top:number, right:number, bottom:number, left:number}
 ---@field margin {top:number, right:number, bottom:number, left:number}
 ---@field tabIndex number|nil
----@field textColor Color
+---@field color Color
 ---@field position string
 ---@field display string
 ---@field top number|nil
@@ -291,13 +291,6 @@ function Element.new(props)
     Color = Element._Color,
   }
 
-  -- Normalize flexDirection: convert "row"→"horizontal", "column"→"vertical"
-  if props.flexDirection == "row" then
-    props.flexDirection = "horizontal"
-  elseif props.flexDirection == "column" then
-    props.flexDirection = "vertical"
-  end
-
   -- CSS-style display/position mapping. Internally the layout engine operates on a
   -- single `positioning` field; we derive it from the user-facing display and position
   -- props. Order: position="absolute" wins; otherwise display drives the container layout.
@@ -339,6 +332,28 @@ function Element.new(props)
   self.children = {}
   self._deferredMethods = {}
   self.onEvent = props.onEvent
+  self.onEventDeferred = props.onEventDeferred or false
+
+  -- DOM-style typed event handlers. EventHandler:_invokeCallback dispatches to
+  -- whichever of these match event.type. They coexist with onEvent.
+  self.onClick = props.onClick
+  self.onClickDeferred = props.onClickDeferred or false
+  self.onMouseDown = props.onMouseDown
+  self.onMouseDownDeferred = props.onMouseDownDeferred or false
+  self.onMouseUp = props.onMouseUp
+  self.onMouseUpDeferred = props.onMouseUpDeferred or false
+  self.onMouseEnter = props.onMouseEnter
+  self.onMouseEnterDeferred = props.onMouseEnterDeferred or false
+  self.onMouseLeave = props.onMouseLeave
+  self.onMouseLeaveDeferred = props.onMouseLeaveDeferred or false
+  self.onMouseMove = props.onMouseMove
+  self.onMouseMoveDeferred = props.onMouseMoveDeferred or false
+  self.onDrag = props.onDrag
+  self.onDragDeferred = props.onDragDeferred or false
+  self.onContextMenu = props.onContextMenu
+  self.onContextMenuDeferred = props.onContextMenuDeferred or false
+  self.onAuxClick = props.onAuxClick
+  self.onAuxClickDeferred = props.onAuxClickDeferred or false
 
   -- Auto-generate ID if not provided
   if not props.id or props.id == "" then
@@ -519,39 +534,123 @@ function Element.new(props)
   ------ add non-hereditary ------
   --- self drawing---
   -- OPTIMIZATION: Handle border - only create table if border exists
-  -- This saves ~80 bytes per element without borders
-  if type(props.border) == "table" then
-    -- Check if any border side is truthy
+  -- Border: accepts the CSS shorthand string, a per-side table, or a number.
+  --   border = "2px solid #ff0000"
+  --   border = { top = 2, right = 2, bottom = 2, left = 2 }
+  --   border = 2
+  -- Per-side shorthand props override the corresponding side:
+  --   borderTop = "2px solid red", borderRight = ..., borderBottom = ..., borderLeft = ...
+  -- borderColor and borderStyle are separately settable; the shorthand seeds them
+  -- but later props can override.
+  local function _parseCssLength(token)
+    if not token then
+      return nil
+    end
+    local n = tonumber(token)
+    if n then
+      return n
+    end
+    local px = token:match("^(%-?%d+%.?%d*)px$")
+    if px then
+      return tonumber(px)
+    end
+    return nil
+  end
+
+  local validBorderStyles = { solid = true, dashed = true, dotted = true, double = true, none = true }
+
+  local function _parseBorderShorthand(value)
+    -- Returns { width = number?, style = string?, color = Color? } from a CSS shorthand.
+    if value == nil then
+      return nil
+    end
+    if type(value) == "number" then
+      return { width = value }
+    end
+    if type(value) ~= "string" then
+      return nil
+    end
+    local out = {}
+    for token in value:gmatch("%S+") do
+      local n = _parseCssLength(token)
+      if n then
+        out.width = n
+      elseif validBorderStyles[token] then
+        out.style = token
+      elseif token:sub(1, 1) == "#" then
+        out.color = Element._Color.fromHex(token)
+      end
+    end
+    return out
+  end
+
+  local shorthandColor, shorthandStyle = nil, nil
+  if type(props.border) == "string" then
+    local parsed = _parseBorderShorthand(props.border)
+    if parsed and parsed.width and parsed.width > 0 then
+      self.border = { top = parsed.width, right = parsed.width, bottom = parsed.width, left = parsed.width }
+    else
+      self.border = nil
+    end
+    shorthandColor = parsed and parsed.color or nil
+    shorthandStyle = parsed and parsed.style or nil
+  elseif type(props.border) == "table" then
     local hasAnyBorder = props.border.top or props.border.right or props.border.bottom or props.border.left
     if hasAnyBorder then
-      -- Normalize border values: boolean true → 1, number → value, false/nil → false
-      local function normalizeBorderValue(value)
-        if value == true then
+      local function normalize(v)
+        if v == true then
           return 1
-        elseif type(value) == "number" then
-          return value
-        else
-          return false
         end
+        if type(v) == "number" then
+          return v
+        end
+        return false
       end
-
       self.border = {
-        top = normalizeBorderValue(props.border.top),
-        right = normalizeBorderValue(props.border.right),
-        bottom = normalizeBorderValue(props.border.bottom),
-        left = normalizeBorderValue(props.border.left),
+        top = normalize(props.border.top),
+        right = normalize(props.border.right),
+        bottom = normalize(props.border.bottom),
+        left = normalize(props.border.left),
       }
     else
       self.border = nil
     end
-  elseif props.border then
-    -- If border is a number or truthy value, keep it as-is
-    self.border = props.border
+  elseif type(props.border) == "number" then
+    if props.border > 0 then
+      self.border = props.border
+    else
+      self.border = nil
+    end
   else
-    -- No border specified - use nil instead of table with all false
     self.border = nil
   end
-  self.borderColor = props.borderColor or Element._Color.new(0, 0, 0, 1)
+
+  -- Per-side shorthand overrides.
+  local sideKeys = { borderTop = "top", borderRight = "right", borderBottom = "bottom", borderLeft = "left" }
+  for prop, side in pairs(sideKeys) do
+    if props[prop] ~= nil then
+      local parsed = _parseBorderShorthand(props[prop])
+      if parsed then
+        if type(self.border) ~= "table" then
+          local base = (type(self.border) == "number") and self.border or false
+          self.border = { top = base, right = base, bottom = base, left = base }
+        end
+        if parsed.width ~= nil then
+          self.border[side] = parsed.width > 0 and parsed.width or false
+        end
+        -- Per-side colour/style override the shorthand-derived defaults.
+        if parsed.color and not shorthandColor then
+          shorthandColor = parsed.color
+        end
+        if parsed.style and not shorthandStyle then
+          shorthandStyle = parsed.style
+        end
+      end
+    end
+  end
+
+  self.borderColor = props.borderColor or shorthandColor or Element._Color.new(0, 0, 0, 1)
+  self.borderStyle = props.borderStyle or shorthandStyle or "solid"
   self.backgroundColor = props.backgroundColor or Element._Color.new(0, 0, 0, 0)
 
   -- Validate and set opacity
@@ -584,36 +683,36 @@ function Element.new(props)
   -- Set transform property (optional)
   self.transform = props.transform or nil
 
-  -- OPTIMIZATION: Handle cornerRadius - store as number or table, nil if all zeros
+  -- OPTIMIZATION: Handle borderRadius - store as number or table, nil if all zeros
   -- This saves ~80 bytes per element without rounded corners
-  if props.cornerRadius then
-    if type(props.cornerRadius) == "number" then
+  if props.borderRadius then
+    if type(props.borderRadius) == "number" then
       -- Store as number for uniform radius (compact)
-      if props.cornerRadius ~= 0 then
-        self.cornerRadius = props.cornerRadius
+      if props.borderRadius ~= 0 then
+        self.borderRadius = props.borderRadius
       else
-        self.cornerRadius = nil
+        self.borderRadius = nil
       end
     else
       -- Store as table only if non-zero values exist
-      local hasNonZero = props.cornerRadius.topLeft
-        or props.cornerRadius.topRight
-        or props.cornerRadius.bottomLeft
-        or props.cornerRadius.bottomRight
+      local hasNonZero = props.borderRadius.topLeft
+        or props.borderRadius.topRight
+        or props.borderRadius.bottomLeft
+        or props.borderRadius.bottomRight
       if hasNonZero then
-        self.cornerRadius = {
-          topLeft = props.cornerRadius.topLeft or 0,
-          topRight = props.cornerRadius.topRight or 0,
-          bottomLeft = props.cornerRadius.bottomLeft or 0,
-          bottomRight = props.cornerRadius.bottomRight or 0,
+        self.borderRadius = {
+          topLeft = props.borderRadius.topLeft or 0,
+          topRight = props.borderRadius.topRight or 0,
+          bottomLeft = props.borderRadius.bottomLeft or 0,
+          bottomRight = props.borderRadius.bottomRight or 0,
         }
       else
-        self.cornerRadius = nil
+        self.borderRadius = nil
       end
     end
   else
-    -- No cornerRadius specified - use nil instead of table with all zeros
-    self.cornerRadius = nil
+    -- No borderRadius specified - use nil instead of table with all zeros
+    self.borderRadius = nil
   end
 
   -- For editable elements, default text to empty string if not provided
@@ -623,125 +722,73 @@ function Element.new(props)
     self.text = props.text
   end
 
-  -- Validate and set textAlign (supports simple string, compound string, or table format)
-  local textAlignDefault = Element._utils.enums.TextAlign.START
-  self.textAlign = props.textAlign or textAlignDefault
-  self.textAlignHorizontal = textAlignDefault
-  self.textAlignVertical = Element._utils.enums.TextAlignVertical.START
+  -- textAlign / verticalAlign: CSS-style, one prop per axis.
+  -- textAlign:     "start" | "center" | "end" | "justify"  (default: "start")
+  -- verticalAlign: "start" | "center" | "end"              (default: "start")
+  local hDefault = Element._utils.enums.TextAlign.START
+  local vDefault = Element._utils.enums.TextAlignVertical.START
+  local hEnum = Element._utils.enums.TextAlign
+  local vEnum = Element._utils.enums.TextAlignVertical
+
+  local function isValid(value, enumTable)
+    for _, v in pairs(enumTable) do
+      if value == v then
+        return true
+      end
+    end
+    return false
+  end
+
+  self.textAlign = props.textAlign or hDefault
+  self.verticalAlign = props.verticalAlign or vDefault
+  self.textAlignHorizontal = hDefault
+  self.textAlignVertical = vDefault
 
   if props.textAlign ~= nil then
-    if type(props.textAlign) == "table" then
-      -- Table format: {horizontal = "start", vertical = "center"}
-      local hAlign = props.textAlign.horizontal or textAlignDefault
-      local vAlign = props.textAlign.vertical or Element._utils.enums.TextAlignVertical.START
+    if isValid(props.textAlign, hEnum) then
+      self.textAlignHorizontal = props.textAlign
+    else
+      Element._ErrorHandler:warn("Element", "VAL_001", {
+        property = "textAlign",
+        expected = "valid TextAlign value",
+        got = tostring(props.textAlign),
+      })
+    end
+  end
 
-      -- Validate horizontal value
-      local validH = false
-      for _, v in pairs(Element._utils.enums.TextAlign) do
-        if hAlign == v then
-          validH = true
-          break
-        end
-      end
-      if not validH then
-        Element._ErrorHandler:warn("Element", "VAL_001", {
-          property = "textAlign.horizontal",
-          expected = "valid TextAlign value",
-          got = tostring(hAlign),
-        })
-        hAlign = textAlignDefault
-      end
-
-      -- Validate vertical value
-      local validV = false
-      for _, v in pairs(Element._utils.enums.TextAlignVertical) do
-        if vAlign == v then
-          validV = true
-          break
-        end
-      end
-      if not validV then
-        Element._ErrorHandler:warn("Element", "VAL_001", {
-          property = "textAlign.vertical",
-          expected = "valid TextAlignVertical value",
-          got = tostring(vAlign),
-        })
-        vAlign = Element._utils.enums.TextAlignVertical.START
-      end
-
-      self.textAlignHorizontal = hAlign
-      self.textAlignVertical = vAlign
-    elseif type(props.textAlign) == "string" then
-      -- Check if it's a known simple value (backward compatible)
-      local isSimple = false
-      for _, v in pairs(Element._utils.enums.TextAlign) do
-        if props.textAlign == v then
-          isSimple = true
-          break
-        end
-      end
-
-      if isSimple then
-        self.textAlignHorizontal = props.textAlign
-        self.textAlignVertical = Element._utils.enums.TextAlignVertical.START
-      else
-        -- Treat as compound string: "top-left" through "bottom-right"
-        local parts = {}
-        for part in props.textAlign:gmatch("[^-]+") do
-          table.insert(parts, part)
-        end
-
-        if #parts == 2 then
-          local verticalMap = { top = "start", center = "center", bottom = "end" }
-          local horizontalMap = { left = "start", center = "center", right = "end" }
-
-          local vStr = parts[1]:lower()
-          local hStr = parts[2]:lower()
-          local resolvedV = verticalMap[vStr]
-          local resolvedH = horizontalMap[hStr]
-
-          if resolvedV and resolvedH then
-            self.textAlignHorizontal = resolvedH
-            self.textAlignVertical = resolvedV
-          else
-            Element._ErrorHandler:warn("Element", "VAL_001", {
-              property = "textAlign",
-              expected = "valid compound string (e.g., 'top-left', 'center-right')",
-              got = props.textAlign,
-            })
-          end
-        else
-          Element._ErrorHandler:warn("Element", "VAL_001", {
-            property = "textAlign",
-            expected = "valid TextAlign value or compound string",
-            got = props.textAlign,
-          })
-        end
-      end
+  if props.verticalAlign ~= nil then
+    if isValid(props.verticalAlign, vEnum) then
+      self.textAlignVertical = props.verticalAlign
+    else
+      Element._ErrorHandler:warn("Element", "VAL_001", {
+        property = "verticalAlign",
+        expected = "valid TextAlignVertical value",
+        got = tostring(props.verticalAlign),
+      })
     end
   end
 
   -- Image properties
-  self.imagePath = props.imagePath
+  self.backgroundImage = props.backgroundImage
   self.image = props.image
 
-  -- Validate objectFit
-  if props.objectFit then
+  -- Validate backgroundSize
+  if props.backgroundSize then
     local validObjectFit =
       { fill = "fill", contain = "contain", cover = "cover", ["scale-down"] = "scale-down", none = "none" }
-    Element._utils.validateEnum(props.objectFit, validObjectFit, "objectFit")
+    Element._utils.validateEnum(props.backgroundSize, validObjectFit, "backgroundSize")
   end
-  self.objectFit = props.objectFit or "fill"
-  self.objectPosition = props.objectPosition or "center center"
+  self.backgroundSize = props.backgroundSize or "fill"
+  self.backgroundPosition = props.backgroundPosition or "center center"
 
-  -- Validate and set imageOpacity
-  if props.imageOpacity ~= nil then
-    Element._utils.validateRange(props.imageOpacity, 0, 1, "imageOpacity")
+  -- Validate and set backgroundOpacity
+  if props.backgroundOpacity ~= nil then
+    Element._utils.validateRange(props.backgroundOpacity, 0, 1, "backgroundOpacity")
   end
-  self.imageOpacity = props.imageOpacity or 1
+  self.backgroundOpacity = props.backgroundOpacity or 1
 
-  -- Validate and set imageRepeat
-  if props.imageRepeat then
+  -- Validate and set backgroundRepeat
+  if props.backgroundRepeat then
     local validImageRepeat = {
       ["no-repeat"] = "no-repeat",
       ["repeat"] = "repeat",
@@ -750,9 +797,9 @@ function Element.new(props)
       space = "space",
       round = "round",
     }
-    Element._utils.validateEnum(props.imageRepeat, validImageRepeat, "imageRepeat")
+    Element._utils.validateEnum(props.backgroundRepeat, validImageRepeat, "backgroundRepeat")
   end
-  self.imageRepeat = props.imageRepeat or "no-repeat"
+  self.backgroundRepeat = props.backgroundRepeat or "no-repeat"
 
   -- Set imageTint
   self.imageTint = props.imageTint
@@ -763,10 +810,10 @@ function Element.new(props)
   self.onImageError = props.onImageError
   self.onImageErrorDeferred = props.onImageErrorDeferred or false
 
-  -- Auto-load image if imagePath is provided
-  if self.imagePath and not self.image then
+  -- Auto-load image if backgroundImage is provided
+  if self.backgroundImage and not self.image then
     -- Check cache first (no I/O). Set _loadedImage immediately if cached
-    self._loadedImage = Element._ImageCache.get(self.imagePath)
+    self._loadedImage = Element._ImageCache.get(self.backgroundImage)
     -- Defer image loading to avoid I/O and callbacks in constructor
     self:_deferMethod("_loadImage")
   elseif self.image then
@@ -790,18 +837,18 @@ function Element.new(props)
     borderColor = self.borderColor,
     opacity = self.opacity,
     border = self.border,
-    cornerRadius = self.cornerRadius,
+    borderRadius = self.borderRadius,
     theme = self.theme,
     themeComponent = self.themeComponent,
     scaleCorners = self.scaleCorners,
     scalingAlgorithm = self.scalingAlgorithm,
-    imagePath = self.imagePath,
+    backgroundImage = self.backgroundImage,
     image = self.image,
     _loadedImage = self._loadedImage,
-    objectFit = self.objectFit,
-    objectPosition = self.objectPosition,
-    imageOpacity = self.imageOpacity,
-    imageRepeat = self.imageRepeat,
+    backgroundSize = self.backgroundSize,
+    backgroundPosition = self.backgroundPosition,
+    backgroundOpacity = self.backgroundOpacity,
+    backgroundRepeat = self.backgroundRepeat,
     imageTint = self.imageTint,
     contentBlur = self.contentBlur,
     backdropBlur = self.backdropBlur,
@@ -819,7 +866,7 @@ function Element.new(props)
   -- It will be re-configured later with actual layout properties
   self._layoutEngine = Element._LayoutEngine.new({
     positioning = Element._utils.enums.Positioning.RELATIVE,
-    flexDirection = Element._utils.enums.FlexDirection.HORIZONTAL,
+    flexDirection = Element._utils.enums.FlexDirection.ROW,
     flexWrap = Element._utils.enums.FlexWrap.NOWRAP,
     justifyContent = Element._utils.enums.JustifyContent.FLEX_START,
     alignItems = Element._utils.enums.AlignItems.STRETCH,
@@ -839,7 +886,7 @@ function Element.new(props)
     height = { value = nil, unit = "px" },
     x = { value = nil, unit = "px" },
     y = { value = nil, unit = "px" },
-    textSize = { value = nil, unit = "px" },
+    fontSize = { value = nil, unit = "px" },
     gap = { value = nil, unit = "px" },
     flexBasis = { value = nil, unit = "auto" },
     padding = {
@@ -863,14 +910,14 @@ function Element.new(props)
   local scaleX, scaleY = Element._Context.getScaleFactors()
   local _ctx = { vw = viewportWidth, vh = viewportHeight, sx = scaleX, sy = scaleY }
 
-  self.minTextSize = props.minTextSize
-  self.maxTextSize = props.maxTextSize
+  self.minFontSize = props.minFontSize
+  self.maxFontSize = props.maxFontSize
 
-  -- Set autoScaleText BEFORE textSize processing (needed for correct initialization)
-  if props.autoScaleText == nil then
-    self.autoScaleText = true
+  -- Set autoScaleFont BEFORE fontSize processing (needed for correct initialization)
+  if props.autoScaleFont == nil then
+    self.autoScaleFont = true
   else
-    self.autoScaleText = props.autoScaleText
+    self.autoScaleFont = props.autoScaleFont
   end
 
   -- Handle fontFamily (can be font name from theme or direct path to font file)
@@ -889,77 +936,77 @@ function Element.new(props)
     self.fontFamily = nil
   end
 
-  -- Handle textSize BEFORE width/height calculation (needed for auto-sizing)
-  if props.textSize then
-    if type(props.textSize) == "string" then
+  -- Handle fontSize BEFORE width/height calculation (needed for auto-sizing)
+  if props.fontSize then
+    if type(props.fontSize) == "string" then
       -- Check if it's a preset first
-      local presetValue, presetUnit = Element._utils.resolveTextSizePreset(props.textSize)
+      local presetValue, presetUnit = Element._utils.resolveTextSizePreset(props.fontSize)
       local value, unit
 
       if presetValue then
         -- It's a preset, use the preset value and unit
         value, unit = presetValue, presetUnit
-        self.units.textSize = { value = value, unit = unit }
+        self.units.fontSize = { value = value, unit = unit }
       else
         -- Not a preset, parse normally
-        value, unit = Element._Units.parse(props.textSize)
-        self.units.textSize = { value = value, unit = unit }
+        value, unit = Element._Units.parse(props.fontSize)
+        self.units.fontSize = { value = value, unit = unit }
       end
 
-      -- Resolve textSize based on unit type
+      -- Resolve fontSize based on unit type
       if unit == "%" or unit == "vh" then
         -- Percentage and vh are relative to viewport height
-        self.textSize = Element._Units.resolve(value, unit, viewportWidth, viewportHeight, viewportHeight)
+        self.fontSize = Element._Units.resolve(value, unit, viewportWidth, viewportHeight, viewportHeight)
       elseif unit == "vw" then
         -- vw is relative to viewport width
-        self.textSize = Element._Units.resolve(value, unit, viewportWidth, viewportHeight, viewportWidth)
+        self.fontSize = Element._Units.resolve(value, unit, viewportWidth, viewportHeight, viewportWidth)
       elseif unit == "px" then
         -- Pixel units
-        self.textSize = value
+        self.fontSize = value
       else
         Element._ErrorHandler:error("Element", "ELEM_002", {
           unit = unit,
         })
       end
     else
-      -- Validate pixel textSize value
-      if props.textSize <= 0 then
+      -- Validate pixel fontSize value
+      if props.fontSize <= 0 then
         Element._ErrorHandler:error("Element", "ELEM_001", {
-          value = tostring(props.textSize),
+          value = tostring(props.fontSize),
         })
       end
 
-      -- Pixel textSize value
-      if self.autoScaleText and Element._Context.baseScale then
+      -- Pixel fontSize value
+      if self.autoScaleFont and Element._Context.baseScale then
         -- With base scaling: store original pixel value and scale relative to base resolution
-        self.units.textSize = { value = props.textSize, unit = "px" }
-        self.textSize = props.textSize * scaleY
-      elseif self.autoScaleText then
+        self.units.fontSize = { value = props.fontSize, unit = "px" }
+        self.fontSize = props.fontSize * scaleY
+      elseif self.autoScaleFont then
         -- Without base scaling: convert to viewport units for auto-scaling
         -- Calculate what percentage of viewport height this represents
-        local vhValue = (props.textSize / viewportHeight) * 100
-        self.units.textSize = { value = vhValue, unit = "vh" }
-        self.textSize = props.textSize -- Initial size is the specified pixel value
+        local vhValue = (props.fontSize / viewportHeight) * 100
+        self.units.fontSize = { value = vhValue, unit = "vh" }
+        self.fontSize = props.fontSize -- Initial size is the specified pixel value
       else
         -- No auto-scaling: apply base scaling if set, otherwise use raw value
-        self.textSize = Element._Context.baseScale and (props.textSize * scaleY) or props.textSize
-        self.units.textSize = { value = props.textSize, unit = "px" }
+        self.fontSize = Element._Context.baseScale and (props.fontSize * scaleY) or props.fontSize
+        self.units.fontSize = { value = props.fontSize, unit = "px" }
       end
     end
   else
-    -- No textSize specified - use auto-scaling default
-    if self.autoScaleText and Element._Context.baseScale then
+    -- No fontSize specified - use auto-scaling default
+    if self.autoScaleFont and Element._Context.baseScale then
       -- With base scaling: use 12px as default and scale
-      self.units.textSize = { value = 12, unit = "px" }
-      self.textSize = 12 * scaleY
-    elseif self.autoScaleText then
+      self.units.fontSize = { value = 12, unit = "px" }
+      self.fontSize = 12 * scaleY
+    elseif self.autoScaleFont then
       -- Without base scaling: default to 1.5vh (1.5% of viewport height)
-      self.units.textSize = { value = 1.5, unit = "vh" }
-      self.textSize = (1.5 / 100) * viewportHeight
+      self.units.fontSize = { value = 1.5, unit = "vh" }
+      self.fontSize = (1.5 / 100) * viewportHeight
     else
       -- No auto-scaling: use 12px with optional base scaling
-      self.textSize = Element._Context.baseScale and (12 * scaleY) or 12
-      self.units.textSize = { value = nil, unit = "px" }
+      self.fontSize = Element._Context.baseScale and (12 * scaleY) or 12
+      self.units.fontSize = { value = nil, unit = "px" }
     end
   end
 
@@ -1021,8 +1068,8 @@ function Element.new(props)
 
   --- child positioning ---
   if props.gap then
-    local flexDir = props.flexDirection or Element._utils.enums.FlexDirection.HORIZONTAL
-    local containerSize = (flexDir == Element._utils.enums.FlexDirection.HORIZONTAL) and self.width or self.height
+    local flexDir = props.flexDirection or Element._utils.enums.FlexDirection.ROW
+    local containerSize = (flexDir == Element._utils.enums.FlexDirection.ROW) and self.width or self.height
     _resolveUnit(self, props.gap, "gap", containerSize, _ctx)
   else
     self.gap = 0
@@ -1215,23 +1262,23 @@ function Element.new(props)
   self.width = math.max(0, self._borderBoxWidth - self.padding.left - self.padding.right)
   self.height = math.max(0, self._borderBoxHeight - self.padding.top - self.padding.bottom)
 
-  -- Re-resolve textSize presets now that width/height are set
+  -- Re-resolve fontSize presets now that width/height are set
   -- (presets like "vw" need the viewport; others are resolved during constructor)
 
   -- Apply min/max constraints (also scaled)
-  local minSize = self.minTextSize and (Element._Context.baseScale and (self.minTextSize * scaleY) or self.minTextSize)
-  local maxSize = self.maxTextSize and (Element._Context.baseScale and (self.maxTextSize * scaleY) or self.maxTextSize)
+  local minSize = self.minFontSize and (Element._Context.baseScale and (self.minFontSize * scaleY) or self.minFontSize)
+  local maxSize = self.maxFontSize and (Element._Context.baseScale and (self.maxFontSize * scaleY) or self.maxFontSize)
 
-  if minSize and self.textSize < minSize then
-    self.textSize = minSize
+  if minSize and self.fontSize < minSize then
+    self.fontSize = minSize
   end
-  if maxSize and self.textSize > maxSize then
-    self.textSize = maxSize
+  if maxSize and self.fontSize > maxSize then
+    self.fontSize = maxSize
   end
 
   -- Protect against too-small text sizes (minimum 1px)
-  if self.textSize < 1 then
-    self.textSize = 1 -- Minimum 1px
+  if self.fontSize < 1 then
+    self.fontSize = 1 -- Minimum 1px
   end
 
   -- Store original spacing values for proper resize handling
@@ -1320,17 +1367,17 @@ function Element.new(props)
     self.z = Element._ZIndex.clamp(props.z or 0)
     self.tabIndex = props.tabIndex -- nil/0 = document order, >0 = explicit order, -1 = excluded from keyboard nav
 
-    -- Set textColor with priority: props > theme text color > black
-    if props.textColor then
-      self.textColor = props.textColor
+    -- Set color with priority: props > theme text color > black
+    if props.color then
+      self.color = props.color
     else
       -- Try to get text color from theme via ThemeManager
       local themeToUse = self._themeManager:getTheme()
       if themeToUse and themeToUse.colors and themeToUse.colors.text then
-        self.textColor = themeToUse.colors.text
+        self.color = themeToUse.colors.text
       else
         -- Fallback to black
-        self.textColor = Element._Color.new(0, 0, 0, 1)
+        self.color = Element._Color.new(0, 0, 0, 1)
       end
     end
 
@@ -1447,17 +1494,17 @@ function Element.new(props)
       self.tabIndex = props.tabIndex
     end
 
-    if props.textColor then
-      self.textColor = props.textColor
-    elseif self.parent.textColor then
-      self.textColor = self.parent.textColor
+    if props.color then
+      self.color = props.color
+    elseif self.parent.color then
+      self.color = self.parent.color
     else
       local themeToUse = self._themeManager:getTheme()
       if themeToUse and themeToUse.colors and themeToUse.colors.text then
-        self.textColor = themeToUse.colors.text
+        self.color = themeToUse.colors.text
       else
         -- Fallback to black
-        self.textColor = Element._Color.new(0, 0, 0, 1)
+        self.color = Element._Color.new(0, 0, 0, 1)
       end
     end
 
@@ -1498,7 +1545,7 @@ function Element.new(props)
       _resolveUnit(self, props.left, "left", viewportWidth, _ctx)
     end
 
-    props.parent:addChild(self)
+    props.parent:appendChild(self)
   end
 
   if self.positioning == Element._utils.enums.Positioning.FLEX then
@@ -1531,7 +1578,7 @@ function Element.new(props)
       })
     end
 
-    self.flexDirection = props.flexDirection or Element._utils.enums.FlexDirection.HORIZONTAL
+    self.flexDirection = props.flexDirection or Element._utils.enums.FlexDirection.ROW
     self.flexWrap = props.flexWrap or Element._utils.enums.FlexWrap.NOWRAP
     self.justifyContent = props.justifyContent or Element._utils.enums.JustifyContent.FLEX_START
     self.alignItems = props.alignItems or Element._utils.enums.AlignItems.STRETCH
@@ -1602,7 +1649,87 @@ function Element.new(props)
 
   -- transform is already set at line 424 (props.transform or nil)
   -- Don't overwrite it here
-  self.transition = props.transition or {}
+  -- CSS `transition` shorthand support.
+  --   transition = "opacity 0.3s ease-in-out"
+  --   transition = "opacity 300ms, transform 500ms ease-out 0.1s"
+  --   transition = { duration = 0.3, easing = "easeOutQuad" }     -- legacy table
+  -- All forms feed into self.transitions[property] = { duration, easing, delay }.
+  local function _parseCssDuration(token)
+    if not token then
+      return nil
+    end
+    local ms = token:match("^(%-?%d+%.?%d*)ms$")
+    if ms then
+      return tonumber(ms) / 1000
+    end
+    local s = token:match("^(%-?%d+%.?%d*)s$")
+    if s then
+      return tonumber(s)
+    end
+    local n = tonumber(token)
+    if n then
+      return n
+    end
+    return nil
+  end
+
+  local _cssEasingMap = {
+    linear = "linear",
+    ease = "easeInOutCubic",
+    ["ease-in"] = "easeInCubic",
+    ["ease-out"] = "easeOutCubic",
+    ["ease-in-out"] = "easeInOutCubic",
+  }
+
+  local function _parseTransitionEntry(entry)
+    -- "opacity 0.3s ease-in-out 0.1s" -> { property, duration, easing, delay }
+    local tokens = {}
+    for tok in entry:gmatch("%S+") do
+      table.insert(tokens, tok)
+    end
+    if #tokens == 0 then
+      return nil
+    end
+    local prop = tokens[1]
+    local duration, easing, delay
+    for i = 2, #tokens do
+      local d = _parseCssDuration(tokens[i])
+      if d ~= nil then
+        if duration == nil then
+          duration = d
+        else
+          delay = d
+        end
+      elseif _cssEasingMap[tokens[i]] then
+        easing = _cssEasingMap[tokens[i]]
+      elseif tokens[i]:match("^ease") or tokens[i] == "linear" then
+        -- already a FlexLove easing name (e.g. easeOutCubic) — pass through
+        easing = tokens[i]
+      end
+    end
+    return {
+      property = prop,
+      config = {
+        duration = duration or 0.3,
+        easing = easing or "easeOutQuad",
+        delay = delay or 0,
+      },
+    }
+  end
+
+  self.transition = nil
+  if type(props.transition) == "string" then
+    self.transitions = self.transitions or {}
+    for rawChunk in props.transition:gmatch("[^,]+") do
+      local chunk = rawChunk:gsub("^%s+", ""):gsub("%s+$", "")
+      local parsed = _parseTransitionEntry(chunk)
+      if parsed then
+        self.transitions[parsed.property] = parsed.config
+      end
+    end
+  elseif type(props.transition) == "table" then
+    self.transition = props.transition
+  end
 
   if props.overflow or props.overflowX or props.overflowY then
     self._scrollManager = Element._ScrollManager.new({
@@ -1700,9 +1827,16 @@ function Element.new(props)
   local dr, dg, db = hslToRgb(hue)
   self._debugColor = { dr, dg, db }
 
-  -- Process declarative children prop. Accepts either:
-  --   - an already-constructed Element instance, attached as a child of this one
-  --   - a prop table, used to construct a new Element parented to this one
+  -- Process declarative `children` prop. Each entry is either:
+  --   - an already-constructed Element instance: reparented under self via setParent
+  --   - a prop table: passed to Element.new(...) which attaches it as a child
+  --
+  -- This block runs exactly once per Element.new() call. After construction the
+  -- `children` prop has no further effect: `self.children` becomes the live
+  -- array of attached child Element instances, and runtime mutation goes
+  -- through appendChild / removeChild / replaceChildren / setParent. Assigning
+  -- `el.children = { ... }` post-construction is not interpreted - the
+  -- framework does no diff/reconciliation pass.
   if props.children then
     if type(props.children) ~= "table" then
       Element._ErrorHandler:warn("Element", "ELEM_010", {
@@ -2073,8 +2207,8 @@ end
 --- Deferred image loading (avoids I/O in constructor)
 --- Loads the image from cache or disk, then fires onImageLoad/onImageError callbacks
 function Element:_loadImage()
-  if self.imagePath and not self.image then
-    local loadedImage, err = Element._ImageCache.load(self.imagePath)
+  if self.backgroundImage and not self.image then
+    local loadedImage, err = Element._ImageCache.load(self.backgroundImage)
     if loadedImage then
       self._loadedImage = loadedImage
       if self.onImageLoad and type(self.onImageLoad) == "function" then
@@ -2377,7 +2511,7 @@ end
 --- Dynamically insert a child element into the hierarchy for runtime UI construction
 --- Use this to build interfaces procedurally or add elements based on application state
 ---@param child Element
-function Element:addChild(child)
+function Element:appendChild(child)
   if self._managedSelectFrame and child.selectOption and self._managedSelectOwner then
     child._selectParentHint = self._managedSelectOwner
   end
@@ -2554,7 +2688,7 @@ function Element:setParent(newParent)
   if newParent then
     -- addChild handles: setting self.parent, re-evaluating positioning,
     -- inserting into children, marking dirty, auto-sizing, and layoutChildren
-    newParent:addChild(self)
+    newParent:appendChild(self)
   else
     -- Become a top-level element
     self.parent = nil
@@ -2567,7 +2701,7 @@ end
 
 --- Delete all child elements at once for resetting containers or clearing lists
 --- Use this to efficiently empty containers when rebuilding UI from scratch
-function Element:clearChildren()
+function Element:replaceChildren()
   -- Clear parent references for all children
   for _, child in ipairs(self.children) do
     child:_unregisterFromSelectParent()
@@ -2780,14 +2914,14 @@ function Element:draw(backdropCanvas)
 
   -- Check if we need to clip children to rounded corners
   local hasRoundedCorners = false
-  if self.cornerRadius then
-    if type(self.cornerRadius) == "number" then
-      hasRoundedCorners = self.cornerRadius > 0
+  if self.borderRadius then
+    if type(self.borderRadius) == "number" then
+      hasRoundedCorners = self.borderRadius > 0
     else
-      hasRoundedCorners = self.cornerRadius.topLeft > 0
-        or self.cornerRadius.topRight > 0
-        or self.cornerRadius.bottomLeft > 0
-        or self.cornerRadius.bottomRight > 0
+      hasRoundedCorners = self.borderRadius.topLeft > 0
+        or self.borderRadius.topRight > 0
+        or self.borderRadius.bottomLeft > 0
+        or self.borderRadius.bottomRight > 0
     end
   end
 
@@ -2812,7 +2946,7 @@ function Element:draw(backdropCanvas)
       local roundedBoxWidth = self._borderBoxWidth or (self.width + self.padding.left + self.padding.right)
       local roundedBoxHeight = self._borderBoxHeight or (self.height + self.padding.top + self.padding.bottom)
       local stencilFunc =
-        Element._RoundedRect.stencilFunction(self.x, self.y, roundedBoxWidth, roundedBoxHeight, self.cornerRadius)
+        Element._RoundedRect.stencilFunction(self.x, self.y, roundedBoxWidth, roundedBoxHeight, self.borderRadius)
 
       -- Temporarily disable canvas for stencil operation (LÖVE 11.5 workaround)
       local currentCanvas = love.graphics.getCanvas()
@@ -2986,7 +3120,7 @@ function Element:update(dt)
       self.x = anim.x or self.x
       self.y = anim.y or self.y
       self.gap = anim.gap or self.gap
-      self.imageOpacity = anim.imageOpacity or self.imageOpacity
+      self.backgroundOpacity = anim.backgroundOpacity or self.backgroundOpacity
       self.scrollbarWidth = anim.scrollbarWidth or self.scrollbarWidth
       self.borderWidth = anim.borderWidth or self.borderWidth
       self.fontSize = anim.fontSize or self.fontSize
@@ -2999,8 +3133,8 @@ function Element:update(dt)
       if anim.borderColor then
         self.borderColor = anim.borderColor
       end
-      if anim.textColor then
-        self.textColor = anim.textColor
+      if anim.color then
+        self.color = anim.color
       end
       if anim.scrollbarColor then
         self.scrollbarColor = anim.scrollbarColor
@@ -3019,8 +3153,8 @@ function Element:update(dt)
       if anim.margin then
         self.margin = anim.margin
       end
-      if anim.cornerRadius then
-        self.cornerRadius = anim.cornerRadius
+      if anim.borderRadius then
+        self.borderRadius = anim.borderRadius
       end
 
       -- Apply transform property
@@ -3278,7 +3412,7 @@ function Element:resize(newGameWidth, newGameHeight)
     self.height = math.max(0, self._borderBoxHeight - self.padding.top - self.padding.bottom)
   end
 
-  -- Re-resolve textSize if it uses viewport-relative units after dimensions are finalized
+  -- Re-resolve fontSize if it uses viewport-relative units after dimensions are finalized
 
   self:layoutChildren()
   self.prevGameSize.width = newGameWidth
@@ -3303,7 +3437,7 @@ function Element:calculateTextWidth()
     return 0
   end
 
-  local font = Element._utils.getFont(self.textSize, self.fontFamily, self.themeComponent, self._themeManager)
+  local font = Element._utils.getFont(self.fontSize, self.fontFamily, self.themeComponent, self._themeManager)
   local width = font:getWidth(self.text)
   return Element._utils.applyContentMultiplier(width, self.contentAutoSizingMultiplier, "width")
 end
@@ -3314,7 +3448,7 @@ function Element:calculateTextHeight()
     return 0
   end
 
-  local font = Element._utils.getFont(self.textSize, self.fontFamily, self.themeComponent, self._themeManager)
+  local font = Element._utils.getFont(self.fontSize, self.fontFamily, self.themeComponent, self._themeManager)
   local height = font:getHeight()
 
   if self.textWrap and (self.textWrap == "word" or self.textWrap == "char" or self.textWrap == true) then
@@ -3775,11 +3909,11 @@ end
 ---@param opacity number Opacity 0-1
 function Element:setImageOpacity(opacity)
   if opacity ~= nil then
-    Element._utils.validateRange(opacity, 0, 1, "imageOpacity")
+    Element._utils.validateRange(opacity, 0, 1, "backgroundOpacity")
   end
-  self.imageOpacity = opacity
+  self.backgroundOpacity = opacity
   if self._renderer then
-    self._renderer.imageOpacity = opacity
+    self._renderer.backgroundOpacity = opacity
   end
 end
 
@@ -3794,10 +3928,10 @@ function Element:setImageRepeat(repeatMode)
     space = "space",
     round = "round",
   }
-  Element._utils.validateEnum(repeatMode, validImageRepeat, "imageRepeat")
-  self.imageRepeat = repeatMode
+  Element._utils.validateEnum(repeatMode, validImageRepeat, "backgroundRepeat")
+  self.backgroundRepeat = repeatMode
   if self._renderer then
-    self._renderer.imageRepeat = repeatMode
+    self._renderer.backgroundRepeat = repeatMode
   end
 end
 
@@ -4212,9 +4346,9 @@ function Element:_syncThemeAndRenderer(property, value)
     if self._renderer then
       self._renderer.borderColor = value
     end
-  elseif property == "cornerRadius" then
+  elseif property == "borderRadius" then
     if self._renderer then
-      self._renderer.cornerRadius = value
+      self._renderer.borderRadius = value
     end
   end
 end

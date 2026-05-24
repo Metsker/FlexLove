@@ -58,11 +58,11 @@ local function createMockElement()
       top = 0,
       bottom = 0,
     },
-    textSize = 14,
+    fontSize = 14,
     fontFamily = nil,
     themeComponent = nil,
     _themeManager = nil,
-    textColor = Color.new(0, 0, 0, 1),
+    color = Color.new(0, 0, 0, 1),
     text = "Test",
     editable = false,
     multiline = false,
@@ -88,9 +88,9 @@ function TestRendererConstruction:testNewWithDefaults()
 
   luaunit.assertNotNil(renderer)
   luaunit.assertEquals(renderer.opacity, 1)
-  luaunit.assertEquals(renderer.objectFit, "fill")
-  luaunit.assertEquals(renderer.objectPosition, "center center")
-  luaunit.assertEquals(renderer.imageOpacity, 1)
+  luaunit.assertEquals(renderer.backgroundSize, "fill")
+  luaunit.assertEquals(renderer.backgroundPosition, "center center")
+  luaunit.assertEquals(renderer.backgroundOpacity, 1)
 end
 
 function TestRendererConstruction:testNewWithEmptyConfig()
@@ -100,7 +100,7 @@ function TestRendererConstruction:testNewWithEmptyConfig()
   luaunit.assertNotNil(renderer.backgroundColor)
   luaunit.assertNotNil(renderer.borderColor)
   luaunit.assertNotNil(renderer.border)
-  luaunit.assertNotNil(renderer.cornerRadius)
+  luaunit.assertNotNil(renderer.borderRadius)
 end
 
 function TestRendererConstruction:testNewStoresDependencies()
@@ -178,26 +178,26 @@ end
 
 function TestRendererOpacity:testNewWithImageOpacity()
   local renderer = Renderer.new({
-    imageOpacity = 0.7,
+    backgroundOpacity = 0.7,
   }, createDeps())
 
-  luaunit.assertEquals(renderer.imageOpacity, 0.7)
+  luaunit.assertEquals(renderer.backgroundOpacity, 0.7)
 end
 
 function TestRendererOpacity:testNewWithFractionalImageOpacity()
   local renderer = Renderer.new({
-    imageOpacity = 0.777,
+    backgroundOpacity = 0.777,
   }, createDeps())
 
-  luaunit.assertEquals(renderer.imageOpacity, 0.777)
+  luaunit.assertEquals(renderer.backgroundOpacity, 0.777)
 end
 
 function TestRendererOpacity:testNewWithZeroImageOpacity()
   local renderer = Renderer.new({
-    imageOpacity = 0,
+    backgroundOpacity = 0,
   }, createDeps())
 
-  luaunit.assertEquals(renderer.imageOpacity, 0)
+  luaunit.assertEquals(renderer.backgroundOpacity, 0)
 end
 
 -- ============================================================================
@@ -246,7 +246,7 @@ TestRendererCornerRadius = {}
 
 function TestRendererCornerRadius:testNewWithCornerRadius()
   local renderer = Renderer.new({
-    cornerRadius = {
+    borderRadius = {
       topLeft = 5,
       topRight = 10,
       bottomLeft = 15,
@@ -254,15 +254,15 @@ function TestRendererCornerRadius:testNewWithCornerRadius()
     },
   }, createDeps())
 
-  luaunit.assertEquals(renderer.cornerRadius.topLeft, 5)
-  luaunit.assertEquals(renderer.cornerRadius.topRight, 10)
-  luaunit.assertEquals(renderer.cornerRadius.bottomLeft, 15)
-  luaunit.assertEquals(renderer.cornerRadius.bottomRight, 20)
+  luaunit.assertEquals(renderer.borderRadius.topLeft, 5)
+  luaunit.assertEquals(renderer.borderRadius.topRight, 10)
+  luaunit.assertEquals(renderer.borderRadius.bottomLeft, 15)
+  luaunit.assertEquals(renderer.borderRadius.bottomRight, 20)
 end
 
 function TestRendererCornerRadius:testNewWithZeroCornerRadius()
   local renderer = Renderer.new({
-    cornerRadius = {
+    borderRadius = {
       topLeft = 0,
       topRight = 0,
       bottomLeft = 0,
@@ -270,10 +270,10 @@ function TestRendererCornerRadius:testNewWithZeroCornerRadius()
     },
   }, createDeps())
 
-  luaunit.assertEquals(renderer.cornerRadius.topLeft, 0)
-  luaunit.assertEquals(renderer.cornerRadius.topRight, 0)
-  luaunit.assertEquals(renderer.cornerRadius.bottomLeft, 0)
-  luaunit.assertEquals(renderer.cornerRadius.bottomRight, 0)
+  luaunit.assertEquals(renderer.borderRadius.topLeft, 0)
+  luaunit.assertEquals(renderer.borderRadius.topRight, 0)
+  luaunit.assertEquals(renderer.borderRadius.bottomLeft, 0)
+  luaunit.assertEquals(renderer.borderRadius.bottomRight, 0)
 end
 
 -- ============================================================================
@@ -340,10 +340,10 @@ TestRendererImages = {}
 
 function TestRendererImages:testNewWithImagePath()
   local renderer = Renderer.new({
-    imagePath = "nonexistent/image.png",
+    backgroundImage = "nonexistent/image.png",
   }, createDeps())
 
-  luaunit.assertEquals(renderer.imagePath, "nonexistent/image.png")
+  luaunit.assertEquals(renderer.backgroundImage, "nonexistent/image.png")
   -- Missing image is handled gracefully (render won't crash)
   local mockElement = createMockElement()
   renderer:draw(mockElement)
@@ -364,10 +364,10 @@ function TestRendererImages:testNewWithImagePathSuccessfulLoad()
   }
 
   local renderer = Renderer.new({
-    imagePath = "test/image.png",
+    backgroundImage = "test/image.png",
   }, createDeps())
 
-  luaunit.assertEquals(renderer.imagePath, "test/image.png")
+  luaunit.assertEquals(renderer.backgroundImage, "test/image.png")
   -- Image loading is verified through rendering behavior
   local mockElement = createMockElement()
   renderer:draw(mockElement)
@@ -403,53 +403,53 @@ function TestRendererImages:testNewWithBothImagePathAndImage()
   }
 
   local renderer = Renderer.new({
-    imagePath = "path/to/image.png",
+    backgroundImage = "path/to/image.png",
     image = mockImage,
   }, createDeps())
 
   luaunit.assertEquals(renderer.image, mockImage)
-  -- Direct image takes priority over imagePath (verified through draw)
+  -- Direct image takes priority over backgroundImage (verified through draw)
   local mockElement = createMockElement()
   renderer:draw(mockElement)
-  luaunit.assertTrue(true, "Renderer uses direct image over imagePath")
+  luaunit.assertTrue(true, "Renderer uses direct image over backgroundImage")
 end
 
 function TestRendererImages:testNewWithObjectFit()
   local renderer = Renderer.new({
-    objectFit = "contain",
+    backgroundSize = "contain",
   }, createDeps())
 
-  luaunit.assertEquals(renderer.objectFit, "contain")
+  luaunit.assertEquals(renderer.backgroundSize, "contain")
 end
 
 function TestRendererImages:testNewWithVariousObjectFit()
-  local renderer1 = Renderer.new({ objectFit = "cover" }, createDeps())
-  luaunit.assertEquals(renderer1.objectFit, "cover")
+  local renderer1 = Renderer.new({ backgroundSize = "cover" }, createDeps())
+  luaunit.assertEquals(renderer1.backgroundSize, "cover")
 
-  local renderer2 = Renderer.new({ objectFit = "contain" }, createDeps())
-  luaunit.assertEquals(renderer2.objectFit, "contain")
+  local renderer2 = Renderer.new({ backgroundSize = "contain" }, createDeps())
+  luaunit.assertEquals(renderer2.backgroundSize, "contain")
 
-  local renderer3 = Renderer.new({ objectFit = "none" }, createDeps())
-  luaunit.assertEquals(renderer3.objectFit, "none")
+  local renderer3 = Renderer.new({ backgroundSize = "none" }, createDeps())
+  luaunit.assertEquals(renderer3.backgroundSize, "none")
 end
 
 function TestRendererImages:testNewWithObjectPosition()
   local renderer = Renderer.new({
-    objectPosition = "top left",
+    backgroundPosition = "top left",
   }, createDeps())
 
-  luaunit.assertEquals(renderer.objectPosition, "top left")
+  luaunit.assertEquals(renderer.backgroundPosition, "top left")
 end
 
 function TestRendererImages:testNewWithVariousObjectPosition()
-  local renderer1 = Renderer.new({ objectPosition = "top" }, createDeps())
-  luaunit.assertEquals(renderer1.objectPosition, "top")
+  local renderer1 = Renderer.new({ backgroundPosition = "top" }, createDeps())
+  luaunit.assertEquals(renderer1.backgroundPosition, "top")
 
-  local renderer2 = Renderer.new({ objectPosition = "bottom right" }, createDeps())
-  luaunit.assertEquals(renderer2.objectPosition, "bottom right")
+  local renderer2 = Renderer.new({ backgroundPosition = "bottom right" }, createDeps())
+  luaunit.assertEquals(renderer2.backgroundPosition, "bottom right")
 
-  local renderer3 = Renderer.new({ objectPosition = "50% 50%" }, createDeps())
-  luaunit.assertEquals(renderer3.objectPosition, "50% 50%")
+  local renderer3 = Renderer.new({ backgroundPosition = "50% 50%" }, createDeps())
+  luaunit.assertEquals(renderer3.backgroundPosition, "50% 50%")
 end
 
 -- ============================================================================
@@ -639,7 +639,7 @@ function TestRendererCombinedProperties:testNewWithAllVisualProperties()
       bottom = true,
       left = true,
     },
-    cornerRadius = {
+    borderRadius = {
       topLeft = 10,
       topRight = 10,
       bottomLeft = 10,
@@ -647,19 +647,19 @@ function TestRendererCombinedProperties:testNewWithAllVisualProperties()
     },
     theme = "custom",
     themeComponent = "panel",
-    imagePath = nil,
-    objectFit = "contain",
-    objectPosition = "top left",
-    imageOpacity = 0.9,
+    backgroundImage = nil,
+    backgroundSize = "contain",
+    backgroundPosition = "top left",
+    backgroundOpacity = 0.9,
   }, createDeps())
 
   luaunit.assertEquals(renderer.opacity, 0.8)
-  luaunit.assertEquals(renderer.objectFit, "contain")
-  luaunit.assertEquals(renderer.objectPosition, "top left")
-  luaunit.assertEquals(renderer.imageOpacity, 0.9)
+  luaunit.assertEquals(renderer.backgroundSize, "contain")
+  luaunit.assertEquals(renderer.backgroundPosition, "top left")
+  luaunit.assertEquals(renderer.backgroundOpacity, 0.9)
   luaunit.assertTrue(renderer.border.top)
   luaunit.assertTrue(renderer.border.right)
-  luaunit.assertEquals(renderer.cornerRadius.topLeft, 10)
+  luaunit.assertEquals(renderer.borderRadius.topLeft, 10)
 end
 
 -- ============================================================================
@@ -730,7 +730,7 @@ function TestRendererEdgeCases:test_invalid_corner_radius()
     id = "test",
     width = 100,
     height = 100,
-    cornerRadius = -10,
+    borderRadius = -10,
   })
   luaunit.assertNotNil(element)
 
@@ -739,7 +739,7 @@ function TestRendererEdgeCases:test_invalid_corner_radius()
     id = "test2",
     width = 100,
     height = 100,
-    cornerRadius = 1000,
+    borderRadius = 1000,
   })
   luaunit.assertNotNil(element2)
 end
@@ -766,20 +766,20 @@ function TestRendererEdgeCases:test_missing_image_path()
     id = "test",
     width = 100,
     height = 100,
-    imagePath = "/nonexistent/path/to/image.png",
+    backgroundImage = "/nonexistent/path/to/image.png",
   })
   luaunit.assertNotNil(element)
 end
 
 function TestRendererEdgeCases:test_invalid_object_fit()
-  -- Invalid objectFit value - should throw validation error
+  -- Invalid backgroundSize value - should throw validation error
   local success, result = pcall(function()
     return FlexLove.new({
       id = "test",
       width = 100,
       height = 100,
-      imagePath = "test.png",
-      objectFit = "invalid-value",
+      backgroundImage = "test.png",
+      backgroundSize = "invalid-value",
     })
   end)
   luaunit.assertFalse(success)
@@ -917,7 +917,7 @@ function TestRendererEdgeCases:test_invalid_text_size()
       width = 100,
       height = 100,
       text = "Test",
-      textSize = 0,
+      fontSize = 0,
     })
   end)
   luaunit.assertFalse(success1)
@@ -929,7 +929,7 @@ function TestRendererEdgeCases:test_invalid_text_size()
       width = 100,
       height = 100,
       text = "Test",
-      textSize = -10,
+      fontSize = -10,
     })
   end)
   luaunit.assertFalse(success2)

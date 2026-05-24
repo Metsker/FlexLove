@@ -72,19 +72,19 @@ local function validateThemeDefinition(definition)
 end
 
 --- Load image data from a file path
----@param imagePath string
+---@param backgroundImage string
 ---@return love.ImageData
-local function loadImageData(imagePath)
-  if not imagePath then
+local function loadImageData(backgroundImage)
+  if not backgroundImage then
     error("Image path cannot be nil")
   end
 
   local success, result = pcall(function()
-    return love.image.newImageData(imagePath)
+    return love.image.newImageData(backgroundImage)
   end)
 
   if not success then
-    error("Failed to load image data from '" .. imagePath .. "': " .. tostring(result))
+    error("Failed to load image data from '" .. backgroundImage .. "': " .. tostring(result))
   end
 
   return result
@@ -193,15 +193,15 @@ local function findBlackPixelRuns(pixels)
 end
 
 --- Parse a 9-patch PNG image to extract stretch regions and content padding
----@param imagePath string Path to the 9-patch image file
+---@param backgroundImage string Path to the 9-patch image file
 ---@return table|nil, string|nil Returns {insets, stretchX, stretchY} or nil, error message
-local function parseNinePatch(imagePath)
-  if not imagePath then
+local function parseNinePatch(backgroundImage)
+  if not backgroundImage then
     return nil, "Image path cannot be nil"
   end
 
   local success, imageData = pcall(function()
-    return loadImageData(imagePath)
+    return loadImageData(backgroundImage)
   end)
 
   if not success then

@@ -54,7 +54,7 @@ local function createTestUI()
     width = 800,
     height = 600,
     positioning = utils.enums.Positioning.FLEX,
-    flexDirection = utils.enums.FlexDirection.VERTICAL,
+    flexDirection = utils.enums.FlexDirection.COLUMN,
     gap = 10,
   })
 
@@ -226,7 +226,7 @@ local tests = {
       width = 800,
       height = 600,
       positioning = utils.enums.Positioning.FLEX,
-      flexDirection = utils.enums.FlexDirection.HORIZONTAL,
+      flexDirection = utils.enums.FlexDirection.ROW,
       gap = 10,
     })
     Context.setNavigationContainer(container)
@@ -262,7 +262,7 @@ local tests = {
       width = 800,
       height = 600,
       positioning = utils.enums.Positioning.FLEX,
-      flexDirection = utils.enums.FlexDirection.VERTICAL,
+      flexDirection = utils.enums.FlexDirection.COLUMN,
       gap = 10,
     })
     Context.setNavigationContainer(container)
@@ -348,7 +348,7 @@ local tests = {
       width = 800,
       height = 600,
       positioning = utils.enums.Positioning.FLEX,
-      flexDirection = utils.enums.FlexDirection.VERTICAL,
+      flexDirection = utils.enums.FlexDirection.COLUMN,
       gap = 10,
     })
     Context.setNavigationContainer(container)
@@ -380,7 +380,7 @@ local tests = {
       width = 800,
       height = 600,
       positioning = utils.enums.Positioning.FLEX,
-      flexDirection = utils.enums.FlexDirection.VERTICAL,
+      flexDirection = utils.enums.FlexDirection.COLUMN,
       gap = 10,
     })
     Context.setNavigationContainer(container)
@@ -490,7 +490,7 @@ local tests = {
       width = 800,
       height = 600,
       positioning = utils.enums.Positioning.FLEX,
-      flexDirection = utils.enums.FlexDirection.VERTICAL,
+      flexDirection = utils.enums.FlexDirection.COLUMN,
       gap = 10,
     })
 

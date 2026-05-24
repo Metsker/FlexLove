@@ -290,7 +290,7 @@ function TestFlexGrow:test_single_item_with_flex_grow()
     width = 500,
     height = 100,
     positioning = "flex",
-    flexDirection = "horizontal",
+    flexDirection = "row",
     gap = 0,
   })
 
@@ -312,7 +312,7 @@ function TestFlexGrow:test_two_items_equal_flex_grow()
     width = 600,
     height = 100,
     positioning = "flex",
-    flexDirection = "horizontal",
+    flexDirection = "row",
     gap = 0,
   })
 
@@ -342,7 +342,7 @@ function TestFlexGrow:test_proportional_flex_grow()
     width = 700,
     height = 100,
     positioning = "flex",
-    flexDirection = "horizontal",
+    flexDirection = "row",
     gap = 0,
   })
 
@@ -374,7 +374,7 @@ function TestFlexGrow:test_flex_grow_with_gap()
     width = 620,
     height = 100,
     positioning = "flex",
-    flexDirection = "horizontal",
+    flexDirection = "row",
     gap = 20,
   })
 
@@ -405,7 +405,7 @@ function TestFlexGrow:test_flex_grow_vertical()
     width = 100,
     height = 500,
     positioning = "flex",
-    flexDirection = "vertical",
+    flexDirection = "column",
     gap = 0,
   })
 
@@ -435,7 +435,7 @@ function TestFlexGrow:test_flex_grow_with_margins()
     width = 640,
     height = 100,
     positioning = "flex",
-    flexDirection = "horizontal",
+    flexDirection = "row",
     gap = 0,
   })
 
@@ -483,7 +483,7 @@ function TestFlexShrink:test_items_shrink_equally()
     width = 300,
     height = 100,
     positioning = "flex",
-    flexDirection = "horizontal",
+    flexDirection = "row",
     gap = 0,
   })
 
@@ -515,7 +515,7 @@ function TestFlexShrink:test_default_flex_shrink_applies_when_unspecified()
     width = 300,
     height = 100,
     positioning = "flex",
-    flexDirection = "horizontal",
+    flexDirection = "row",
     gap = 0,
   })
 
@@ -542,7 +542,7 @@ function TestFlexShrink:test_proportional_shrink()
     width = 300,
     height = 100,
     positioning = "flex",
-    flexDirection = "horizontal",
+    flexDirection = "row",
     gap = 0,
   })
 
@@ -575,7 +575,7 @@ function TestFlexShrink:test_flex_shrink_zero_prevents_shrinking()
     width = 300,
     height = 100,
     positioning = "flex",
-    flexDirection = "horizontal",
+    flexDirection = "row",
     gap = 0,
   })
 
@@ -606,7 +606,7 @@ function TestFlexShrink:test_different_basis_affects_shrink()
     width = 300,
     height = 100,
     positioning = "flex",
-    flexDirection = "horizontal",
+    flexDirection = "row",
     gap = 0,
   })
 
@@ -639,7 +639,7 @@ function TestFlexShrink:test_shrink_with_margins()
     width = 300,
     height = 100,
     positioning = "flex",
-    flexDirection = "horizontal",
+    flexDirection = "row",
     gap = 0,
   })
 
@@ -685,7 +685,7 @@ function TestFlexBasis:test_flexBasis_auto_uses_element_width()
     width = 500,
     height = 100,
     positioning = "flex",
-    flexDirection = "horizontal",
+    flexDirection = "row",
     gap = 0,
   })
 
@@ -708,7 +708,7 @@ function TestFlexBasis:test_flexBasis_numeric_overrides_width()
     width = 500,
     height = 100,
     positioning = "flex",
-    flexDirection = "horizontal",
+    flexDirection = "row",
     gap = 0,
   })
 
@@ -731,7 +731,7 @@ function TestFlexBasis:test_flexBasis_percentage()
     width = 600,
     height = 100,
     positioning = "flex",
-    flexDirection = "horizontal",
+    flexDirection = "row",
     gap = 0,
   })
 
@@ -754,7 +754,7 @@ function TestFlexBasis:test_flexBasis_with_grow()
     width = 600,
     height = 100,
     positioning = "flex",
-    flexDirection = "horizontal",
+    flexDirection = "row",
     gap = 0,
   })
 
@@ -787,7 +787,7 @@ function TestFlexBasis:test_flexBasis_zero_with_grow()
     width = 600,
     height = 100,
     positioning = "flex",
-    flexDirection = "horizontal",
+    flexDirection = "row",
     gap = 0,
   })
 
@@ -832,7 +832,7 @@ function TestFlexComplexScenarios:test_mixed_grow_no_grow()
     width = 700,
     height = 100,
     positioning = "flex",
-    flexDirection = "horizontal",
+    flexDirection = "row",
     gap = 0,
   })
 
@@ -873,7 +873,7 @@ function TestFlexComplexScenarios:test_wrapping_with_flex_grow()
     width = 400,
     height = 200,
     positioning = "flex",
-    flexDirection = "horizontal",
+    flexDirection = "row",
     flexWrap = "wrap",
     gap = 0,
   })
@@ -915,7 +915,7 @@ function TestFlexComplexScenarios:test_exact_fit_no_grow_no_shrink()
     width = 400,
     height = 100,
     positioning = "flex",
-    flexDirection = "horizontal",
+    flexDirection = "row",
     gap = 0,
   })
 
@@ -947,7 +947,7 @@ function TestFlexComplexScenarios:test_nested_flex_containers()
     width = 800,
     height = 200,
     positioning = "flex",
-    flexDirection = "horizontal",
+    flexDirection = "row",
     gap = 0,
   })
 
@@ -955,7 +955,7 @@ function TestFlexComplexScenarios:test_nested_flex_containers()
     width = 400,
     height = 100,
     positioning = "flex",
-    flexDirection = "horizontal",
+    flexDirection = "row",
     flexGrow = 1,
     gap = 0,
     parent = outer,
@@ -989,7 +989,7 @@ function TestFlexComplexScenarios:test_flex_with_padding()
     width = 600,
     height = 100,
     positioning = "flex",
-    flexDirection = "horizontal",
+    flexDirection = "row",
     gap = 0,
     padding = { left = 20, right = 20, top = 10, bottom = 10 },
   })
@@ -1021,7 +1021,7 @@ function TestFlexComplexScenarios:test_flex_main_size_keeps_border_box_model()
     width = 300,
     height = 120,
     positioning = "flex",
-    flexDirection = "horizontal",
+    flexDirection = "row",
     gap = 0,
   })
 
