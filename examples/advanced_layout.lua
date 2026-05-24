@@ -14,7 +14,7 @@ local window = FlexLove.new({
   width = "80%",
   height = "80%",
   themeComponent = "framev3",
-  positioning = "flex",
+  display = "flex",
   flexDirection = "vertical",
   gap = 20,
   padding = { horizontal = 20, vertical = 20 },
@@ -32,7 +32,7 @@ FlexLove.new({
 -- Flex container with complex layout
 local flexContainer = FlexLove.new({
   parent = window,
-  positioning = "flex",
+  display = "flex",
   flexDirection = "horizontal",
   justifyContent = "space-between",
   alignItems = "stretch",
@@ -44,7 +44,7 @@ local flexContainer = FlexLove.new({
 local leftPanel = FlexLove.new({
   parent = flexContainer,
   width = "40%",
-  positioning = "flex",
+  display = "flex",
   flexDirection = "vertical",
   gap = 10,
   padding = { horizontal = 10, vertical = 10 },
@@ -58,10 +58,10 @@ FlexLove.new({
   width = "100%",
 })
 
--- Grid container using positioning = "grid"
+-- Grid container using display = "grid"
 local gridContainer = FlexLove.new({
   parent = leftPanel,
-  positioning = "grid",
+  display = "grid",
   gridRows = 3,
   gridColumns = 3,
   columnGap = 5,
@@ -90,7 +90,7 @@ end
 local rightPanel = FlexLove.new({
   parent = flexContainer,
   width = "55%",
-  positioning = "flex",
+  display = "flex",
   flexDirection = "vertical",
   gap = 10,
 })
@@ -113,7 +113,7 @@ local numColumns = #columnHeaders + 1 -- +1 for row labels column
 
 local scheduleGrid = FlexLove.new({
   parent = rightPanel,
-  positioning = "grid",
+  display = "grid",
   gridRows = numRows,
   gridColumns = numColumns,
   columnGap = 2,
@@ -183,7 +183,7 @@ end
 -- Footer with progress bar
 local footer = FlexLove.new({
   parent = window,
-  positioning = "flex",
+  display = "flex",
   flexDirection = "horizontal",
   justifyContent = "space-between",
   alignItems = "center",
@@ -203,7 +203,7 @@ local progressContainer = FlexLove.new({
   width = "60%",
   height = "30%",
   themeComponent = "framev3",
-  positioning = "flex",
+  display = "flex",
   flexDirection = "horizontal",
   alignItems = "center",
   gap = 5,

@@ -281,10 +281,10 @@ function ShaderBuilder.build(taps, offset, offsetType, sigma)
 
   local template = "c += %f * ( texture2D(tex, tc + %f * direction)+ texture2D(tex, tc - %f * direction));\n"
   for i = 1, #offsets do
-    local offset = offsets[i]
+    local tapOffset = offsets[i]
     local weight = weights[i]
     norm = norm + weight * 2
-    code[#code + 1] = string.format(template, weight, offset, offset)
+    code[#code + 1] = string.format(template, weight, tapOffset, tapOffset)
   end
   code[#code + 1] = string.format("return c * vec4(%f) * color; }", 1 / norm)
 

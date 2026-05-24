@@ -47,11 +47,9 @@ TestAnimationGroupConstruction = {}
 
 function TestAnimationGroupConstruction:setUp()
   love.window.setMode(1920, 1080)
-  FlexLove.beginFrame()
 end
 
 function TestAnimationGroupConstruction:tearDown()
-  FlexLove.endFrame()
 end
 
 function TestAnimationGroupConstruction:test_new_creates_group_with_defaults()
@@ -124,11 +122,9 @@ TestAnimationGroupParallel = {}
 
 function TestAnimationGroupParallel:setUp()
   love.window.setMode(1920, 1080)
-  FlexLove.beginFrame()
 end
 
 function TestAnimationGroupParallel:tearDown()
-  FlexLove.endFrame()
 end
 
 function TestAnimationGroupParallel:test_parallel_runs_all_animations_simultaneously()
@@ -209,11 +205,9 @@ TestAnimationGroupSequence = {}
 
 function TestAnimationGroupSequence:setUp()
   love.window.setMode(1920, 1080)
-  FlexLove.beginFrame()
 end
 
 function TestAnimationGroupSequence:tearDown()
-  FlexLove.endFrame()
 end
 
 function TestAnimationGroupSequence:test_sequence_runs_one_at_a_time()
@@ -309,11 +303,9 @@ TestAnimationGroupStagger = {}
 
 function TestAnimationGroupStagger:setUp()
   love.window.setMode(1920, 1080)
-  FlexLove.beginFrame()
 end
 
 function TestAnimationGroupStagger:tearDown()
-  FlexLove.endFrame()
 end
 
 function TestAnimationGroupStagger:test_stagger_delays_animation_starts()
@@ -397,11 +389,9 @@ TestAnimationGroupCallbacks = {}
 
 function TestAnimationGroupCallbacks:setUp()
   love.window.setMode(1920, 1080)
-  FlexLove.beginFrame()
 end
 
 function TestAnimationGroupCallbacks:tearDown()
-  FlexLove.endFrame()
 end
 
 function TestAnimationGroupCallbacks:test_onStart_called_once()
@@ -483,11 +473,9 @@ TestAnimationGroupControl = {}
 
 function TestAnimationGroupControl:setUp()
   love.window.setMode(1920, 1080)
-  FlexLove.beginFrame()
 end
 
 function TestAnimationGroupControl:tearDown()
-  FlexLove.endFrame()
 end
 
 function TestAnimationGroupControl:test_pause_stops_updates()
@@ -621,11 +609,9 @@ TestAnimationGroupStateProgress = {}
 
 function TestAnimationGroupStateProgress:setUp()
   love.window.setMode(1920, 1080)
-  FlexLove.beginFrame()
 end
 
 function TestAnimationGroupStateProgress:tearDown()
-  FlexLove.endFrame()
 end
 
 function TestAnimationGroupStateProgress:test_state_transitions()
@@ -697,11 +683,9 @@ TestAnimationGroupEdgeCases = {}
 
 function TestAnimationGroupEdgeCases:setUp()
   love.window.setMode(1920, 1080)
-  FlexLove.beginFrame()
 end
 
 function TestAnimationGroupEdgeCases:tearDown()
-  FlexLove.endFrame()
 end
 
 function TestAnimationGroupEdgeCases:test_empty_group_completes_immediately()
@@ -777,11 +761,9 @@ TestAnimationGroupNested = {}
 
 function TestAnimationGroupNested:setUp()
   love.window.setMode(1920, 1080)
-  FlexLove.beginFrame()
 end
 
 function TestAnimationGroupNested:tearDown()
-  FlexLove.endFrame()
 end
 
 function TestAnimationGroupNested:test_nested_parallel_in_sequence()

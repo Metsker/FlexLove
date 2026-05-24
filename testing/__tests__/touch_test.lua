@@ -125,7 +125,6 @@ end
 TestTouchEventHandler = {}
 
 function TestTouchEventHandler:test_touch_began()
-  FlexLove.beginFrame()
 
   local touchEvents = {}
   local element = FlexLove.new({
@@ -136,7 +135,6 @@ function TestTouchEventHandler:test_touch_began()
     end,
   })
 
-  FlexLove.endFrame()
 
   love.touch.getTouches = function()
     return { "touch1" }
@@ -148,9 +146,7 @@ function TestTouchEventHandler:test_touch_began()
     return 0, 0
   end
 
-  FlexLove.beginFrame()
   element._eventHandler:processTouchEvents(element)
-  FlexLove.endFrame()
 
   local filteredEvents = {}
   for _, event in ipairs(touchEvents) do
@@ -165,7 +161,6 @@ function TestTouchEventHandler:test_touch_began()
 end
 
 function TestTouchEventHandler:test_touch_moved()
-  FlexLove.beginFrame()
 
   local touchEvents = {}
   local element = FlexLove.new({
@@ -176,7 +171,6 @@ function TestTouchEventHandler:test_touch_moved()
     end,
   })
 
-  FlexLove.endFrame()
 
   love.touch.getTouches = function()
     return { "touch1" }
@@ -188,9 +182,7 @@ function TestTouchEventHandler:test_touch_moved()
     return 0, 0
   end
 
-  FlexLove.beginFrame()
   element._eventHandler:processTouchEvents(element)
-  FlexLove.endFrame()
 
   love.touch.getPosition = function(id)
     if id == "touch1" then
@@ -199,9 +191,7 @@ function TestTouchEventHandler:test_touch_moved()
     return 0, 0
   end
 
-  FlexLove.beginFrame()
   element._eventHandler:processTouchEvents(element)
-  FlexLove.endFrame()
 
   local filteredEvents = {}
   for _, event in ipairs(touchEvents) do
@@ -218,7 +208,6 @@ function TestTouchEventHandler:test_touch_moved()
 end
 
 function TestTouchEventHandler:test_touch_ended()
-  FlexLove.beginFrame()
 
   local touchEvents = {}
   local element = FlexLove.new({
@@ -229,7 +218,6 @@ function TestTouchEventHandler:test_touch_ended()
     end,
   })
 
-  FlexLove.endFrame()
 
   love.touch.getTouches = function()
     return { "touch1" }
@@ -241,17 +229,13 @@ function TestTouchEventHandler:test_touch_ended()
     return 0, 0
   end
 
-  FlexLove.beginFrame()
   element._eventHandler:processTouchEvents(element)
-  FlexLove.endFrame()
 
   love.touch.getTouches = function()
     return {}
   end
 
-  FlexLove.beginFrame()
   element._eventHandler:processTouchEvents(element)
-  FlexLove.endFrame()
 
   local filteredEvents = {}
   for _, event in ipairs(touchEvents) do
@@ -266,7 +250,6 @@ function TestTouchEventHandler:test_touch_ended()
 end
 
 function TestTouchEventHandler:test_multi_touch()
-  FlexLove.beginFrame()
 
   local touchEvents = {}
   local element = FlexLove.new({
@@ -278,7 +261,6 @@ function TestTouchEventHandler:test_multi_touch()
     end,
   })
 
-  FlexLove.endFrame()
 
   love.touch.getTouches = function()
     return { "touch1", "touch2" }
@@ -293,9 +275,7 @@ function TestTouchEventHandler:test_multi_touch()
     return 0, 0
   end
 
-  FlexLove.beginFrame()
   element._eventHandler:processTouchEvents(element)
-  FlexLove.endFrame()
 
   local filteredEvents = {}
   for _, event in ipairs(touchEvents) do
@@ -1248,7 +1228,6 @@ end
 TestTouchRouting = {}
 
 function TestTouchRouting:setUp()
-  FlexLove.setMode("immediate")
   love.window.setMode(800, 600)
 end
 
@@ -1263,7 +1242,6 @@ function TestTouchRouting:tearDown()
 end
 
 function TestTouchRouting:test_touchpressed_routes_to_element()
-  FlexLove.beginFrame()
   local touchEvents = {}
   local element = FlexLove.new({
     width = 200,
@@ -1272,7 +1250,6 @@ function TestTouchRouting:test_touchpressed_routes_to_element()
       table.insert(touchEvents, event)
     end,
   })
-  FlexLove.endFrame()
 
   FlexLove.touchpressed("touch1", 100, 100, 0, 0, 1.0)
 
@@ -1284,7 +1261,6 @@ function TestTouchRouting:test_touchpressed_routes_to_element()
 end
 
 function TestTouchRouting:test_touchmoved_routes_to_owner()
-  FlexLove.beginFrame()
   local touchEvents = {}
   local element = FlexLove.new({
     width = 200,
@@ -1293,7 +1269,6 @@ function TestTouchRouting:test_touchmoved_routes_to_owner()
       table.insert(touchEvents, event)
     end,
   })
-  FlexLove.endFrame()
 
   FlexLove.touchpressed("touch1", 100, 100, 0, 0, 1.0)
   FlexLove.touchmoved("touch1", 150, 150, 50, 50, 1.0)
@@ -1311,7 +1286,6 @@ function TestTouchRouting:test_touchmoved_routes_to_owner()
 end
 
 function TestTouchRouting:test_touchreleased_routes_and_cleans_up()
-  FlexLove.beginFrame()
   local touchEvents = {}
   local element = FlexLove.new({
     width = 200,
@@ -1320,7 +1294,6 @@ function TestTouchRouting:test_touchreleased_routes_and_cleans_up()
       table.insert(touchEvents, event)
     end,
   })
-  FlexLove.endFrame()
 
   FlexLove.touchpressed("touch1", 100, 100, 0, 0, 1.0)
   luaunit.assertNotNil(FlexLove.getTouchOwner("touch1"), "Touch should be owned")
@@ -1339,7 +1312,6 @@ function TestTouchRouting:test_touchreleased_routes_and_cleans_up()
 end
 
 function TestTouchRouting:test_touch_ownership_persists_outside_bounds()
-  FlexLove.beginFrame()
   local touchEvents = {}
   local element = FlexLove.new({
     width = 200,
@@ -1348,7 +1320,6 @@ function TestTouchRouting:test_touch_ownership_persists_outside_bounds()
       table.insert(touchEvents, event)
     end,
   })
-  FlexLove.endFrame()
 
   FlexLove.touchpressed("touch1", 100, 100, 0, 0, 1.0)
   FlexLove.touchmoved("touch1", 500, 500, 400, 400, 1.0)
@@ -1366,7 +1337,6 @@ function TestTouchRouting:test_touch_ownership_persists_outside_bounds()
 end
 
 function TestTouchRouting:test_touch_outside_elements_no_ownership()
-  FlexLove.beginFrame()
   local touchEvents = {}
   local element = FlexLove.new({
     width = 100,
@@ -1375,7 +1345,6 @@ function TestTouchRouting:test_touch_outside_elements_no_ownership()
       table.insert(touchEvents, event)
     end,
   })
-  FlexLove.endFrame()
 
   FlexLove.touchpressed("touch1", 500, 500, 0, 0, 1.0)
 
@@ -1384,7 +1353,6 @@ function TestTouchRouting:test_touch_outside_elements_no_ownership()
 end
 
 function TestTouchRouting:test_multi_touch_different_elements()
-  FlexLove.beginFrame()
   local events1 = {}
   local events2 = {}
   local container = FlexLove.new({
@@ -1407,7 +1375,6 @@ function TestTouchRouting:test_multi_touch_different_elements()
     end,
     parent = container,
   })
-  FlexLove.endFrame()
 
   FlexLove.touchpressed("touch1", 50, 100, 0, 0, 1.0)
   FlexLove.touchpressed("touch2", 300, 100, 0, 0, 1.0)
@@ -1419,7 +1386,6 @@ function TestTouchRouting:test_multi_touch_different_elements()
 end
 
 function TestTouchRouting:test_z_index_ordering()
-  FlexLove.beginFrame()
   local eventsLow = {}
   local eventsHigh = {}
   local low = FlexLove.new({
@@ -1438,7 +1404,6 @@ function TestTouchRouting:test_z_index_ordering()
       table.insert(eventsHigh, event)
     end,
   })
-  FlexLove.endFrame()
 
   FlexLove.touchpressed("touch1", 100, 100, 0, 0, 1.0)
 
@@ -1447,7 +1412,6 @@ function TestTouchRouting:test_z_index_ordering()
 end
 
 function TestTouchRouting:test_disabled_element_no_touch()
-  FlexLove.beginFrame()
   local touchEvents = {}
   local element = FlexLove.new({
     width = 200,
@@ -1457,7 +1421,6 @@ function TestTouchRouting:test_disabled_element_no_touch()
       table.insert(touchEvents, event)
     end,
   })
-  FlexLove.endFrame()
 
   FlexLove.touchpressed("touch1", 100, 100, 0, 0, 1.0)
 
@@ -1466,13 +1429,11 @@ function TestTouchRouting:test_disabled_element_no_touch()
 end
 
 function TestTouchRouting:test_getActiveTouchCount()
-  FlexLove.beginFrame()
   local element = FlexLove.new({
     width = 800,
     height = 600,
     onTouchEvent = function() end,
   })
-  FlexLove.endFrame()
 
   luaunit.assertEquals(FlexLove.getActiveTouchCount(), 0)
 
@@ -1490,14 +1451,12 @@ function TestTouchRouting:test_getActiveTouchCount()
 end
 
 function TestTouchRouting:test_getTouchOwner()
-  FlexLove.beginFrame()
   local element = FlexLove.new({
     id = "owner-test",
     width = 200,
     height = 200,
     onTouchEvent = function() end,
   })
-  FlexLove.endFrame()
 
   luaunit.assertNil(FlexLove.getTouchOwner("touch1"))
 
@@ -1508,13 +1467,11 @@ function TestTouchRouting:test_getTouchOwner()
 end
 
 function TestTouchRouting:test_destroy_cleans_touch_state()
-  FlexLove.beginFrame()
   local element = FlexLove.new({
     width = 200,
     height = 200,
     onTouchEvent = function() end,
   })
-  FlexLove.endFrame()
 
   FlexLove.touchpressed("touch1", 100, 100, 0, 0, 1.0)
   luaunit.assertEquals(FlexLove.getActiveTouchCount(), 1)
@@ -1524,7 +1481,6 @@ function TestTouchRouting:test_destroy_cleans_touch_state()
 end
 
 function TestTouchRouting:test_onEvent_receives_touch_events()
-  FlexLove.beginFrame()
   local allEvents = {}
   local element = FlexLove.new({
     width = 200,
@@ -1533,7 +1489,6 @@ function TestTouchRouting:test_onEvent_receives_touch_events()
       table.insert(allEvents, event)
     end,
   })
-  FlexLove.endFrame()
 
   FlexLove.touchpressed("touch1", 100, 100, 0, 0, 1.0)
 
@@ -1548,7 +1503,6 @@ function TestTouchRouting:test_onEvent_receives_touch_events()
 end
 
 function TestTouchRouting:test_gesture_routing()
-  FlexLove.beginFrame()
   local gestureEvents = {}
   local element = FlexLove.new({
     width = 200,
@@ -1558,7 +1512,6 @@ function TestTouchRouting:test_gesture_routing()
       table.insert(gestureEvents, gesture)
     end,
   })
-  FlexLove.endFrame()
 
   FlexLove.touchpressed("touch1", 100, 100, 0, 0, 1.0)
   love.timer.step(0.05)
@@ -1575,7 +1528,6 @@ function TestTouchRouting:test_gesture_routing()
 end
 
 function TestTouchRouting:test_element_with_only_onGesture()
-  FlexLove.beginFrame()
   local gestureEvents = {}
   local element = FlexLove.new({
     width = 200,
@@ -1584,14 +1536,12 @@ function TestTouchRouting:test_element_with_only_onGesture()
       table.insert(gestureEvents, gesture)
     end,
   })
-  FlexLove.endFrame()
 
   FlexLove.touchpressed("touch1", 100, 100, 0, 0, 1.0)
   luaunit.assertNotNil(FlexLove.getTouchOwner("touch1"), "Element with onGesture should be found")
 end
 
 function TestTouchRouting:test_touchEnabled_false_prevents_routing()
-  FlexLove.beginFrame()
   local touchEvents = {}
   local element = FlexLove.new({
     width = 200,
@@ -1601,7 +1551,6 @@ function TestTouchRouting:test_touchEnabled_false_prevents_routing()
       table.insert(touchEvents, event)
     end,
   })
-  FlexLove.endFrame()
 
   FlexLove.touchpressed("touch1", 100, 100, 0, 0, 1.0)
 
@@ -1610,7 +1559,6 @@ function TestTouchRouting:test_touchEnabled_false_prevents_routing()
 end
 
 function TestTouchRouting:test_full_lifecycle()
-  FlexLove.beginFrame()
   local phases = {}
   local element = FlexLove.new({
     width = 200,
@@ -1619,7 +1567,6 @@ function TestTouchRouting:test_full_lifecycle()
       table.insert(phases, event.type)
     end,
   })
-  FlexLove.endFrame()
 
   FlexLove.touchpressed("touch1", 100, 100, 0, 0, 1.0)
   FlexLove.touchmoved("touch1", 110, 110, 10, 10, 1.0)
@@ -1641,7 +1588,6 @@ function TestTouchRouting:test_orphaned_move_release_no_crash()
 end
 
 function TestTouchRouting:test_pressure_passthrough()
-  FlexLove.beginFrame()
   local receivedPressure = nil
   local element = FlexLove.new({
     width = 200,
@@ -1652,14 +1598,12 @@ function TestTouchRouting:test_pressure_passthrough()
       end
     end,
   })
-  FlexLove.endFrame()
 
   FlexLove.touchpressed("touch1", 100, 100, 0, 0, 0.75)
   luaunit.assertAlmostEquals(receivedPressure, 0.75, 0.01)
 end
 
 function TestTouchRouting:test_retained_mode_routing()
-  FlexLove.setMode("retained")
 
   local touchEvents = {}
   local element = FlexLove.new({
@@ -1677,7 +1621,6 @@ function TestTouchRouting:test_retained_mode_routing()
 end
 
 function TestTouchRouting:test_child_receives_touch_over_parent()
-  FlexLove.beginFrame()
   local parentEvents = {}
   local childEvents = {}
   local parent = FlexLove.new({
@@ -1696,7 +1639,6 @@ function TestTouchRouting:test_child_receives_touch_over_parent()
     end,
     parent = parent,
   })
-  FlexLove.endFrame()
 
   FlexLove.touchpressed("touch1", 100, 100, 0, 0, 1.0)
 
@@ -1712,12 +1654,10 @@ function TestTouchRouting:test_child_receives_touch_over_parent()
 end
 
 function TestTouchRouting:test_non_interactive_element_ignored()
-  FlexLove.beginFrame()
   local element = FlexLove.new({
     width = 200,
     height = 200,
   })
-  FlexLove.endFrame()
 
   FlexLove.touchpressed("touch1", 100, 100, 0, 0, 1.0)
   luaunit.assertNil(FlexLove.getTouchOwner("touch1"), "Non-interactive element should not capture touch")
@@ -1730,7 +1670,6 @@ end
 TestTouchElementProps = {}
 
 function TestTouchElementProps:setUp()
-  FlexLove.setMode("immediate")
   love.window.setMode(800, 600)
 end
 
@@ -1739,33 +1678,25 @@ function TestTouchElementProps:tearDown()
 end
 
 function TestTouchElementProps:test_touchEnabled_defaults_true()
-  FlexLove.beginFrame()
   local element = FlexLove.new({ width = 100, height = 100 })
-  FlexLove.endFrame()
 
   luaunit.assertTrue(element.touchEnabled)
 end
 
 function TestTouchElementProps:test_touchEnabled_can_be_set_false()
-  FlexLove.beginFrame()
   local element = FlexLove.new({ width = 100, height = 100, touchEnabled = false })
-  FlexLove.endFrame()
 
   luaunit.assertFalse(element.touchEnabled)
 end
 
 function TestTouchElementProps:test_multiTouchEnabled_defaults_false()
-  FlexLove.beginFrame()
   local element = FlexLove.new({ width = 100, height = 100 })
-  FlexLove.endFrame()
 
   luaunit.assertFalse(element.multiTouchEnabled)
 end
 
 function TestTouchElementProps:test_multiTouchEnabled_can_be_set_true()
-  FlexLove.beginFrame()
   local element = FlexLove.new({ width = 100, height = 100, multiTouchEnabled = true })
-  FlexLove.endFrame()
 
   luaunit.assertTrue(element.multiTouchEnabled)
 end
@@ -1777,7 +1708,6 @@ end
 TestTouchElementCallbacks = {}
 
 function TestTouchElementCallbacks:setUp()
-  FlexLove.setMode("immediate")
   love.window.setMode(800, 600)
 end
 
@@ -1786,7 +1716,6 @@ function TestTouchElementCallbacks:tearDown()
 end
 
 function TestTouchElementCallbacks:test_onTouchEvent_callback()
-  FlexLove.beginFrame()
   local receivedEvents = {}
   local element = FlexLove.new({
     width = 200,
@@ -1795,7 +1724,6 @@ function TestTouchElementCallbacks:test_onTouchEvent_callback()
       table.insert(receivedEvents, event)
     end,
   })
-  FlexLove.endFrame()
 
   FlexLove.touchpressed("t1", 100, 100, 0, 0, 1.0)
 
@@ -1804,7 +1732,6 @@ function TestTouchElementCallbacks:test_onTouchEvent_callback()
 end
 
 function TestTouchElementCallbacks:test_onGesture_callback()
-  FlexLove.beginFrame()
   local receivedGestures = {}
   local element = FlexLove.new({
     width = 200,
@@ -1814,7 +1741,6 @@ function TestTouchElementCallbacks:test_onGesture_callback()
       table.insert(receivedGestures, gesture)
     end,
   })
-  FlexLove.endFrame()
 
   FlexLove.touchpressed("t1", 100, 100, 0, 0, 1.0)
   love.timer.step(0.05)
@@ -1830,7 +1756,6 @@ function TestTouchElementCallbacks:test_onGesture_callback()
 end
 
 function TestTouchElementCallbacks:test_onEvent_also_receives_touch()
-  FlexLove.beginFrame()
   local receivedEvents = {}
   local element = FlexLove.new({
     width = 200,
@@ -1839,7 +1764,6 @@ function TestTouchElementCallbacks:test_onEvent_also_receives_touch()
       table.insert(receivedEvents, event)
     end,
   })
-  FlexLove.endFrame()
 
   FlexLove.touchpressed("t1", 100, 100, 0, 0, 1.0)
 
@@ -1859,7 +1783,6 @@ end
 TestTouchElementDirect = {}
 
 function TestTouchElementDirect:setUp()
-  FlexLove.setMode("immediate")
   love.window.setMode(800, 600)
 end
 
@@ -1868,7 +1791,6 @@ function TestTouchElementDirect:tearDown()
 end
 
 function TestTouchElementDirect:test_handleTouchEvent_disabled_element()
-  FlexLove.beginFrame()
   local receivedEvents = {}
   local element = FlexLove.new({
     width = 200,
@@ -1878,7 +1800,6 @@ function TestTouchElementDirect:test_handleTouchEvent_disabled_element()
       table.insert(receivedEvents, event)
     end,
   })
-  FlexLove.endFrame()
 
   local touchEvt = InputEvent.fromTouch("t1", 100, 100, "began", 1.0)
   element:handleTouchEvent(touchEvt)
@@ -1887,7 +1808,6 @@ function TestTouchElementDirect:test_handleTouchEvent_disabled_element()
 end
 
 function TestTouchElementDirect:test_handleTouchEvent_touchEnabled_false()
-  FlexLove.beginFrame()
   local receivedEvents = {}
   local element = FlexLove.new({
     width = 200,
@@ -1897,7 +1817,6 @@ function TestTouchElementDirect:test_handleTouchEvent_touchEnabled_false()
       table.insert(receivedEvents, event)
     end,
   })
-  FlexLove.endFrame()
 
   local touchEvt = InputEvent.fromTouch("t1", 100, 100, "began", 1.0)
   element:handleTouchEvent(touchEvt)
@@ -1906,7 +1825,6 @@ function TestTouchElementDirect:test_handleTouchEvent_touchEnabled_false()
 end
 
 function TestTouchElementDirect:test_handleGesture_fires_callback()
-  FlexLove.beginFrame()
   local receivedGestures = {}
   local element = FlexLove.new({
     width = 200,
@@ -1915,7 +1833,6 @@ function TestTouchElementDirect:test_handleGesture_fires_callback()
       table.insert(receivedGestures, gesture)
     end,
   })
-  FlexLove.endFrame()
 
   element:handleGesture({ type = "tap", state = "ended", x = 100, y = 100 })
 
@@ -1924,7 +1841,6 @@ function TestTouchElementDirect:test_handleGesture_fires_callback()
 end
 
 function TestTouchElementDirect:test_handleGesture_disabled_element()
-  FlexLove.beginFrame()
   local receivedGestures = {}
   local element = FlexLove.new({
     width = 200,
@@ -1934,7 +1850,6 @@ function TestTouchElementDirect:test_handleGesture_disabled_element()
       table.insert(receivedGestures, gesture)
     end,
   })
-  FlexLove.endFrame()
 
   element:handleGesture({ type = "tap", state = "ended", x = 100, y = 100 })
 
@@ -1942,7 +1857,6 @@ function TestTouchElementDirect:test_handleGesture_disabled_element()
 end
 
 function TestTouchElementDirect:test_handleGesture_touchEnabled_false()
-  FlexLove.beginFrame()
   local receivedGestures = {}
   local element = FlexLove.new({
     width = 200,
@@ -1952,7 +1866,6 @@ function TestTouchElementDirect:test_handleGesture_touchEnabled_false()
       table.insert(receivedGestures, gesture)
     end,
   })
-  FlexLove.endFrame()
 
   element:handleGesture({ type = "tap", state = "ended", x = 100, y = 100 })
 
@@ -1960,20 +1873,17 @@ function TestTouchElementDirect:test_handleGesture_touchEnabled_false()
 end
 
 function TestTouchElementDirect:test_getTouches_returns_table()
-  FlexLove.beginFrame()
   local element = FlexLove.new({
     width = 200,
     height = 200,
     onTouchEvent = function() end,
   })
-  FlexLove.endFrame()
 
   local touches = element:getTouches()
   luaunit.assertEquals(type(touches), "table")
 end
 
 function TestTouchElementDirect:test_touch_pan_lifecycle()
-  FlexLove.beginFrame()
   local touchEvents = {}
   local gestureEvents = {}
   local element = FlexLove.new({
@@ -1986,7 +1896,6 @@ function TestTouchElementDirect:test_touch_pan_lifecycle()
       table.insert(gestureEvents, gesture)
     end,
   })
-  FlexLove.endFrame()
 
   FlexLove.touchpressed("t1", 100, 100, 0, 0, 1.0)
   love.timer.step(0.05)
@@ -2008,25 +1917,21 @@ function TestTouchElementDirect:test_touch_pan_lifecycle()
 end
 
 function TestTouchElementDirect:test_onTouchEventDeferred_prop_accepted()
-  FlexLove.beginFrame()
   local element = FlexLove.new({
     width = 200,
     height = 200,
     onTouchEventDeferred = function() end,
   })
-  FlexLove.endFrame()
 
   luaunit.assertNotNil(element, "Element with onTouchEventDeferred should be created")
 end
 
 function TestTouchElementDirect:test_onGestureDeferred_prop_accepted()
-  FlexLove.beginFrame()
   local element = FlexLove.new({
     width = 200,
     height = 200,
     onGestureDeferred = function() end,
   })
-  FlexLove.endFrame()
 
   luaunit.assertNotNil(element, "Element with onGestureDeferred should be created")
 end

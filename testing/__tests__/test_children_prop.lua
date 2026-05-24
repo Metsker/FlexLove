@@ -22,11 +22,9 @@ TestChildrenPropBasic = {}
 
 function TestChildrenPropBasic:setUp()
   FlexLove.init()
-  FlexLove.beginFrame()
 end
 
 function TestChildrenPropBasic:tearDown()
-  FlexLove.endFrame()
   FlexLove.destroy()
 end
 
@@ -105,11 +103,9 @@ TestChildrenPropNested = {}
 
 function TestChildrenPropNested:setUp()
   FlexLove.init()
-  FlexLove.beginFrame()
 end
 
 function TestChildrenPropNested:tearDown()
-  FlexLove.endFrame()
   FlexLove.destroy()
 end
 
@@ -227,7 +223,6 @@ TestChildrenPropValidation = {}
 
 function TestChildrenPropValidation:setUp()
   FlexLove.init()
-  FlexLove.beginFrame()
   self.warnings = {}
   self.originalWarn = FlexLove._ErrorHandler.warn
   FlexLove._ErrorHandler.warn = function(_, module, code, details)
@@ -237,7 +232,6 @@ end
 
 function TestChildrenPropValidation:tearDown()
   FlexLove._ErrorHandler.warn = self.originalWarn
-  FlexLove.endFrame()
   FlexLove.destroy()
 end
 
@@ -326,11 +320,9 @@ TestChildrenPropIntegration = {}
 
 function TestChildrenPropIntegration:setUp()
   FlexLove.init()
-  FlexLove.beginFrame()
 end
 
 function TestChildrenPropIntegration:tearDown()
-  FlexLove.endFrame()
   FlexLove.destroy()
 end
 

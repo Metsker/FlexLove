@@ -33,11 +33,9 @@ TestElementCreation = {}
 
 function TestElementCreation:setUp()
   FlexLove.init()
-  FlexLove.beginFrame()
 end
 
 function TestElementCreation:tearDown()
-  FlexLove.endFrame()
   FlexLove.destroy()
 end
 
@@ -558,11 +556,9 @@ end
 TestElementSizing = {}
 
 function TestElementSizing:setUp()
-  FlexLove.beginFrame()
 end
 
 function TestElementSizing:tearDown()
-  FlexLove.endFrame()
 end
 
 function TestElementSizing:test_getBorderBoxWidth()
@@ -707,11 +703,9 @@ TestElementUnits = {}
 function TestElementUnits:setUp()
   -- Set viewport size for viewport unit calculations
   love.window.setMode(1920, 1080)
-  FlexLove.beginFrame()
 end
 
 function TestElementUnits:tearDown()
-  FlexLove.endFrame()
 end
 
 function TestElementUnits:test_element_with_percentage_width()
@@ -827,11 +821,9 @@ end
 TestElementPositioning = {}
 
 function TestElementPositioning:setUp()
-  FlexLove.beginFrame(1920, 1080)
 end
 
 function TestElementPositioning:tearDown()
-  FlexLove.endFrame()
 end
 
 function TestElementPositioning:test_element_absolute_position()
@@ -971,11 +963,9 @@ end
 TestElementFlex = {}
 
 function TestElementFlex:setUp()
-  FlexLove.beginFrame()
 end
 
 function TestElementFlex:tearDown()
-  FlexLove.endFrame()
 end
 
 function TestElementFlex:test_element_with_flex_direction()
@@ -1043,11 +1033,9 @@ end
 TestElementGrid = {}
 
 function TestElementGrid:setUp()
-  FlexLove.beginFrame(1920, 1080)
 end
 
 function TestElementGrid:tearDown()
-  FlexLove.endFrame()
 end
 
 function TestElementGrid:test_grid_layout()
@@ -1125,11 +1113,9 @@ end
 TestElementStyling = {}
 
 function TestElementStyling:setUp()
-  FlexLove.beginFrame()
 end
 
 function TestElementStyling:tearDown()
-  FlexLove.endFrame()
 end
 local Color = FlexLove.Color
 
@@ -1294,11 +1280,9 @@ end
 TestElementMethods = {}
 
 function TestElementMethods:setUp()
-  FlexLove.beginFrame()
 end
 
 function TestElementMethods:tearDown()
-  FlexLove.endFrame()
 end
 
 function TestElementMethods:test_element_setText()
@@ -1380,11 +1364,9 @@ end
 TestElementScroll = {}
 
 function TestElementScroll:setUp()
-  FlexLove.beginFrame(1920, 1080)
 end
 
 function TestElementScroll:tearDown()
-  FlexLove.endFrame()
 end
 
 function TestElementScroll:test_scrollable_element_with_overflow()
@@ -1678,11 +1660,9 @@ end
 TestElementChildren = {}
 
 function TestElementChildren:setUp()
-  FlexLove.beginFrame(1920, 1080)
 end
 
 function TestElementChildren:tearDown()
-  FlexLove.endFrame()
 end
 
 function TestElementChildren:test_addChild()
@@ -1857,11 +1837,9 @@ end
 TestElementVisibility = {}
 
 function TestElementVisibility:setUp()
-  FlexLove.beginFrame(1920, 1080)
 end
 
 function TestElementVisibility:tearDown()
-  FlexLove.endFrame()
 end
 
 function TestElementVisibility:test_visibility_visible()
@@ -1922,11 +1900,9 @@ end
 TestElementTextEditing = {}
 
 function TestElementTextEditing:setUp()
-  FlexLove.beginFrame(1920, 1080)
 end
 
 function TestElementTextEditing:tearDown()
-  FlexLove.endFrame()
 end
 
 function TestElementTextEditing:test_editable_element()
@@ -2006,11 +1982,9 @@ end
 TestElementState = {}
 
 function TestElementState:setUp()
-  FlexLove.beginFrame(1920, 1080)
 end
 
 function TestElementState:tearDown()
-  FlexLove.endFrame()
 end
 
 function TestElementState:test_element_with_disabled()
@@ -2087,11 +2061,9 @@ end
 TestElementAutoSizing = {}
 
 function TestElementAutoSizing:setUp()
-  FlexLove.beginFrame(1920, 1080)
 end
 
 function TestElementAutoSizing:tearDown()
-  FlexLove.endFrame()
 end
 
 function TestElementAutoSizing:test_autosize_with_nested_flex()
@@ -2646,7 +2618,6 @@ TestElementProperty = {}
 -- Note: No setUp/tearDown needed - tests use Element.new() directly (retained mode)
 
 function TestElementProperty:tearDown()
-  FlexLove.endFrame()
 end
 
 function TestElementProperty:test_setProperty_valid()
@@ -2679,7 +2650,6 @@ TestElementTransitions = {}
 -- Note: No setUp/tearDown needed - tests use Element.new() directly (retained mode)
 
 function TestElementTransitions:tearDown()
-  FlexLove.endFrame()
 end
 
 function TestElementTransitions:test_removeTransition()
@@ -2709,11 +2679,9 @@ end
 TestElementTheme = {}
 
 function TestElementTheme:setUp()
-  FlexLove.beginFrame(1920, 1080)
 end
 
 function TestElementTheme:tearDown()
-  FlexLove.endFrame()
 end
 
 function TestElementTheme:test_getScaledContentPadding_no_theme()
@@ -3165,11 +3133,9 @@ end
 TestConvenienceAPI = {}
 
 function TestConvenienceAPI:setUp()
-  FlexLove.beginFrame(1920, 1080)
 end
 
 function TestConvenienceAPI:tearDown()
-  FlexLove.endFrame()
 end
 
 function TestConvenienceAPI:test_flexDirection_row_converts()
@@ -3259,11 +3225,9 @@ end
 TestElementEdgeCases = {}
 
 function TestElementEdgeCases:setUp()
-  FlexLove.beginFrame(1920, 1080)
 end
 
 function TestElementEdgeCases:tearDown()
-  FlexLove.endFrame()
 end
 
 function TestElementEdgeCases:test_element_with_init()
@@ -3980,241 +3944,13 @@ function TestElementEdgeCases:test_destroy_managed_anchor_clears_owner_reference
   luaunit.assertEquals(parent:getSelectValue(), "a")
 end
 
--- ============================================================================
--- Select State Persistence in Immediate Mode
--- ============================================================================
-
-TestSelectImmediateMode = {}
-
-function TestSelectImmediateMode:setUp()
-  FlexLove.init({ immediateMode = true })
-  FlexLove.setMode("immediate")
-end
-
-function TestSelectImmediateMode:tearDown()
-  FlexLove.destroy()
-end
-
-function TestSelectImmediateMode:test_select_open_state_persists_across_frames()
-  -- Frame 1: Create select and open it
-  FlexLove.beginFrame(1920, 1080)
-
-  local dropdownFrame = FlexLove.new({
-    id = "persist_select_frame",
-    width = 220,
-    height = 80,
-  })
-
-  local selectParent = FlexLove.new({
-    id = "persist_select_parent",
-    width = 220,
-    height = 40,
-    selectParent = {
-      value = "windowed",
-      selectFrame = dropdownFrame,
-    },
-  })
-
-  FlexLove.new({
-    id = "persist_option_1",
-    parent = selectParent,
-    width = 220,
-    height = 30,
-    text = "Windowed",
-    selectOption = { value = "windowed", label = "Windowed" },
-  })
-
-  FlexLove.new({
-    id = "persist_option_2",
-    parent = selectParent,
-    width = 220,
-    height = 30,
-    text = "Fullscreen",
-    selectOption = { value = "exclusive", label = "Fullscreen" },
-  })
-
-  luaunit.assertFalse(selectParent:isSelectOpen())
-  selectParent:toggleSelect()
-  luaunit.assertTrue(selectParent:isSelectOpen())
-
-  FlexLove.endFrame()
-
-  -- Frame 2: Recreate - open state should persist
-  FlexLove.beginFrame(1920, 1080)
-
-  local dropdownFrame2 = FlexLove.new({
-    id = "persist_select_frame",
-    width = 220,
-    height = 80,
-  })
-
-  local selectParent2 = FlexLove.new({
-    id = "persist_select_parent",
-    width = 220,
-    height = 40,
-    selectParent = {
-      value = "windowed",
-      selectFrame = dropdownFrame2,
-    },
-  })
-
-  FlexLove.new({
-    id = "persist_option_1",
-    parent = selectParent2,
-    width = 220,
-    height = 30,
-    text = "Windowed",
-    selectOption = { value = "windowed", label = "Windowed" },
-  })
-
-  FlexLove.new({
-    id = "persist_option_2",
-    parent = selectParent2,
-    width = 220,
-    height = 30,
-    text = "Fullscreen",
-    selectOption = { value = "exclusive", label = "Fullscreen" },
-  })
-
-  luaunit.assertTrue(selectParent2:isSelectOpen())
-  luaunit.assertEquals(dropdownFrame2.visibility, "visible")
-  luaunit.assertEquals(dropdownFrame2.opacity, 1)
-
-  FlexLove.endFrame()
-end
-
-function TestSelectImmediateMode:test_select_value_persists_across_frames()
-  -- Frame 1: Create select and change value
-  FlexLove.beginFrame(1920, 1080)
-
-  local dropdownFrame = FlexLove.new({
-    id = "value_persist_frame",
-    width = 220,
-    height = 80,
-  })
-
-  local selectParent = FlexLove.new({
-    id = "value_persist_parent",
-    width = 220,
-    height = 40,
-    selectParent = {
-      value = "windowed",
-      selectFrame = dropdownFrame,
-    },
-  })
-
-  local option2 = FlexLove.new({
-    id = "value_persist_option",
-    parent = selectParent,
-    width = 220,
-    height = 30,
-    text = "Fullscreen",
-    selectOption = { value = "exclusive", label = "Fullscreen" },
-  })
-
-  selectParent:setSelectValue("exclusive", option2)
-  luaunit.assertEquals(selectParent:getSelectValue(), "exclusive")
-
-  FlexLove.endFrame()
-
-  -- Frame 2: Recreate - value should persist
-  FlexLove.beginFrame(1920, 1080)
-
-  local dropdownFrame2 = FlexLove.new({
-    id = "value_persist_frame",
-    width = 220,
-    height = 80,
-  })
-
-  local selectParent2 = FlexLove.new({
-    id = "value_persist_parent",
-    width = 220,
-    height = 40,
-    selectParent = {
-      value = "windowed",
-      selectFrame = dropdownFrame2,
-    },
-  })
-
-  luaunit.assertEquals(selectParent2:getSelectValue(), "exclusive")
-
-  FlexLove.endFrame()
-end
-
-function TestSelectImmediateMode:test_select_frame_layout_in_immediate_mode()
-  FlexLove.beginFrame(1920, 1080)
-
-  local row = FlexLove.new({
-    id = "select_row",
-    width = 800,
-    height = 40,
-    positioning = "flex",
-    flexDirection = "horizontal",
-    justifyContent = "space-between",
-    alignItems = "center",
-  })
-
-  local dropdownFrame = FlexLove.new({
-    id = "layout_select_frame",
-    width = "100%",
-    flexDirection = "vertical",
-    gap = 2,
-    padding = 4,
-  })
-
-  local selectBtn = FlexLove.new({
-    id = "layout_select_btn",
-    parent = row,
-    width = "30%",
-    height = 40,
-    selectParent = {
-      value = "windowed",
-      selectFrame = dropdownFrame,
-    },
-  })
-
-  FlexLove.new({
-    id = "layout_option_1",
-    parent = selectBtn,
-    width = "100%",
-    height = 40,
-    text = "Windowed",
-    selectOption = { value = "windowed", label = "Windowed" },
-  })
-
-  FlexLove.new({
-    id = "layout_option_2",
-    parent = selectBtn,
-    width = "100%",
-    height = 40,
-    text = "Fullscreen",
-    selectOption = { value = "exclusive", label = "Fullscreen" },
-  })
-
-  FlexLove.endFrame()
-
-  local anchor = selectBtn._selectState.selectAnchor
-
-  luaunit.assertNotNil(anchor)
-  luaunit.assertTrue(anchor.parent == selectBtn)
-  luaunit.assertTrue(dropdownFrame.parent == anchor)
-  luaunit.assertEquals(anchor.positioning, "absolute")
-  luaunit.assertEquals(anchor.top, selectBtn:getBorderBoxHeight())
-  luaunit.assertEquals(anchor.left, 0)
-  luaunit.assertEquals(dropdownFrame.positioning, "relative")
-  -- Options should be in the frame
-  luaunit.assertEquals(#dropdownFrame.children, 2)
-end
 
 TestSelectDisabled = {}
 
 function TestSelectDisabled:setUp()
-  FlexLove.setMode("immediate")
-  FlexLove.beginFrame(1920, 1080)
 end
 
 function TestSelectDisabled:tearDown()
-  FlexLove.endFrame()
 end
 
 function TestSelectDisabled:test_disabled_select_does_not_fire_toggle_event()
@@ -4268,7 +4004,6 @@ end
 TestOnCreate = {}
 
 function TestOnCreate:setUp()
-  FlexLove.setMode("retained")
   FlexLove.init()
 end
 
@@ -4322,8 +4057,6 @@ function TestOnCreate:test_onCreate_with_deferred()
   local capturedElement = nil
   local capturedProps = nil
 
-  FlexLove.setMode("immediate")
-  FlexLove.beginFrame(1920, 1080)
 
   FlexLove.new({
     id = "oncreate_deferred",
@@ -4348,8 +4081,6 @@ function TestOnCreate:test_onCreate_with_deferred()
   luaunit.assertEquals(capturedElement.id, "oncreate_deferred")
   luaunit.assertEquals(capturedProps.text, "deferred")
 
-  FlexLove.endFrame()
-  FlexLove.setMode("retained")
 end
 
 function TestOnCreate:test_onCreate_not_required()

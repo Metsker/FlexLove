@@ -170,16 +170,11 @@ function KeyboardNavigation:nextFocusable()
     )
   end
 
-  local nextElem
-  if Context._immediateMode then
-    nextElem = self:_findNextInZIndexOrder(current)
-  else
-    local container = Context.getNavigationContainer() or Context.topElements[1]
-    if not container then
-      return false
-    end
-    nextElem = Element.getNextFocusable(container, current, KeyboardNavigation.config.wrapAround)
+  local container = Context.getNavigationContainer() or Context.topElements[1]
+  if not container then
+    return false
   end
+  local nextElem = Element.getNextFocusable(container, current, KeyboardNavigation.config.wrapAround)
 
   if nextElem then
     self:_focusElement(nextElem)
@@ -197,16 +192,11 @@ function KeyboardNavigation:previousFocusable()
 
   local current = Context.getFocused()
 
-  local prevElem
-  if Context._immediateMode then
-    prevElem = self:_findPreviousInZIndexOrder(current)
-  else
-    local container = Context.getNavigationContainer() or Context.topElements[1]
-    if not container then
-      return false
-    end
-    prevElem = Element.getPreviousFocusable(container, current, KeyboardNavigation.config.wrapAround)
+  local container = Context.getNavigationContainer() or Context.topElements[1]
+  if not container then
+    return false
   end
+  local prevElem = Element.getPreviousFocusable(container, current, KeyboardNavigation.config.wrapAround)
 
   if prevElem then
     self:_focusElement(prevElem)
@@ -449,27 +439,10 @@ function KeyboardNavigation:_findDirectionalNeighbor(current, direction)
     end
   end
 
-  if Context._immediateMode and Context._zIndexOrderedElements then
-    -- In immediate mode: only consider focusables within the highest-z-index root
-    local root = self:_getNavigationRoot()
-    if root then
-      local function collectFocusable(elem)
-        if elem ~= current and elem:isFocusable() then
-          table.insert(focusable, elem)
-        end
-        for _, child in ipairs(elem.children) do
-          collectFocusable(child)
-        end
-      end
-      collectFocusable(root)
-    end
-  else
-    -- Retained mode: walk element trees
-    local container = Context.getNavigationContainer()
-    local roots = container and { container } or Context.topElements
-    for _, root in ipairs(roots) do
-      collectFocusable(root)
-    end
+  local container = Context.getNavigationContainer()
+  local roots = container and { container } or Context.topElements
+  for _, root in ipairs(roots) do
+    collectFocusable(root)
   end
 
   if #focusable == 0 then
@@ -871,11 +844,7 @@ function KeyboardNavigation:updateSpatialIndex()
   end
 
   -- Collect from top-level elements
-  if Context._immediateMode and Context._zIndexOrderedElements then
-    for _, elem in ipairs(Context._zIndexOrderedElements) do
-      collectElements(elem)
-    end
-  elseif Context.topElements then
+  if Context.topElements then
     for _, elem in ipairs(Context.topElements) do
       collectElements(elem)
     end

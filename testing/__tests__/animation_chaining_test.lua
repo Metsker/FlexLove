@@ -29,9 +29,7 @@ end
 -- Helper: create a retained-mode test element
 local function makeElement(props)
   love.window.setMode(1920, 1080)
-  FlexLove.beginFrame()
   local el = FlexLove.new(props or { width = 100, height = 100 })
-  FlexLove.endFrame()
   return el
 end
 
@@ -43,11 +41,9 @@ TestAnimationChaining = {}
 
 function TestAnimationChaining:setUp()
   love.window.setMode(1920, 1080)
-  FlexLove.beginFrame()
 end
 
 function TestAnimationChaining:tearDown()
-  FlexLove.endFrame()
 end
 
 function TestAnimationChaining:test_chain_links_two_animations()
@@ -151,11 +147,9 @@ TestAnimationDelay = {}
 
 function TestAnimationDelay:setUp()
   love.window.setMode(1920, 1080)
-  FlexLove.beginFrame()
 end
 
 function TestAnimationDelay:tearDown()
-  FlexLove.endFrame()
 end
 
 function TestAnimationDelay:test_delay_delays_animation_start()
@@ -204,11 +198,9 @@ TestAnimationRepeat = {}
 
 function TestAnimationRepeat:setUp()
   love.window.setMode(1920, 1080)
-  FlexLove.beginFrame()
 end
 
 function TestAnimationRepeat:tearDown()
-  FlexLove.endFrame()
 end
 
 function TestAnimationRepeat:test_repeat_n_times()
@@ -248,11 +240,9 @@ TestAnimationYoyo = {}
 
 function TestAnimationYoyo:setUp()
   love.window.setMode(1920, 1080)
-  FlexLove.beginFrame()
 end
 
 function TestAnimationYoyo:tearDown()
-  FlexLove.endFrame()
 end
 
 function TestAnimationYoyo:test_yoyo_reverses_on_repeat()
@@ -304,11 +294,9 @@ TestAnimationChainSequence = {}
 
 function TestAnimationChainSequence:setUp()
   love.window.setMode(1920, 1080)
-  FlexLove.beginFrame()
 end
 
 function TestAnimationChainSequence:tearDown()
-  FlexLove.endFrame()
 end
 
 function TestAnimationChainSequence:test_chainSequence_links_all_animations()
@@ -342,11 +330,9 @@ TestElementFluentAPI = {}
 
 function TestElementFluentAPI:setUp()
   love.window.setMode(1920, 1080)
-  FlexLove.beginFrame()
 end
 
 function TestElementFluentAPI:tearDown()
-  FlexLove.endFrame()
 end
 
 function TestElementFluentAPI:test_animateTo_creates_animation()
@@ -478,11 +464,9 @@ TestAnimationChainingIntegration = {}
 
 function TestAnimationChainingIntegration:setUp()
   love.window.setMode(1920, 1080)
-  FlexLove.beginFrame()
 end
 
 function TestAnimationChainingIntegration:tearDown()
-  FlexLove.endFrame()
 end
 
 function TestAnimationChainingIntegration:test_chained_delay_and_repeat()

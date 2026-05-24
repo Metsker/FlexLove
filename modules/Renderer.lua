@@ -451,6 +451,46 @@ function Renderer:draw(element, backdropCanvas)
     return
   end
 
+  -- Re-sync visual properties from the element on every draw so that direct
+  -- assignment (e.g. `el.backgroundColor = newColor`) takes effect without
+  -- requiring a separate setter call. Keep existing fallback values when an
+  -- element does not declare a property.
+  if element.backgroundColor ~= nil then
+    self.backgroundColor = element.backgroundColor
+  end
+  if element.borderColor ~= nil then
+    self.borderColor = element.borderColor
+  end
+  if element.opacity ~= nil then
+    self.opacity = element.opacity
+  end
+  if element.border ~= nil then
+    self.border = element.border
+  end
+  self.cornerRadius = element.cornerRadius
+  self.themeComponent = element.themeComponent
+  self.theme = element.theme or self.theme
+  self.imagePath = element.imagePath
+  self.image = element.image
+  if element._loadedImage ~= nil then
+    self._loadedImage = element._loadedImage
+  end
+  if element.objectFit ~= nil then
+    self.objectFit = element.objectFit
+  end
+  if element.objectPosition ~= nil then
+    self.objectPosition = element.objectPosition
+  end
+  if element.imageOpacity ~= nil then
+    self.imageOpacity = element.imageOpacity
+  end
+  if element.imageRepeat ~= nil then
+    self.imageRepeat = element.imageRepeat
+  end
+  self.imageTint = element.imageTint
+  self.contentBlur = element.contentBlur
+  self.backdropBlur = element.backdropBlur
+
   -- Start performance timing
   local elementId
   if Renderer._Performance and Renderer._Performance.enabled and element then

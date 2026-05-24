@@ -1,6 +1,5 @@
 local packageName = ... or "FlexLove"
-local modulePath = packageName:match("(.-)[^%.]+$") -- Get the module path prefix (e.g., "libs." or "")
--- If modulePath is empty (e.g., require("FlexLove")), use the package name
+local modulePath = packageName:match("(.-)[^%.]+$")
 if modulePath == "" then
   modulePath = packageName .. "."
 end
@@ -11,24 +10,10 @@ end
 
 ---@type ErrorHandler
 local ErrorHandler = req("ErrorHandler")
-local ModuleLoader = req("ModuleLoader")
-ModuleLoader.init({ ErrorHandler = ErrorHandler })
-
-local function safeReq(name, isOptional)
-  local module = ModuleLoader.safeRequire(modulePath .. "modules." .. name, isOptional)
-  if isOptional and module and module._isStub then
-    return nil
-  end
-  return module
-end
-
--- Required core modules
 local utils = req("utils")
 local Calc = req("Calc")
 local Units = req("Units")
 local Context = req("Context")
----@type StateManager
-local StateManager = req("StateManager")
 local RoundedRect = req("RoundedRect")
 local Grid = req("Grid")
 local InputEvent = req("InputEvent")
@@ -45,36 +30,33 @@ local ZIndex = req("ZIndex")
 local Element = req("Element")
 ---@type Color
 local Color = req("Color")
-
 ---@type Select
 local Select = req("Select")
 
--- Optional modules (can be excluded in minimal builds)
-local Blur = safeReq("Blur", true)
+local Blur = req("Blur")
 ---@type Performance
-local Performance = safeReq("Performance", true)
+local Performance = req("Performance")
 ---@type KeyboardNavigation
-local KeyboardNavigation = safeReq("KeyboardNavigation", true)
+local KeyboardNavigation = req("KeyboardNavigation")
 ---@type FocusIndicator
-local FocusIndicator = safeReq("FocusIndicator", true)
-local ImageRenderer = safeReq("ImageRenderer", true)
-local ImageScaler = safeReq("ImageScaler", true)
-local NinePatch = safeReq("NinePatch", true)
-local ImageCache = safeReq("ImageCache", true)
-local GestureRecognizer = safeReq("GestureRecognizer", true)
+local FocusIndicator = req("FocusIndicator")
+local ImageRenderer = req("ImageRenderer")
+local ImageScaler = req("ImageScaler")
+local NinePatch = req("NinePatch")
+local ImageCache = req("ImageCache")
+local GestureRecognizer = req("GestureRecognizer")
 ---@type Animation
-local Animation = safeReq("Animation", true)
+local Animation = req("Animation")
 ---@type Theme
-local Theme = safeReq("Theme", true)
+local Theme = req("Theme")
 
--- Handle Animation.Transform safely
-local Transform = Animation and Animation.Transform or nil
+local Transform = Animation.Transform
 
 local enums = utils.enums
 
 local flexlove = Context
-flexlove._VERSION = "0.14.0"
-flexlove._DESCRIPTION = "UI Library for LÖVE Framework based on flexbox"
+flexlove._VERSION = "0.15.0"
+flexlove._DESCRIPTION = "CSS-style UI library for LÖVE2D"
 flexlove._URL = "https://github.com/mikefreno/FlexLove"
 flexlove._LICENSE = [[
   MIT License
@@ -100,13 +82,12 @@ flexlove._LICENSE = [[
   SOFTWARE.
 ]]
 
--- GC (Garbage Collection) configuration
 ---@type GCConfig
 flexlove._gcConfig = {
-  strategy = "auto", -- "auto", "periodic", "manual", "disabled"
-  memoryThreshold = 100, -- MB before forcing GC
-  interval = 60, -- Frames between GC steps (for periodic mode)
-  stepSize = 200, -- Work units per GC step (higher = more aggressive)
+  strategy = "auto",
+  memoryThreshold = 100,
+  interval = 60,
+  stepSize = 200,
 }
 ---@type GCState
 flexlove._gcState = {
@@ -115,37 +96,21 @@ flexlove._gcState = {
   gcCount = 0,
 }
 
--- Deferred callback queue for operations that cannot run while Canvas is active
 ---@type function[]
 flexlove._deferredCallbacks = {}
 
--- Track accumulated delta time for immediate mode updates
-flexlove._accumulatedDt = 0
-
--- Touch ownership tracking: maps touch ID (string) to the element that owns it
 ---@type table<string, Element>
 flexlove._touchOwners = {}
 
 ---@type table<number, boolean>
 flexlove._mouseButtonStates = {}
 
--- Shared GestureRecognizer instance for touch routing (initialized in init())
 ---@type GestureRecognizer|nil
 flexlove._gestureRecognizer = nil
 
---- Check if FlexLove initialization is complete and ready to create elements
---- Use this before creating elements to avoid automatic queueing
----@return boolean ready True if FlexLove is initialized and ready to use
-function flexlove.isReady()
-  return flexlove._initState == "ready"
-end
-
---- Set up FlexLove for your application's specific needs - configure responsive scaling, theming, rendering mode, and debugging tools
---- Use this to establish a consistent UI foundation that adapts to different screen sizes and provides performance insights
---- After initialization, any queued element creation calls will be automatically processed
+--- Set up FlexLove for your application's specific needs.
 ---@param config FlexLoveConfig?
 function flexlove.init(config)
-  flexlove._initState = "initializing"
   config = config or {}
 
   flexlove._ErrorHandler = ErrorHandler.init({
@@ -158,81 +123,32 @@ function flexlove.init(config)
     enableRotation = config.errorLogRotateEnabled,
   })
 
-  -- Initialize Performance if available
-  if Performance then
-    flexlove._Performance = Performance.init({
-      enabled = config.performanceMonitoring or true,
-      hudEnabled = false, -- Start with HUD disabled
-      hudToggleKey = config.performanceHudKey or "f3",
-      hudPosition = config.performanceHudPosition or { x = 10, y = 10 },
-      warningThresholdMs = config.performanceWarningThreshold or 13.0,
-      criticalThresholdMs = config.performanceCriticalThreshold or 16.67,
-      logToConsole = config.performanceLogToConsole or false,
-      logWarnings = config.performanceWarnings or false,
-      warningsEnabled = config.performanceWarnings or false,
-      memoryProfiling = config.memoryProfiling or config.immediateMode and true or false,
-    }, { ErrorHandler = flexlove._ErrorHandler })
+  flexlove._Performance = Performance.init({
+    enabled = config.performanceMonitoring or true,
+    hudEnabled = false,
+    hudToggleKey = config.performanceHudKey or "f3",
+    hudPosition = config.performanceHudPosition or { x = 10, y = 10 },
+    warningThresholdMs = config.performanceWarningThreshold or 13.0,
+    criticalThresholdMs = config.performanceCriticalThreshold or 16.67,
+    logToConsole = config.performanceLogToConsole or false,
+    logWarnings = config.performanceWarnings or false,
+    warningsEnabled = config.performanceWarnings or false,
+    memoryProfiling = config.memoryProfiling or false,
+  }, { ErrorHandler = flexlove._ErrorHandler })
 
-    if config.immediateMode then
-      flexlove._Performance:registerTableForMonitoring(
-        "StateManager.stateStore",
-        StateManager._getInternalState().stateStore
-      )
-      flexlove._Performance:registerTableForMonitoring(
-        "StateManager.stateMetadata",
-        StateManager._getInternalState().stateMetadata
-      )
-    end
-  else
-    flexlove._Performance = Performance
-  end
+  ImageRenderer.init({ ErrorHandler = flexlove._ErrorHandler, utils = utils })
+  ImageScaler.init({ ErrorHandler = flexlove._ErrorHandler })
+  NinePatch.init({ ErrorHandler = flexlove._ErrorHandler })
+  Blur.init({ ErrorHandler = flexlove._ErrorHandler, immediateModeOptimizations = false })
 
-  -- Initialize optional modules if available
-  if ModuleLoader.isModuleLoaded(modulePath .. "modules.ImageRenderer") then
-    ImageRenderer.init({ ErrorHandler = flexlove._ErrorHandler, utils = utils })
-  end
-
-  if ModuleLoader.isModuleLoaded(modulePath .. "modules.ImageScaler") then
-    ImageScaler.init({ ErrorHandler = flexlove._ErrorHandler })
-  end
-
-  if ModuleLoader.isModuleLoaded(modulePath .. "modules.NinePatch") then
-    NinePatch.init({ ErrorHandler = flexlove._ErrorHandler })
-  end
-
-  -- Initialize Blur module with immediate mode optimization config
-  if ModuleLoader.isModuleLoaded(modulePath .. "modules.Blur") then
-    local blurOptimizations = config.immediateModeBlurOptimizations
-    if blurOptimizations == nil then
-      blurOptimizations = true -- Default to enabled
-    end
-    Blur.init({
-      ErrorHandler = flexlove._ErrorHandler,
-      immediateModeOptimizations = blurOptimizations and config.immediateMode or false,
-    })
-  end
-
-  -- Initialize required modules
-  StateManager.init({ ErrorHandler = flexlove._ErrorHandler })
   Calc.init({ ErrorHandler = flexlove._ErrorHandler })
   Units.init({ Context = Context, ErrorHandler = flexlove._ErrorHandler, Calc = Calc })
   Color.init({ ErrorHandler = flexlove._ErrorHandler })
   utils.init({ ErrorHandler = flexlove._ErrorHandler })
 
-  -- Initialize optional ImageCache module
-  if ModuleLoader.isModuleLoaded(modulePath .. "modules.ImageCache") then
-    ImageCache.init({ ErrorHandler = flexlove._ErrorHandler })
-  end
-
-  -- Initialize optional Animation module
-  if ModuleLoader.isModuleLoaded(modulePath .. "modules.Animation") then
-    Animation.init({ ErrorHandler = flexlove._ErrorHandler, Color = Color })
-  end
-
-  -- Initialize optional Theme module
-  if ModuleLoader.isModuleLoaded(modulePath .. "modules.Theme") then
-    Theme.init({ ErrorHandler = flexlove._ErrorHandler, Color = Color, utils = utils })
-  end
+  ImageCache.init({ ErrorHandler = flexlove._ErrorHandler })
+  Animation.init({ ErrorHandler = flexlove._ErrorHandler, Color = Color })
+  Theme.init({ ErrorHandler = flexlove._ErrorHandler, Color = Color, utils = utils })
 
   LayoutEngine.init({ ErrorHandler = flexlove._ErrorHandler, Performance = flexlove._Performance, utils = utils })
   EventHandler.init({
@@ -243,17 +159,10 @@ function flexlove.init(config)
     Context = Context,
   })
 
-  -- Initialize shared GestureRecognizer for touch routing
-  if GestureRecognizer then
-    flexlove._gestureRecognizer = GestureRecognizer.new({}, { InputEvent = InputEvent, utils = utils })
-  end
+  flexlove._gestureRecognizer = GestureRecognizer.new({}, { InputEvent = InputEvent, utils = utils })
 
-  -- Initialize KeyboardNavigation and FocusIndicator if enabled
   local keyboardConfig = config.keyboardNavigation
-  if
-    KeyboardNavigation
-    and (keyboardConfig == true or (type(keyboardConfig) == "table" and keyboardConfig.enabled ~= false))
-  then
+  if keyboardConfig == true or (type(keyboardConfig) == "table" and keyboardConfig.enabled ~= false) then
     KeyboardNavigation.init({
       Context = Context,
       Element = Element,
@@ -261,17 +170,9 @@ function flexlove.init(config)
       utils = utils,
       InputEvent = InputEvent,
     })
-
-    if FocusIndicator then
-      FocusIndicator.init({ Context = Context, Color = Color })
-      KeyboardNavigation.FocusIndicator = FocusIndicator
-      -- Also set FocusIndicator reference in EventHandler for clearing on mouse click
-      EventHandler._FocusIndicator = FocusIndicator
-      -- Note: FocusIndicator is only updated from keyboard navigation (_focusElement)
-      -- Mouse clicks and activation clear the indicator
-    end
-
-    -- Apply configuration if provided
+    FocusIndicator.init({ Context = Context, Color = Color })
+    KeyboardNavigation.FocusIndicator = FocusIndicator
+    EventHandler._FocusIndicator = FocusIndicator
     flexlove._applyKeyboardNavConfig(keyboardConfig)
   end
 
@@ -291,7 +192,6 @@ function flexlove.init(config)
     Grid = Grid,
     InputEvent = InputEvent,
     GestureRecognizer = GestureRecognizer,
-    StateManager = StateManager,
     TextEditor = TextEditor,
     LayoutEngine = LayoutEngine,
     Renderer = Renderer,
@@ -305,7 +205,6 @@ function flexlove.init(config)
     Select = Select,
   }
 
-  -- Initialize Element module with dependencies
   Element.init(flexlove._defaultDependencies)
 
   if config.baseScale then
@@ -319,7 +218,7 @@ function flexlove.init(config)
     flexlove.scaleFactors.y = currentHeight / flexlove.baseScale.height
   end
 
-  if config.theme and ModuleLoader.isModuleLoaded(modulePath .. "modules.Theme") then
+  if config.theme then
     local success, err = pcall(function()
       if type(config.theme) == "string" then
         Theme.load(config.theme)
@@ -333,18 +232,10 @@ function flexlove.init(config)
     end)
 
     if not success then
-      flexlove._ErrorHandler:warn("FlexLove", "THM_005", {
-        error = tostring(err),
-      })
+      flexlove._ErrorHandler:warn("FlexLove", "THM_005", { error = tostring(err) })
     end
   end
 
-  local immediateMode = config.immediateMode or false
-  flexlove.setMode(immediateMode and "immediate" or "retained")
-
-  flexlove._autoFrameManagement = config.autoFrameManagement or false
-
-  -- Configure GC strategy
   if config.gcStrategy then
     flexlove._gcConfig.strategy = config.gcStrategy
   end
@@ -358,63 +249,10 @@ function flexlove.init(config)
     flexlove._gcConfig.stepSize = config.gcStepSize
   end
 
-  if config.stateRetentionFrames or config.maxStateEntries then
-    StateManager.configure({
-      stateRetentionFrames = config.stateRetentionFrames,
-      maxStateEntries = config.maxStateEntries,
-    })
-  end
   flexlove.initialized = true
-  flexlove._initState = "ready"
 
-  -- Configure debug draw overlay
   flexlove._debugDraw = config.debugDraw or false
   flexlove._debugDrawKey = config.debugDrawKey or nil
-
-  -- Process all queued element creations
-  local queue = flexlove._initQueue
-  flexlove._initQueue = {} -- Clear queue before processing to prevent re-entry issues
-
-  for _, item in ipairs(queue) do
-    local element = Element.new(item.props)
-    if item.callback and type(item.callback) == "function" then
-      local success, err = pcall(item.callback, element)
-      if not success then
-        flexlove._ErrorHandler:warn(
-          "FlexLove",
-          string.format("Failed to execute queued element callback: %s", tostring(err))
-        )
-      end
-    end
-  end
-end
-
---- Enable keyboard navigation after initialization (for deferred or conditional setup)
---- Useful when you need to conditionally enable keyboard navigation based on runtime conditions
---- Automatically initializes KeyboardNavigation and FocusIndicator modules if not already initialized
----@param config KeyboardNavigationConfig? Optional configuration table
---- @usage
---- -- Enable with defaults
---- FlexLove.enableKeyboardNavigation()
----
---- -- Enable with custom configuration
---- FlexLove.enableKeyboardNavigation({
----   directionalNavigation = true,
----   wrapAround = false,
----   focusIndicator = {
----     enabled = true,
----     color = {1, 0.8, 0, 0.8},
----     lineWidth = 3,
----   },
---- })
---- Enable debug mode for keyboard navigation
---- Use this to troubleshoot keyboard navigation issues
----@param enabled boolean
-function flexlove.setKeyboardNavigationDebug(enabled)
-  if KeyboardNavigation and KeyboardNavigation.config then
-    KeyboardNavigation.config.debugMode = enabled
-    print(string.format("[FlexLove] Keyboard navigation debug mode: %s", tostring(enabled)))
-  end
 end
 
 --- Apply keyboard navigation configuration (internal helper)
@@ -437,7 +275,7 @@ function flexlove._applyKeyboardNavConfig(config)
     KeyboardNavigation.config.dropFocusOnSelection = config.dropFocusOnSelection
   end
 
-  if config.focusIndicator and FocusIndicator then
+  if config.focusIndicator then
     local fiConfig = config.focusIndicator
     if fiConfig.enabled ~= nil then
       FocusIndicator.config.enabled = fiConfig.enabled
@@ -462,40 +300,16 @@ function flexlove._applyKeyboardNavConfig(config)
   end
 end
 
---- Enable keyboard navigation after initialization (for deferred or conditional setup)
---- Useful when you need to conditionally enable keyboard navigation based on runtime conditions
---- Automatically initializes KeyboardNavigation and FocusIndicator modules if not already initialized
----@usage
---- -- Enable with defaults
---- FlexLove.enableKeyboardNavigation()
----
---- -- Enable with custom configuration
---- FlexLove.enableKeyboardNavigation({
----   directionalNavigation = true,
----   wrapAround = false,
----   dropFocusOnSelection = false,
----   focusIndicator = {
----     enabled = true,
----     color = {1, 0.8, 0, 0.8},
----     lineWidth = 3,
----     draw = function(element, bounds, style) end,
----   },
---- })
----@param config KeyboardNavigationConfig
+--- Enable keyboard navigation after initialization
+---@param config KeyboardNavigationConfig?
 function flexlove.enableKeyboardNavigation(config)
-  if not KeyboardNavigation then
-    return
-  end
   config = config or {}
 
-  -- Check if already initialized
   if KeyboardNavigation.config and KeyboardNavigation._deps then
-    -- Already initialized, just apply config if provided
     flexlove._applyKeyboardNavConfig(config)
     return
   end
 
-  -- Initialize KeyboardNavigation
   KeyboardNavigation.init({
     Context = Context,
     Element = Element,
@@ -504,22 +318,15 @@ function flexlove.enableKeyboardNavigation(config)
     InputEvent = InputEvent,
   })
 
-  -- Initialize FocusIndicator if available
-  if FocusIndicator then
-    FocusIndicator.init({ Context = Context, Color = Color })
-    KeyboardNavigation.FocusIndicator = FocusIndicator
-    -- Also set FocusIndicator reference in EventHandler for clearing on mouse click
-    EventHandler._FocusIndicator = FocusIndicator
-    -- Note: FocusIndicator is only updated from keyboard navigation (_focusElement)
-    -- Mouse clicks and activation clear the indicator
-  end
+  FocusIndicator.init({ Context = Context, Color = Color })
+  KeyboardNavigation.FocusIndicator = FocusIndicator
+  EventHandler._FocusIndicator = FocusIndicator
 
   flexlove._applyKeyboardNavConfig(config)
 end
 
---- Safely schedule operations that modify LÖVE's rendering state (like window mode changes) to execute after all canvas operations complete
---- Prevents crashes from attempting canvas-incompatible operations during rendering
----@param callback function The callback to execute
+--- Schedule a callback to run after canvas operations complete.
+---@param callback function
 function flexlove.deferCallback(callback)
   if type(callback) ~= "function" then
     flexlove._ErrorHandler:warn("FlexLove", "CORE_001")
@@ -528,37 +335,24 @@ function flexlove.deferCallback(callback)
   table.insert(flexlove._deferredCallbacks, callback)
 end
 
---- Execute deferred operations at the safest point in the render cycle - after all canvas operations are complete
---- Call this at the end of love.draw() to enable window resizing and other state-modifying operations without crashes
---- @usage
---- function love.draw()
----   love.graphics.setCanvas(myCanvas)
----   FlexLove.draw()
----   love.graphics.setCanvas() -- Release ALL canvases
----   FlexLove.executeDeferredCallbacks() -- Now safe to execute
---- end
+--- Execute deferred callbacks.
 function flexlove.executeDeferredCallbacks()
   if #flexlove._deferredCallbacks == 0 then
     return
   end
 
-  -- Copy callbacks and clear queue before execution
-  -- This prevents infinite loops if callbacks defer more callbacks
   local callbacks = flexlove._deferredCallbacks
   flexlove._deferredCallbacks = {}
 
   for _, callback in ipairs(callbacks) do
     local success, err = xpcall(callback, debug.traceback)
     if not success then
-      flexlove._ErrorHandler:warn("FlexLove", "CORE_002", {
-        error = tostring(err),
-      })
+      flexlove._ErrorHandler:warn("FlexLove", "CORE_002", { error = tostring(err) })
     end
   end
 end
 
---- Recalculate all UI layouts when the window size changes - ensures your interface adapts seamlessly to new dimensions
---- Hook this to love.resize() to maintain proper scaling and positioning across window size changes
+--- Recalculate all UI layouts when the window size changes.
 function flexlove.resize()
   local newWidth, newHeight = love.window.getMode()
 
@@ -567,11 +361,8 @@ function flexlove.resize()
     flexlove.scaleFactors.y = newHeight / flexlove.baseScale.height
   end
 
-  if ModuleLoader.isModuleLoaded(modulePath .. "modules.Blur") then
-    Blur.clearCache()
-  end
+  Blur.clearCache()
 
-  -- Release old canvases explicitly
   if flexlove._gameCanvas then
     flexlove._gameCanvas:release()
   end
@@ -588,122 +379,6 @@ function flexlove.resize()
   end
 end
 
---- Switch between immediate mode (React-like, recreates UI each frame) and retained mode (persistent elements) to match your architectural needs
---- Use immediate for simpler state management and declarative UIs, retained for performance-critical applications with complex state
----@param mode "immediate"|"retained"
-function flexlove.setMode(mode)
-  if mode == "immediate" then
-    flexlove._immediateMode = true
-    flexlove._immediateModeState = StateManager
-    flexlove._frameStarted = false
-    flexlove._autoBeganFrame = false
-  elseif mode == "retained" then
-    flexlove._immediateMode = false
-    flexlove._immediateModeState = nil
-    flexlove._frameStarted = false
-    flexlove._autoBeganFrame = false
-    flexlove._currentFrameElements = {}
-    flexlove._frameNumber = 0
-  else
-    error("[FlexLove] Invalid mode: " .. tostring(mode) .. ". Expected 'immediate' or 'retained'")
-  end
-end
-
---- Check which rendering mode is active to conditionally handle state management logic
---- Useful for libraries and reusable components that need to adapt to different rendering strategies
----@return "immediate"|"retained"
-function flexlove.getMode()
-  return flexlove._immediateMode and "immediate" or "retained"
-end
-
---- Manually start a new frame in immediate mode for precise control over the UI lifecycle
---- Only needed when you want explicit frame boundaries; otherwise FlexLove auto-manages frames
-function flexlove.beginFrame()
-  if not flexlove._immediateMode then
-    return
-  end
-
-  -- Reset accumulated delta time for new frame
-  flexlove._accumulatedDt = 0
-
-  -- Start performance frame timing
-  if flexlove._Performance then
-    flexlove._Performance:startFrame()
-  end
-
-  -- Cleanup elements from PREVIOUS frame (after they've been drawn)
-  -- This breaks circular references and allows GC to collect memory
-  if flexlove._currentFrameElements then
-    local function cleanupChildren(elem)
-      for _, child in ipairs(elem.children) do
-        cleanupChildren(child)
-      end
-      elem:_cleanup()
-    end
-
-    for _, element in ipairs(flexlove._currentFrameElements) do
-      if not element.parent then
-        cleanupChildren(element)
-      end
-    end
-  end
-
-  flexlove._frameNumber = flexlove._frameNumber + 1
-  StateManager.incrementFrame()
-  flexlove._currentFrameElements = {}
-  flexlove._frameStarted = true
-  flexlove.topElements = {}
-
-  Context.clearFrameElements()
-end
-
---- Finalize the frame in immediate mode, triggering layout calculations and state persistence
---- Only needed when manually controlling frames with beginFrame(); otherwise handled automatically
-function flexlove.endFrame()
-  if not flexlove._immediateMode then
-    return
-  end
-
-  Context.sortElementsByZIndex()
-
-  -- Layout all top-level elements now that all children have been added
-  for _, element in ipairs(flexlove._currentFrameElements) do
-    if not element.parent then
-      element:layoutChildren()
-    end
-  end
-
-  flexlove._handleSelectPointerDismissal()
-
-  -- Update all top-level elements created this frame
-  for _, element in ipairs(flexlove._currentFrameElements) do
-    if not element.parent then
-      element:update(flexlove._accumulatedDt)
-    end
-  end
-
-  -- Save state for all elements created this frame
-  for _, element in ipairs(flexlove._currentFrameElements) do
-    if element.id and element.id ~= "" then
-      local stateUpdate = element:saveState()
-      local stateChanged = StateManager.updateStateIfChanged(element.id, stateUpdate)
-      if stateChanged and (element.backdropBlur or element.contentBlur) and Blur then
-        Blur.clearElementCache(element.id)
-      end
-    end
-  end
-
-  StateManager.cleanup()
-  StateManager.forceCleanupIfNeeded()
-  flexlove._frameStarted = false
-
-  -- End performance frame timing
-  if flexlove._Performance then
-    flexlove._Performance:endFrame()
-    flexlove._Performance:resetFrameCounters()
-  end
-end
-
 ---@type love.Canvas?
 flexlove._gameCanvas = nil
 ---@type love.Canvas?
@@ -711,8 +386,7 @@ flexlove._backdropCanvas = nil
 ---@type {width: number, height: number}
 flexlove._canvasDimensions = { width = 0, height = 0 }
 
---- Recursively draw debug boundaries for an element and all its children
---- Draws regardless of visibility/opacity to reveal hidden or transparent elements
+--- Recursively draw debug boundaries for an element and all its children.
 ---@param element Element
 local function drawDebugElement(element)
   local color = element._debugColor
@@ -720,11 +394,9 @@ local function drawDebugElement(element)
     local bw = element._borderBoxWidth or (element.width + element.padding.left + element.padding.right)
     local bh = element._borderBoxHeight or (element.height + element.padding.top + element.padding.bottom)
 
-    -- Fill with 0.5 opacity
     love.graphics.setColor(color[1], color[2], color[3], 0.5)
     love.graphics.rectangle("fill", element.x, element.y, bw, bh)
 
-    -- Border with full opacity, 1px line
     love.graphics.setColor(color[1], color[2], color[3], 1)
     love.graphics.setLineWidth(1)
     love.graphics.rectangle("line", element.x, element.y, bw, bh)
@@ -735,35 +407,25 @@ local function drawDebugElement(element)
   end
 end
 
---- Render the debug draw overlay for all elements in the tree
---- Traverses every element regardless of visibility or opacity
+--- Render the debug draw overlay for all elements in the tree.
 function flexlove._renderDebugOverlay()
-  -- Save current graphics state
   local prevR, prevG, prevB, prevA = love.graphics.getColor()
   local prevLineWidth = love.graphics.getLineWidth()
 
-  -- Clear any active scissor so debug draws are always visible
   love.graphics.setScissor()
 
   for _, win in ipairs(flexlove.topElements) do
     drawDebugElement(win)
   end
 
-  -- Restore graphics state
   love.graphics.setColor(prevR, prevG, prevB, prevA)
   love.graphics.setLineWidth(prevLineWidth)
 end
 
---- Render all UI elements with optional backdrop blur support for glassmorphic effects
---- Place your game scene in gameDrawFunc to enable backdrop blur on UI elements; use postDrawFunc for overlays
+--- Render all UI elements with optional backdrop blur support.
 ---@param gameDrawFunc function|nil pass component draws that should be affected by a backdrop blur
 ---@param postDrawFunc function|nil pass component draws that should NOT be affected by a backdrop blur
 function flexlove.draw(gameDrawFunc, postDrawFunc)
-  if flexlove._immediateMode and flexlove._autoBeganFrame then
-    flexlove.endFrame()
-    flexlove._autoBeganFrame = false
-  end
-
   local outerCanvas = love.graphics.getCanvas()
   local gameCanvas = nil
 
@@ -775,7 +437,6 @@ function flexlove.draw(gameDrawFunc, postDrawFunc)
       or flexlove._canvasDimensions.width ~= width
       or flexlove._canvasDimensions.height ~= height
     then
-      -- Release old canvases before creating new ones
       if flexlove._gameCanvas then
         flexlove._gameCanvas:release()
       end
@@ -837,19 +498,14 @@ function flexlove.draw(gameDrawFunc, postDrawFunc)
     love.graphics.setColor(unpack(prevColor))
 
     for _, win in ipairs(flexlove.topElements) do
-      -- Check if this element tree has backdrop blur
       local needsBackdrop = hasBackdropBlur(win)
 
-      -- Draw element with backdrop blur applied if needed
       if needsBackdrop then
         win:draw(backdropCanvas)
       else
         win:draw(nil)
       end
 
-      -- IMPORTANT: Update backdrop canvas for EVERY element (respecting z-index order)
-      -- This ensures that lower z-index elements are visible in the backdrop blur
-      -- of higher z-index elements
       love.graphics.setCanvas(backdropCanvas)
       love.graphics.setColor(1, 1, 1, 1)
       win:draw(nil)
@@ -865,33 +521,23 @@ function flexlove.draw(gameDrawFunc, postDrawFunc)
     postDrawFunc()
   end
 
-  -- Render performance HUD if enabled
-  if flexlove._Performance then
-    flexlove._Performance:renderHUD()
-  end
+  flexlove._Performance:renderHUD()
 
-  -- Render focus indicator if keyboard navigation is enabled
-  if KeyboardNavigation and KeyboardNavigation.config and KeyboardNavigation.config.enabled and FocusIndicator then
+  if KeyboardNavigation.config and KeyboardNavigation.config.enabled then
     FocusIndicator:draw()
   end
 
-  -- Render debug draw overlay if enabled
   if flexlove._debugDraw then
     flexlove._renderDebugOverlay()
   end
 
   love.graphics.setCanvas(outerCanvas)
-
-  -- NOTE: Deferred callbacks are NOT executed here because the calling code
-  -- (e.g., main.lua) might still have a canvas active. Callbacks must be
-  -- executed by calling FlexLove.executeDeferredCallbacks() at the very end
-  -- of love.draw() after ALL canvases have been released.
 end
 
---- Check if element is an ancestor of target
----@param element Element The potential ancestor element
----@param target Element The target element to check
----@return boolean isAncestor True if element is an ancestor of target
+--- Check if element is an ancestor of target.
+---@param element Element
+---@param target Element
+---@return boolean
 local function isAncestor(element, target)
   local current = target.parent
   while current do
@@ -939,8 +585,7 @@ function flexlove._handleSelectPointerDismissal()
   flexlove._mouseButtonStates[1] = isLeftDown
 end
 
---- Determine which UI element the user is interacting with at a specific screen position
---- Essential for custom input handling, tooltips, or debugging click targets in complex layouts
+--- Hit-test the UI element at a screen position.
 ---@param x number
 ---@param y number
 ---@return Element?
@@ -957,33 +602,27 @@ function flexlove.getElementAtPosition(x, y)
     local bw = element._borderBoxWidth or (element.width + element.padding.left + element.padding.right)
     local bh = element._borderBoxHeight or (element.height + element.padding.top + element.padding.bottom)
 
-    -- Adjust mouse position by accumulated scroll offset for hit testing
     local adjustedX = x + scrollOffsetX
     local adjustedY = y + scrollOffsetY
 
     if adjustedX >= bx and adjustedX <= bx + bw and adjustedY >= by and adjustedY <= by + bh then
-      -- Skip display:none elements and their entire subtree
-      if element.display == false then
+      if element.display == "none" then
         return
       end
       if element.visibility == "hidden" or element.opacity <= 0 then
         return
       end
 
-      -- Collect interactive elements (those with onEvent handlers)
       if
         (element.onEvent or element.editable or element._selectState or element.selectOption) and not element.disabled
       then
         table.insert(candidates, element)
       end
 
-      -- Collect all visible elements for input blocking
-      -- Elements with opacity > 0 block input to elements below them
       if element.opacity > 0 then
         table.insert(blockingElements, element)
       end
 
-      -- Check if this element has scrollable overflow
       local overflowX = element.overflowX or element.overflow
       local overflowY = element.overflowY or element.overflow
       local hasScrollableOverflow = (
@@ -995,7 +634,6 @@ function flexlove.getElementAtPosition(x, y)
         or overflowY == "hidden"
       )
 
-      -- Accumulate scroll offset for children if this element has overflow clipping
       local childScrollOffsetX = scrollOffsetX
       local childScrollOffsetY = scrollOffsetY
       if hasScrollableOverflow then
@@ -1013,7 +651,6 @@ function flexlove.getElementAtPosition(x, y)
     collectHits(element)
   end
 
-  -- Sort both lists by z-index (highest first)
   table.sort(candidates, function(a, b)
     return a.z > b.z
   end)
@@ -1022,17 +659,11 @@ function flexlove.getElementAtPosition(x, y)
     return a.z > b.z
   end)
 
-  -- If we have interactive elements, return the topmost one
-  -- But only if there's no blocking element with higher z-index (that isn't an ancestor)
   if #candidates > 0 then
     local topCandidate = candidates[1]
 
-    -- Check if any blocking element would prevent this interaction
     if #blockingElements > 0 then
       local topBlocker = blockingElements[1]
-      -- If the top blocker has higher z-index than the top candidate,
-      -- and the blocker is NOT an ancestor of the candidate,
-      -- return the blocker (even though it has no onEvent, it blocks input)
       if topBlocker.z > topCandidate.z and not isAncestor(topBlocker, topCandidate) then
         return topBlocker
       end
@@ -1041,26 +672,16 @@ function flexlove.getElementAtPosition(x, y)
     return topCandidate
   end
 
-  -- No interactive elements, but return topmost blocking element if any
-  -- This prevents clicks from passing through non-interactive overlays
   return blockingElements[1]
 end
 
---- Update all UI animations, interactions, and state changes each frame
---- Hook this to love.update() to enable hover effects, animations, text cursors, and scrolling
+--- Update all UI animations, interactions, and state changes.
 ---@param dt number
 function flexlove.update(dt)
-  -- Update Performance module with actual delta time for accurate FPS
-  if flexlove._Performance then
-    flexlove._Performance:updateDeltaTime(dt)
-  end
+  flexlove._Performance:updateDeltaTime(dt)
 
-  -- Update keyboard navigation (animations, etc.)
-  if KeyboardNavigation then
-    KeyboardNavigation:update(dt)
-  end
+  KeyboardNavigation:update(dt)
 
-  -- Garbage collection management
   flexlove._manageGC()
 
   local mx, my = love.mouse.getPosition()
@@ -1069,22 +690,14 @@ function flexlove.update(dt)
   flexlove._activeEventElement = topElement
   flexlove._handleSelectPointerDismissal()
 
-  -- In immediate mode, accumulate dt and skip updating here - elements will be updated in endFrame after layout
-  if flexlove._immediateMode then
-    flexlove._accumulatedDt = flexlove._accumulatedDt + dt
-  else
-    for _, win in ipairs(flexlove.topElements) do
-      win:update(dt)
-    end
+  for _, win in ipairs(flexlove.topElements) do
+    win:update(dt)
   end
 
   flexlove._activeEventElement = nil
-
-  -- Note: State saving happens in endFrame() after element:update() is called
-  -- This ensures all state changes (including cursor blink) are captured once per frame
 end
 
---- Internal GC management function (called from update)
+--- Internal GC management.
 function flexlove._manageGC()
   local strategy = flexlove._gcConfig.strategy
 
@@ -1092,40 +705,32 @@ function flexlove._manageGC()
     return
   end
 
-  local currentMemory = collectgarbage("count") / 1024 -- Convert to MB
+  local currentMemory = collectgarbage("count") / 1024
   flexlove._gcState.lastMemory = currentMemory
   flexlove._gcState.framesSinceLastGC = flexlove._gcState.framesSinceLastGC + 1
 
-  -- Check memory threshold (applies to all strategies except disabled)
   if currentMemory > flexlove._gcConfig.memoryThreshold then
-    -- Force full GC when exceeding threshold
     collectgarbage("collect")
     flexlove._gcState.gcCount = flexlove._gcState.gcCount + 1
     flexlove._gcState.framesSinceLastGC = 0
     return
   end
 
-  -- Strategy-specific GC
   if strategy == "periodic" then
-    -- Run incremental GC step every N frames
     if flexlove._gcState.framesSinceLastGC >= flexlove._gcConfig.interval then
       collectgarbage("step", flexlove._gcConfig.stepSize)
       flexlove._gcState.gcCount = flexlove._gcState.gcCount + 1
       flexlove._gcState.framesSinceLastGC = 0
     end
   elseif strategy == "auto" then
-    -- Let Lua's automatic GC handle it, but help with incremental steps
-    -- Run a small step every frame to keep memory under control
     if flexlove._gcState.framesSinceLastGC >= 5 then
-      collectgarbage("step", 50) -- Small steps to avoid frame drops
+      collectgarbage("step", 50)
       flexlove._gcState.framesSinceLastGC = 0
     end
   end
-  -- "manual" strategy: no automatic GC, user must call flexlove.collectGarbage()
 end
 
---- Manually trigger garbage collection to prevent frame drops during critical gameplay moments
---- Use this to control when memory cleanup happens rather than letting it occur unpredictably
+--- Manually trigger garbage collection.
 ---@param mode? string "collect" for full GC, "step" for incremental (default: "collect")
 ---@param stepSize? number Work units for step mode (default: 200)
 function flexlove.collectGarbage(mode, stepSize)
@@ -1139,26 +744,22 @@ function flexlove.collectGarbage(mode, stepSize)
   elseif mode == "step" then
     collectgarbage("step", stepSize)
   elseif mode == "count" then
-    return collectgarbage("count") / 1024 -- Return memory in MB
+    return collectgarbage("count") / 1024
   end
 end
 
---- Choose how FlexLove manages memory cleanup to balance performance and memory usage for your app's needs
---- Use "manual" for tight control in performance-critical sections, "auto" for hands-off operation
+--- Set garbage collection strategy.
 ---@param strategy string "auto", "periodic", "manual", or "disabled"
 function flexlove.setGCStrategy(strategy)
   if strategy == "auto" or strategy == "periodic" or strategy == "manual" or strategy == "disabled" then
     flexlove._gcConfig.strategy = strategy
   else
-    flexlove._ErrorHandler:warn("FlexLove", "CORE_003", {
-      strategy = tostring(strategy),
-    })
+    flexlove._ErrorHandler:warn("FlexLove", "CORE_003", { strategy = tostring(strategy) })
   end
 end
 
---- Monitor memory management behavior to diagnose performance issues and tune GC settings
---- Use this to identify memory leaks or optimize garbage collection timing
----@return GCStats stats GC statistics
+--- Get garbage collection statistics.
+---@return GCStats
 function flexlove.getGCStats()
   return {
     gcCount = flexlove._gcState.gcCount,
@@ -1169,8 +770,7 @@ function flexlove.getGCStats()
   }
 end
 
---- Forward text input to focused editable elements like text fields and text areas
---- Hook this to love.textinput() to enable text entry in your UI
+--- Forward text input to focused editable elements.
 ---@param text string
 function flexlove.textinput(text)
   local focusedElement = Context.getFocused()
@@ -1179,31 +779,20 @@ function flexlove.textinput(text)
   end
 end
 
---- Handle keyboard input for text editing, navigation, and performance overlay toggling
---- Hook this to love.keypressed() to enable text selection, cursor movement, and the performance HUD
+--- Handle keyboard input.
 ---@param key string
 ---@param scancode string
 ---@param isrepeat boolean
 function flexlove.keypressed(key, scancode, isrepeat)
-  if flexlove._Performance then
-    flexlove._Performance:keypressed(key)
-  end
+  flexlove._Performance:keypressed(key)
   if flexlove._debugDrawKey and key == flexlove._debugDrawKey then
     flexlove._debugDraw = not flexlove._debugDraw
   end
 
-  -- Handle keyboard navigation (if module is available and enabled)
-  if KeyboardNavigation and KeyboardNavigation.config and KeyboardNavigation.config.enabled then
-    -- Debug logging for keyboard navigation entry point
-    if KeyboardNavigation.config.debugMode then
-      print(string.format("[FlexLove.keypressed] Keyboard nav enabled, handling key: %s", key))
-    end
-
-    -- Check if we're in text input mode (editable element focused)
+  if KeyboardNavigation.config and KeyboardNavigation.config.enabled then
     local focusedElement = Context.getFocused()
     local isTextInputMode = focusedElement and (focusedElement.editable or focusedElement._textEditor)
 
-    -- Only handle navigation if not in text input mode, or if in text input mode without modifiers
     local shouldHandleNav = not isTextInputMode
       or (
         isTextInputMode
@@ -1217,24 +806,19 @@ function flexlove.keypressed(key, scancode, isrepeat)
 
     if shouldHandleNav then
       local handled = KeyboardNavigation:handleKeyPress(key, scancode, isrepeat)
-      if KeyboardNavigation.config.debugMode and not handled then
-        print(string.format("[FlexLove.keypressed] Key %s was NOT handled by keyboard navigation", key))
-      end
       if handled then
-        return -- Navigation handled the key, don't forward to element
+        return
       end
     end
   end
 
-  -- Forward to focused element for text input
   local focusedElement = Context.getFocused()
   if focusedElement and not focusedElement.disabled then
     focusedElement:keypressed(key, scancode, isrepeat)
   end
 end
 
---- Enable mouse wheel scrolling in scrollable containers and lists
---- Hook this to love.wheelmoved() to allow users to scroll through content naturally
+--- Handle mouse wheel scrolling.
 ---@param dx number
 ---@param dy number
 function flexlove.wheelmoved(dx, dy)
@@ -1242,7 +826,7 @@ function flexlove.wheelmoved(dx, dy)
   local function findScrollableAtPosition(elements, x, y)
     for i = #elements, 1, -1 do
       local element = elements[i]
-      if element.display ~= false then
+      if element.display ~= "none" then
         local bx = element.x
         local by = element.y
         local bw = element._borderBoxWidth or (element.width + element.padding.left + element.padding.right)
@@ -1271,105 +855,16 @@ function flexlove.wheelmoved(dx, dy)
     return nil
   end
 
-  if flexlove._immediateMode then
-    for i = #Context._zIndexOrderedElements, 1, -1 do
-      local element = Context._zIndexOrderedElements[i]
-
-      if element.display ~= false then
-        local bx = element.x
-        local by = element.y
-        local bw = element._borderBoxWidth or (element.width + element.padding.left + element.padding.right)
-        local bh = element._borderBoxHeight or (element.height + element.padding.top + element.padding.bottom)
-
-        -- Calculate scroll offset from parent chain
-        local scrollOffsetX = 0
-        local scrollOffsetY = 0
-        local current = element.parent
-        while current do
-          local overflowX = current.overflowX or current.overflow
-          local overflowY = current.overflowY or current.overflow
-          local hasScrollableOverflow = (
-            overflowX == "scroll"
-            or overflowX == "auto"
-            or overflowY == "scroll"
-            or overflowY == "auto"
-            or overflowX == "hidden"
-            or overflowY == "hidden"
-          )
-          if hasScrollableOverflow then
-            scrollOffsetX = scrollOffsetX + (current._scrollX or 0)
-            scrollOffsetY = scrollOffsetY + (current._scrollY or 0)
-          end
-          current = current.parent
-        end
-
-        -- Adjust mouse position by scroll offset
-        local adjustedMx = mx + scrollOffsetX
-        local adjustedMy = my + scrollOffsetY
-
-        -- Check if mouse is within element bounds
-        if adjustedMx >= bx and adjustedMx <= bx + bw and adjustedMy >= by and adjustedMy <= by + bh then
-          -- Check if mouse position is clipped by any parent
-          local isClipped = false
-          local parentCheck = element.parent
-          while parentCheck do
-            local parentOverflowX = parentCheck.overflowX or parentCheck.overflow
-            local parentOverflowY = parentCheck.overflowY or parentCheck.overflow
-
-            if
-              parentOverflowX == "hidden"
-              or parentOverflowX == "scroll"
-              or parentOverflowX == "auto"
-              or parentOverflowY == "hidden"
-              or parentOverflowY == "scroll"
-              or parentOverflowY == "auto"
-            then
-              local parentX = parentCheck.x + parentCheck.padding.left
-              local parentY = parentCheck.y + parentCheck.padding.top
-              local parentW = parentCheck.width
-              local parentH = parentCheck.height
-
-              if mx < parentX or mx > parentX + parentW or my < parentY or my > parentY + parentH then
-                isClipped = true
-                break
-              end
-            end
-            parentCheck = parentCheck.parent
-          end
-
-          if not isClipped then
-            local overflowX = element.overflowX or element.overflow
-            local overflowY = element.overflowY or element.overflow
-
-            if overflowX == "scroll" or overflowX == "auto" or overflowY == "scroll" or overflowY == "auto" then
-              element:_handleWheelScroll(dx, dy)
-
-              if element._stateId and element._scrollManager then
-                local scrollManagerState = element._scrollManager:getState()
-                StateManager.updateState(element._stateId, {
-                  scrollManager = scrollManagerState,
-                })
-              end
-              return
-            end
-          end
-        end
-      end
-    end
-  else
-    -- In retained mode, use the old tree traversal method
-    local scrollableElement = findScrollableAtPosition(flexlove.topElements, mx, my)
-    if scrollableElement then
-      scrollableElement:_handleWheelScroll(dx, dy)
-    end
+  local scrollableElement = findScrollableAtPosition(flexlove.topElements, mx, my)
+  if scrollableElement then
+    scrollableElement:_handleWheelScroll(dx, dy)
   end
 end
 
---- Find the touch-interactive element at a given position using z-index ordering
---- Similar to getElementAtPosition but checks for touch-enabled elements
----@param x number Touch X position
----@param y number Touch Y position
----@return Element|nil element The topmost touch-enabled element at position
+--- Find the touch-interactive element at a given position.
+---@param x number
+---@param y number
+---@return Element|nil
 function flexlove._getTouchElementAtPosition(x, y)
   local candidates = {}
 
@@ -1382,16 +877,13 @@ function flexlove._getTouchElementAtPosition(x, y)
     local bw = element._borderBoxWidth or (element.width + element.padding.left + element.padding.right)
     local bh = element._borderBoxHeight or (element.height + element.padding.top + element.padding.bottom)
 
-    -- Adjust touch position by accumulated scroll offset for hit testing
     local adjustedX = x + scrollOffsetX
     local adjustedY = y + scrollOffsetY
 
     if adjustedX >= bx and adjustedX <= bx + bw and adjustedY >= by and adjustedY <= by + bh then
-      -- Skip display:none elements and their entire subtree
-      if element.display == false then
+      if element.display == "none" then
         return
       end
-      -- Check if element is touch-enabled and interactive
       if
         element.touchEnabled
         and not element.disabled
@@ -1400,7 +892,6 @@ function flexlove._getTouchElementAtPosition(x, y)
         table.insert(candidates, element)
       end
 
-      -- Check if this element has scrollable overflow (for touch scrolling)
       local overflowX = element.overflowX or element.overflow
       local overflowY = element.overflowY or element.overflow
       local hasScrollableOverflow = (
@@ -1412,7 +903,6 @@ function flexlove._getTouchElementAtPosition(x, y)
         or overflowY == "hidden"
       )
 
-      -- Accumulate scroll offset for children
       local childScrollOffsetX = scrollOffsetX
       local childScrollOffsetY = scrollOffsetY
       if hasScrollableOverflow then
@@ -1430,7 +920,6 @@ function flexlove._getTouchElementAtPosition(x, y)
     collectTouchHits(element)
   end
 
-  -- Sort by z-index (highest first) — topmost element wins
   table.sort(candidates, function(a, b)
     return a.z > b.z
   end)
@@ -1438,38 +927,25 @@ function flexlove._getTouchElementAtPosition(x, y)
   return candidates[1]
 end
 
---- Handle touch press events from LÖVE's touch input system
---- Routes touch to the topmost element at the touch position and assigns touch ownership
---- Hook this to love.touchpressed() to enable touch interaction
----@param id lightuserdata Touch identifier from LÖVE
----@param x number Touch X position in screen coordinates
----@param y number Touch Y position in screen coordinates
----@param dx number X distance moved (usually 0 on press)
----@param dy number Y distance moved (usually 0 on press)
----@param pressure number Touch pressure (0-1, if supported by device)
+--- Handle touch press events.
 function flexlove.touchpressed(id, x, y, dx, dy, pressure)
   local touchId = tostring(id)
   pressure = pressure or 1.0
 
-  -- Apply base scaling if configured
   local touchX, touchY = x, y
   if flexlove.baseScale then
     touchX = x / flexlove.scaleFactors.x
     touchY = y / flexlove.scaleFactors.y
   end
 
-  -- Find the topmost touch-enabled element at this position
   local element = flexlove._getTouchElementAtPosition(touchX, touchY)
 
   if element then
-    -- Assign touch ownership: this element receives all subsequent events for this touch
     flexlove._touchOwners[touchId] = element
 
-    -- Create and route touch event
     local touchEvent = InputEvent.fromTouch(id, touchX, touchY, "began", pressure)
     element:handleTouchEvent(touchEvent)
 
-    -- Feed to shared gesture recognizer
     if flexlove._gestureRecognizer then
       local gestures = flexlove._gestureRecognizer:processTouchEvent(touchEvent)
       if gestures then
@@ -1479,7 +955,6 @@ function flexlove.touchpressed(id, x, y, dx, dy, pressure)
       end
     end
 
-    -- Route to scroll manager for scrollable elements
     if element._scrollManager then
       local overflowX = element.overflowX or element.overflow
       local overflowY = element.overflowY or element.overflow
@@ -1490,34 +965,22 @@ function flexlove.touchpressed(id, x, y, dx, dy, pressure)
   end
 end
 
---- Handle touch move events from LÖVE's touch input system
---- Routes touch to the element that owns this touch ID (from the original press), regardless of current position
---- Hook this to love.touchmoved() to enable touch drag and gesture tracking
----@param id lightuserdata Touch identifier from LÖVE
----@param x number Touch X position in screen coordinates
----@param y number Touch Y position in screen coordinates
----@param dx number X distance moved since last event
----@param dy number Y distance moved since last event
----@param pressure number Touch pressure (0-1, if supported by device)
+--- Handle touch move events.
 function flexlove.touchmoved(id, x, y, dx, dy, pressure)
   local touchId = tostring(id)
   pressure = pressure or 1.0
 
-  -- Apply base scaling if configured
   local touchX, touchY = x, y
   if flexlove.baseScale then
     touchX = x / flexlove.scaleFactors.x
     touchY = y / flexlove.scaleFactors.y
   end
 
-  -- Route to owning element (touch ownership persists from press to release)
   local element = flexlove._touchOwners[touchId]
   if element then
-    -- Create and route touch event
     local touchEvent = InputEvent.fromTouch(id, touchX, touchY, "moved", pressure)
     element:handleTouchEvent(touchEvent)
 
-    -- Feed to shared gesture recognizer
     if flexlove._gestureRecognizer then
       local gestures = flexlove._gestureRecognizer:processTouchEvent(touchEvent)
       if gestures then
@@ -1527,7 +990,6 @@ function flexlove.touchmoved(id, x, y, dx, dy, pressure)
       end
     end
 
-    -- Route to scroll manager for scrollable elements
     if element._scrollManager then
       local overflowX = element.overflowX or element.overflow
       local overflowY = element.overflowY or element.overflow
@@ -1538,34 +1000,22 @@ function flexlove.touchmoved(id, x, y, dx, dy, pressure)
   end
 end
 
---- Handle touch release events from LÖVE's touch input system
---- Routes touch to the owning element and cleans up touch ownership tracking
---- Hook this to love.touchreleased() to properly end touch interactions
----@param id lightuserdata Touch identifier from LÖVE
----@param x number Touch X position in screen coordinates
----@param y number Touch Y position in screen coordinates
----@param dx number X distance moved since last event
----@param dy number Y distance moved since last event
----@param pressure number Touch pressure (0-1, if supported by device)
+--- Handle touch release events.
 function flexlove.touchreleased(id, x, y, dx, dy, pressure)
   local touchId = tostring(id)
   pressure = pressure or 1.0
 
-  -- Apply base scaling if configured
   local touchX, touchY = x, y
   if flexlove.baseScale then
     touchX = x / flexlove.scaleFactors.x
     touchY = y / flexlove.scaleFactors.y
   end
 
-  -- Route to owning element
   local element = flexlove._touchOwners[touchId]
   if element then
-    -- Create and route touch event
     local touchEvent = InputEvent.fromTouch(id, touchX, touchY, "ended", pressure)
     element:handleTouchEvent(touchEvent)
 
-    -- Feed to shared gesture recognizer
     if flexlove._gestureRecognizer then
       local gestures = flexlove._gestureRecognizer:processTouchEvent(touchEvent)
       if gestures then
@@ -1575,7 +1025,6 @@ function flexlove.touchreleased(id, x, y, dx, dy, pressure)
       end
     end
 
-    -- Route to scroll manager for scrollable elements
     if element._scrollManager then
       local overflowX = element.overflowX or element.overflow
       local overflowY = element.overflowY or element.overflow
@@ -1585,12 +1034,11 @@ function flexlove.touchreleased(id, x, y, dx, dy, pressure)
     end
   end
 
-  -- Clean up touch ownership (touch is complete)
   flexlove._touchOwners[touchId] = nil
 end
 
---- Get the number of currently active touches being tracked
----@return number count Number of active touch points
+--- Number of currently active touches.
+---@return number
 function flexlove.getActiveTouchCount()
   local count = 0
   for _ in pairs(flexlove._touchOwners) do
@@ -1599,17 +1047,16 @@ function flexlove.getActiveTouchCount()
   return count
 end
 
---- Get the element that currently owns a specific touch
----@param touchId string|lightuserdata Touch identifier
----@return Element|nil element The element owning this touch, or nil
+--- Get the element owning a specific touch.
+---@param touchId string|lightuserdata
+---@return Element|nil
 function flexlove.getTouchOwner(touchId)
   return flexlove._touchOwners[tostring(touchId)]
 end
 
---- Retrieve an element by its ID from the UI tree
---- Works in both immediate and retained modes; searches all known elements including top-level and nested children
----@param id string The element ID to search for
----@return Element|nil element The found element, or nil if not found
+--- Find an element by its ID anywhere in the tree.
+---@param id string
+---@return Element|nil
 function flexlove.getById(id)
   if not id or id == "" then
     return nil
@@ -1637,29 +1084,10 @@ function flexlove.getById(id)
     end
   end
 
-  if flexlove._currentFrameElements then
-    for _, element in ipairs(flexlove._currentFrameElements) do
-      local result = findElementById(element, id)
-      if result then
-        return result
-      end
-    end
-  end
-
-  if Context._zIndexOrderedElements then
-    for _, element in ipairs(Context._zIndexOrderedElements) do
-      local result = findElementById(element, id)
-      if result then
-        return result
-      end
-    end
-  end
-
   return nil
 end
 
---- Clean up all UI elements and reset FlexLove to initial state when changing scenes or shutting down
---- Use this to prevent memory leaks when transitioning between game states or menus
+--- Tear down FlexLove state.
 function flexlove.destroy()
   for _, win in ipairs(flexlove.topElements) do
     win:destroy()
@@ -1669,7 +1097,6 @@ function flexlove.destroy()
   flexlove.scaleFactors = { x = 1.0, y = 1.0 }
   flexlove._cachedViewport = { width = 0, height = 0 }
 
-  -- Release canvases explicitly before destroying
   if flexlove._gameCanvas then
     flexlove._gameCanvas:release()
   end
@@ -1681,9 +1108,7 @@ function flexlove.destroy()
   flexlove._backdropCanvas = nil
   flexlove._canvasDimensions = { width = 0, height = 0 }
   Context.clearFocus()
-  StateManager:reset()
 
-  -- Clean up touch state
   flexlove._touchOwners = {}
   flexlove._mouseButtonStates = {}
   if flexlove._gestureRecognizer then
@@ -1691,182 +1116,48 @@ function flexlove.destroy()
   end
 end
 
---- Create a new UI element with flexbox layout, styling, and interaction capabilities
---- This is your primary API for building interfaces - buttons, panels, text, images, and containers
---- If called before FlexLove.init(), the element creation will be automatically queued and executed after initialization
+--- Create a new UI element.
 ---@param props ElementProps
----@param callback? function Optional callback function(element) that will be called with the created element (useful when queued)
----@return Element -- Returns element if initialized, nil if queued for later creation
-function flexlove.new(props, callback)
-  props = props or {}
-
+---@return Element
+function flexlove.new(props)
   if not flexlove.initialized then
-    -- Queue element creation for after initialization
-    table.insert(flexlove._initQueue, {
-      props = props,
-      callback = callback,
-    })
-
-    if flexlove._initState == "uninitialized" then
-      if flexlove._ErrorHandler then
-        flexlove._ErrorHandler:warn(
-          "FlexLove",
-          "[FlexLove] Element creation queued - FlexLove.init() has not been called yet. Element will be created automatically after init() is called."
-        )
-      end
-    end
-    return nil
+    error("[FlexLove] FlexLove.init() must be called before FlexLove.new()")
   end
-
-  -- Use global mode to determine behavior
-  if not flexlove._immediateMode then
-    return Element.new(props)
-  end
-
-  -- Immediate mode - proceed with immediate-mode logic
-  -- Auto-begin frame if not manually started (convenience feature)
-  if not flexlove._frameStarted then
-    flexlove.beginFrame()
-    flexlove._autoBeganFrame = true
-  end
-
-  -- Immediate mode: generate ID if not provided
-  if not props.id then
-    props.id = StateManager.generateID(props, props.parent)
-  end
-
-  -- Get or create state for this element
-  local state = StateManager.getState(props.id, {})
-
-  -- Mark state as used this frame
-  StateManager.markStateUsed(props.id)
-
-  -- Inject scroll state into props BEFORE creating element
-  -- This ensures scroll position is set before layoutChildren/detectOverflow is called
-  -- ScrollManager state uses _scrollX/_scrollY with underscore prefix
-  if state.scrollManager then
-    props._scrollX = state.scrollManager._scrollX or 0
-    props._scrollY = state.scrollManager._scrollY or 0
-  else
-    -- Fallback to old state structure for backward compatibility
-    props._scrollX = state._scrollX or 0
-    props._scrollY = state._scrollY or 0
-  end
-
-  local element = Element.new(props)
-
-  -- Restore all state from StateManager (delegates to sub-modules)
-  element:restoreState(state)
-
-  -- Bind element to StateManager for interactive states
-  element._stateId = props.id
-
-  -- Set initial theme state based on StateManager state
-  -- This will be updated in Element:update() but we need an initial value
-  if element.themeComponent then
-    local eventState = state.eventHandler or {}
-    if element.disabled or eventState.disabled then
-      element._themeState = "disabled"
-    elseif element.active or eventState.active then
-      element._themeState = "active"
-    elseif eventState._pressed and next(eventState._pressed) then
-      element._themeState = "pressed"
-    elseif eventState._hovered then
-      element._themeState = "hover"
-    else
-      element._themeState = "normal"
-    end
-  end
-
-  table.insert(flexlove._currentFrameElements, element)
-
-  return element
+  return Element.new(props or {})
 end
 
---- Check how many UI element states are being tracked in immediate mode to detect memory leaks
---- Use this during development to ensure states are properly cleaned up
----@return number
-function flexlove.getStateCount()
-  if not flexlove._immediateMode then
-    return 0
-  end
-  return StateManager.getStateCount()
-end
-
---- Remove stored state for a specific element when you know it won't be rendered again
---- Use this to immediately free memory for elements you've removed from your UI
----@param id string
-function flexlove.clearState(id)
-  if not flexlove._immediateMode then
-    return
-  end
-  StateManager.clearState(id)
-end
-
---- Wipe all element state when transitioning between completely different UI screens
---- Use this for scene transitions to start with a clean slate and prevent state pollution
-function flexlove.clearAllStates()
-  if not flexlove._immediateMode then
-    return
-  end
-  StateManager.clearAllStates()
-end
-
---- Inspect state management metrics to diagnose performance issues and optimize immediate mode usage
---- Use this to understand state lifecycle and identify unexpected state accumulation
----@return { stateCount: number, frameNumber: number, oldestState: number|nil, newestState: number|nil }
-function flexlove.getStateStats()
-  if not flexlove._immediateMode then
-    return { stateCount = 0, frameNumber = 0 }
-  end
-  return StateManager.getStats()
-end
-
---- Create a calc() expression for dynamic CSS-like calculations
---- Use this to create responsive layouts that adapt to viewport and parent dimensions
---- @usage
---- local button = FlexLove.new({
----   x = FlexLove.calc("50% - 10vw"),
----   y = FlexLove.calc("50% - 5vh"),
----   width = "20vw",
----   height = "10vh",
---- })
----@param expr string The calc expression (e.g., "50% - 10vw", "100px + 20%")
----@return CalcObject calcObject A calc expression object that will be evaluated during layout
+--- Create a calc() expression.
+---@param expr string
+---@return CalcObject
 function flexlove.calc(expr)
   return Calc.new(expr)
 end
 
---- Get the currently focused element
---- Returns the element that is currently receiving keyboard input (e.g., text input, text area)
----@return Element|nil The focused element, or nil if no element has focus
+--- Get the currently focused element.
+---@return Element|nil
 function flexlove.getFocusedElement()
   return Context.getFocused()
 end
 
---- Set focus to a specific element
---- Automatically blurs the previously focused element if different
---- Use this to programmatically focus text inputs or other interactive elements
----@param element Element|nil The element to focus (nil to clear focus)
+--- Programmatically focus a specific element.
+---@param element Element|nil
 function flexlove.setFocusedElement(element)
   Context.setFocused(element)
 end
 
---- Clear focus from any element
---- Removes keyboard focus from the currently focused element
+--- Clear focus.
 function flexlove.clearFocus()
   Context.setFocused(nil)
 end
 
---- Enable or disable the debug draw overlay that renders element boundaries with random colors
---- Each element gets a unique color: full opacity border and 0.5 opacity fill to identify collisions and overlaps
----@param enabled boolean True to enable debug draw overlay, false to disable
+--- Toggle the debug-draw overlay.
+---@param enabled boolean
 function flexlove.setDebugDraw(enabled)
   flexlove._debugDraw = enabled
 end
 
---- Check if the debug draw overlay is currently active
----@return boolean enabled True if debug draw overlay is enabled
+--- Is the debug-draw overlay enabled?
+---@return boolean
 function flexlove.getDebugDraw()
   return flexlove._debugDraw
 end

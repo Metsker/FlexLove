@@ -52,11 +52,9 @@ TestTextAlignParsing = {}
 
 function TestTextAlignParsing:setUp()
   FlexLove.init()
-  FlexLove.beginFrame()
 end
 
 function TestTextAlignParsing:tearDown()
-  FlexLove.endFrame()
   FlexLove.destroy()
 end
 
@@ -220,11 +218,9 @@ TestTextAlignBackwardCompat = {}
 
 function TestTextAlignBackwardCompat:setUp()
   FlexLove.init()
-  FlexLove.beginFrame()
 end
 
 function TestTextAlignBackwardCompat:tearDown()
-  FlexLove.endFrame()
   FlexLove.destroy()
 end
 
@@ -250,11 +246,9 @@ TestTextAlignRenderer = {}
 
 function TestTextAlignRenderer:setUp()
   FlexLove.init()
-  FlexLove.beginFrame()
 end
 
 function TestTextAlignRenderer:tearDown()
-  FlexLove.endFrame()
   FlexLove.destroy()
 end
 
@@ -313,16 +307,13 @@ TestTextAlignIntegration = {}
 
 function TestTextAlignIntegration:setUp()
   FlexLove.init()
-  FlexLove.beginFrame()
 end
 
 function TestTextAlignIntegration:tearDown()
-  FlexLove.endFrame()
   FlexLove.destroy()
 end
 
 function TestTextAlignIntegration:test_element_with_textAlign_renders_in_immediate_mode()
-  FlexLove.setMode("immediate")
 
   local element = FlexLove.new({
     id = "test_immediate_align",
@@ -331,7 +322,6 @@ function TestTextAlignIntegration:test_element_with_textAlign_renders_in_immedia
     text = "Hello",
     textAlign = "center",
   })
-  FlexLove.endFrame()
 
   luaunit.assertNotNil(element)
   luaunit.assertEquals(element.textAlignHorizontal, "center")

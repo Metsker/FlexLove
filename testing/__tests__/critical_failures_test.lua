@@ -18,7 +18,6 @@ TestCriticalFailures = {}
 function TestCriticalFailures:setUp()
   collectgarbage("collect")
   FlexLove.destroy()
-  FlexLove.setMode("retained")
 end
 
 function TestCriticalFailures:tearDown()
@@ -105,24 +104,6 @@ function TestCriticalFailures:test_event_handler_cleanup()
 
   -- onEvent should be nil after destroy (prevent closure leak)
   luaunit.assertNil(element.onEvent)
-end
-
--- Test: Immediate mode state should not grow unbounded
-function TestCriticalFailures:test_immediate_mode_state_cleanup()
-  FlexLove.setMode("immediate")
-  FlexLove.init({ stateRetentionFrames = 2 })
-
-  -- Create elements for multiple frames
-  for frame = 1, 10 do
-    FlexLove.beginFrame()
-    FlexLove.new({ id = "element_" .. frame, width = 100, height = 100 })
-    FlexLove.endFrame()
-  end
-
-  -- State count should be limited by stateRetentionFrames
-  local stateCount = FlexLove.getStateCount()
-  -- Should be much less than 10 due to cleanup
-  luaunit.assertTrue(stateCount < 10, "State count: " .. stateCount .. " (should be cleaned up)")
 end
 
 -- ============================================================
@@ -345,30 +326,25 @@ end
 
 -- Test: Scroll position race condition in immediate mode
 function TestCriticalFailures:test_scroll_position_race_immediate_mode()
-  FlexLove.setMode("immediate")
 
   -- Create scrollable element
-  FlexLove.beginFrame()
   local element = FlexLove.new({
     id = "scroll_test",
     width = 200,
     height = 200,
     overflow = "scroll",
   })
-  FlexLove.endFrame()
 
   -- Set scroll position
   element:setScrollPosition(50, 50)
 
   -- Create same element next frame (state should restore)
-  FlexLove.beginFrame()
   local element2 = FlexLove.new({
     id = "scroll_test",
     width = 200,
     height = 200,
     overflow = "scroll",
   })
-  FlexLove.endFrame()
 
   -- Scroll position should persist (or at least not crash)
   local scrollX, scrollY = element2:getScrollPosition()
@@ -495,10 +471,8 @@ end
 
 -- Test: Scrollable element with overflow content + immediate mode + state restoration
 function TestCriticalFailures:test_scroll_overflow_immediate_mode_integration()
-  FlexLove.setMode("immediate")
 
   for frame = 1, 3 do
-    FlexLove.beginFrame()
 
     local scrollContainer = FlexLove.new({
       id = "scroll_container",
@@ -519,7 +493,6 @@ function TestCriticalFailures:test_scroll_overflow_immediate_mode_integration()
       })
     end
 
-    FlexLove.endFrame()
 
     -- Scroll on second frame
     if frame == 2 then

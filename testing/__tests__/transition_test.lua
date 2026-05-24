@@ -33,11 +33,9 @@ TestSetTransition = {}
 
 function TestSetTransition:setUp()
   love.window.setMode(1920, 1080)
-  FlexLove.beginFrame()
 end
 
 function TestSetTransition:tearDown()
-  FlexLove.endFrame()
 end
 
 function TestSetTransition:test_setTransition_creates_transitions_table()
@@ -119,11 +117,9 @@ TestSetTransitionGroup = {}
 
 function TestSetTransitionGroup:setUp()
   love.window.setMode(1920, 1080)
-  FlexLove.beginFrame()
 end
 
 function TestSetTransitionGroup:tearDown()
-  FlexLove.endFrame()
 end
 
 function TestSetTransitionGroup:test_setTransitionGroup_applies_to_all_properties()
@@ -168,11 +164,9 @@ TestRemoveTransition = {}
 
 function TestRemoveTransition:setUp()
   love.window.setMode(1920, 1080)
-  FlexLove.beginFrame()
 end
 
 function TestRemoveTransition:tearDown()
-  FlexLove.endFrame()
 end
 
 function TestRemoveTransition:test_removeTransition_removes_single()
@@ -219,11 +213,9 @@ TestSetPropertyTransitions = {}
 
 function TestSetPropertyTransitions:setUp()
   love.window.setMode(1920, 1080)
-  FlexLove.beginFrame()
 end
 
 function TestSetPropertyTransitions:tearDown()
-  FlexLove.endFrame()
 end
 
 function TestSetPropertyTransitions:test_setProperty_without_transition_sets_immediately()
@@ -332,11 +324,9 @@ TestPerPropertyTransitionConfig = {}
 
 function TestPerPropertyTransitionConfig:setUp()
   love.window.setMode(1920, 1080)
-  FlexLove.beginFrame()
 end
 
 function TestPerPropertyTransitionConfig:tearDown()
-  FlexLove.endFrame()
 end
 
 function TestPerPropertyTransitionConfig:test_different_durations_per_property()
@@ -396,11 +386,9 @@ TestTransitionIntegration = {}
 
 function TestTransitionIntegration:setUp()
   love.window.setMode(1920, 1080)
-  FlexLove.beginFrame()
 end
 
 function TestTransitionIntegration:tearDown()
-  FlexLove.endFrame()
 end
 
 function TestTransitionIntegration:test_transition_animation_runs_to_completion()

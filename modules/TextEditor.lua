@@ -44,7 +44,6 @@ local utf8 = UTF8
 ---@field onEnter fun(element:Element)?
 ---@field onSanitize fun(element:Element, original:string, sanitized:string)?
 ---@field _Context table
----@field _StateManager table
 ---@field _Color table
 ---@field _FONT_CACHE table
 ---@field _getModifiers function
@@ -76,14 +75,13 @@ TextEditor.__index = TextEditor
 
 ---Create a new TextEditor instance
 ---@param config TextEditorConfig
----@param deps table Dependencies {Context, StateManager, Color, utils}
+---@param deps table Dependencies {Context, Color, utils}
 ---@return table TextEditor instance
 function TextEditor.new(config, deps)
   local self = setmetatable({}, TextEditor)
 
   -- Store dependencies
   self._Context = deps.Context
-  self._StateManager = deps.StateManager
   self._Color = deps.Color
   self._FONT_CACHE = deps.utils.FONT_CACHE
   self._getModifiers = deps.utils.getModifiers
@@ -180,42 +178,26 @@ function TextEditor:_sanitizeText(text)
   return sanitized
 end
 
----Restore state from StateManager (for immediate mode)
----@param element table The parent Element instance
-function TextEditor:restoreState(element)
-  -- Restore state from StateManager if in immediate mode
-  if element._stateId and self._Context._immediateMode then
-    local state = self._StateManager.getState(element._stateId)
-    if state then
-      if state._focused then
-        self._focused = true
-        self._Context.setFocused(element)
-      end
-      if state._textBuffer and state._textBuffer ~= "" then
-        self._textBuffer = state._textBuffer
-      end
-      if state._cursorPosition then
-        self._cursorPosition = state._cursorPosition
-      end
-      if state._selectionStart then
-        self._selectionStart = state._selectionStart
-      end
-      if state._selectionEnd then
-        self._selectionEnd = state._selectionEnd
-      end
-      if state._cursorBlinkTimer then
-        self._cursorBlinkTimer = state._cursorBlinkTimer
-      end
-      if state._cursorVisible ~= nil then
-        self._cursorVisible = state._cursorVisible
-      end
-      if state._cursorBlinkPaused ~= nil then
-        self._cursorBlinkPaused = state._cursorBlinkPaused
-      end
-      if state._cursorBlinkPauseTimer then
-        self._cursorBlinkPauseTimer = state._cursorBlinkPauseTimer
-      end
-    end
+---Restore state on this TextEditor from a previously saved state table.
+---@param state table?
+function TextEditor:restoreState(state)
+  if not state then
+    return
+  end
+  if state._focused then
+    self._focused = true
+  end
+  if state._textBuffer and state._textBuffer ~= "" then
+    self._textBuffer = state._textBuffer
+  end
+  if state._cursorPosition then
+    self._cursorPosition = state._cursorPosition
+  end
+  if state._selectionStart then
+    self._selectionStart = state._selectionStart
+  end
+  if state._selectionEnd then
+    self._selectionEnd = state._selectionEnd
   end
 end
 
@@ -1742,31 +1724,8 @@ function TextEditor:setState(state, element)
   end
 end
 
----Save state to StateManager (for immediate mode)
----@param element Element? The parent element
-function TextEditor:_saveState(element)
-  if not element or not element._stateId or not self._Context._immediateMode then
-    return
-  end
-
-  -- Get current state (may have other sub-modules like eventHandler, scrollManager)
-  local currentState = self._StateManager.getState(element._stateId) or {}
-
-  -- Update only the textEditor sub-table to match the nested structure
-  -- used by element:saveState() at endFrame
-  currentState.textEditor = {
-    _focused = self._focused,
-    _textBuffer = self._textBuffer,
-    _cursorPosition = self._cursorPosition,
-    _selectionStart = self._selectionStart,
-    _selectionEnd = self._selectionEnd,
-    _cursorBlinkTimer = self._cursorBlinkTimer,
-    _cursorVisible = self._cursorVisible,
-    _cursorBlinkPaused = self._cursorBlinkPaused,
-    _cursorBlinkPauseTimer = self._cursorBlinkPauseTimer,
-  }
-
-  self._StateManager.updateState(element._stateId, currentState)
-end
+-- Retained mode no longer persists TextEditor state across element recreations.
+-- Kept as a no-op so internal mutation paths don't need to be threaded through.
+function TextEditor:_saveState(_element) end
 
 return TextEditor

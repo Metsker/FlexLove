@@ -724,8 +724,6 @@ TestLayoutEdgeCases = {}
 
 function TestLayoutEdgeCases:setUp()
   FlexLove.init()
-  FlexLove.setMode("immediate")
-  FlexLove.beginFrame()
   -- Capture warnings
   self.warnings = {}
   self.errorHandler = FlexLove._ErrorHandler or ErrorHandler.getInstance()
@@ -750,7 +748,6 @@ function TestLayoutEdgeCases:tearDown()
   if self.errorHandler then
     self.errorHandler.warn = self.originalWarn
   end
-  FlexLove.endFrame()
 end
 
 -- Percentage sizing warnings (placeholders for future implementation)
@@ -772,8 +769,6 @@ function TestLayoutEdgeCases:test_percentage_width_with_auto_parent_warns()
     height = 100,
   })
 
-  FlexLove.endFrame()
-  FlexLove.beginFrame()
 
   -- Check that a warning was issued
   luaunit.assertTrue(#self.warnings > 0, "Should issue warning for percentage width with auto-sizing parent")
@@ -800,8 +795,6 @@ function TestLayoutEdgeCases:test_percentage_height_with_auto_parent_warns()
     height = "50%", -- Percentage height with auto-sizing parent - should warn
   })
 
-  FlexLove.endFrame()
-  FlexLove.beginFrame()
 
   -- Check that a warning was issued
   luaunit.assertTrue(#self.warnings > 0, "Should issue warning for percentage height with auto-sizing parent")
@@ -828,8 +821,6 @@ function TestLayoutEdgeCases:test_pixel_width_with_auto_parent_no_warn()
     height = 100,
   })
 
-  FlexLove.endFrame()
-  FlexLove.beginFrame()
 
   -- Check that NO warning was issued about percentage sizing
   for _, warning in ipairs(self.warnings) do
@@ -860,8 +851,6 @@ function TestLayoutEdgeCases:test_css_positioning_top_offset()
   })
 
   -- Trigger layout by ending and restarting frame
-  FlexLove.endFrame()
-  FlexLove.beginFrame()
 
   -- Child should be positioned 50px from container's top edge (accounting for padding)
   local expectedY = container.y + container.padding.top + 50
@@ -888,8 +877,6 @@ function TestLayoutEdgeCases:test_css_positioning_bottom_offset()
     height = 100,
   })
 
-  FlexLove.endFrame()
-  FlexLove.beginFrame()
 
   -- Child should be positioned 50px from container's bottom edge
   local expectedY = container.y + container.padding.top + container.height - 50 - child:getBorderBoxHeight()
@@ -916,8 +903,6 @@ function TestLayoutEdgeCases:test_css_positioning_left_offset()
     height = 100,
   })
 
-  FlexLove.endFrame()
-  FlexLove.beginFrame()
 
   -- Child should be positioned 50px from container's left edge
   local expectedX = container.x + container.padding.left + 50
@@ -944,8 +929,6 @@ function TestLayoutEdgeCases:test_css_positioning_right_offset()
     height = 100,
   })
 
-  FlexLove.endFrame()
-  FlexLove.beginFrame()
 
   -- Child should be positioned 50px from container's right edge
   local expectedX = container.x + container.padding.left + container.width - 50 - child:getBorderBoxWidth()
@@ -973,8 +956,6 @@ function TestLayoutEdgeCases:test_css_positioning_top_and_bottom()
     height = 100,
   })
 
-  FlexLove.endFrame()
-  FlexLove.beginFrame()
 
   -- Bottom should override top
   local expectedY = container.y + container.padding.top + container.height - 20 - child:getBorderBoxHeight()
@@ -1002,8 +983,6 @@ function TestLayoutEdgeCases:test_css_positioning_left_and_right()
     height = 100,
   })
 
-  FlexLove.endFrame()
-  FlexLove.beginFrame()
 
   -- Right should override left
   local expectedX = container.x + container.padding.left + container.width - 20 - child:getBorderBoxWidth()
@@ -1031,8 +1010,6 @@ function TestLayoutEdgeCases:test_css_positioning_with_padding()
     height = 100,
   })
 
-  FlexLove.endFrame()
-  FlexLove.beginFrame()
 
   -- Offsets should be relative to content area (after padding)
   local expectedX = container.x + container.padding.left + 10
@@ -1062,8 +1039,6 @@ function TestLayoutEdgeCases:test_css_positioning_ignored_in_flex()
     height = 100,
   })
 
-  FlexLove.endFrame()
-  FlexLove.beginFrame()
 
   -- In flex layout, child should be positioned by flex rules, not CSS offsets
   -- Child should be at (0, 0) relative to container content area
@@ -1091,8 +1066,6 @@ function TestLayoutEdgeCases:test_css_positioning_in_relative_container()
     height = 100,
   })
 
-  FlexLove.endFrame()
-  FlexLove.beginFrame()
 
   -- Should work the same as absolute container
   local expectedX = container.x + container.padding.left + 30
@@ -1110,11 +1083,9 @@ TestOverflowDetection = {}
 
 function TestOverflowDetection:setUp()
   FlexLove.init()
-  FlexLove.beginFrame()
 end
 
 function TestOverflowDetection:tearDown()
-  FlexLove.endFrame()
 end
 
 function TestOverflowDetection:test_vertical_overflow_detected()
@@ -1138,8 +1109,6 @@ function TestOverflowDetection:test_vertical_overflow_detected()
   })
 
   -- Force layout to trigger detectOverflow
-  FlexLove.endFrame()
-  FlexLove.beginFrame(1920, 1080)
 
   -- Check if overflow was detected
   local maxScrollX, maxScrollY = container:getMaxScroll()
@@ -1168,8 +1137,6 @@ function TestOverflowDetection:test_horizontal_overflow_detected()
     flexShrink = 0,
   })
 
-  FlexLove.endFrame()
-  FlexLove.beginFrame(1920, 1080)
 
   local maxScrollX, maxScrollY = container:getMaxScroll()
   luaunit.assertTrue(maxScrollX > 0, "Should detect horizontal overflow")
@@ -1201,8 +1168,6 @@ function TestOverflowDetection:test_main_axis_scroll_keeps_default_items_unshrun
     height = 40,
   })
 
-  FlexLove.endFrame()
-  FlexLove.beginFrame(1920, 1080)
 
   local maxScrollX = container:getMaxScroll()
   luaunit.assertTrue(maxScrollX > 0, "Default flex-shrink should not collapse scrollable row content")
@@ -1235,8 +1200,6 @@ function TestOverflowDetection:test_main_axis_scroll_keeps_default_items_unshrun
     height = 60,
   })
 
-  FlexLove.endFrame()
-  FlexLove.beginFrame(1920, 1080)
 
   local _, maxScrollY = container:getMaxScroll()
   luaunit.assertTrue(maxScrollY > 0, "Default flex-shrink should not collapse scrollable column content")
@@ -1265,8 +1228,6 @@ function TestOverflowDetection:test_both_axes_overflow()
     flexShrink = 0,
   })
 
-  FlexLove.endFrame()
-  FlexLove.beginFrame(1920, 1080)
 
   local maxScrollX, maxScrollY = container:getMaxScroll()
   luaunit.assertTrue(maxScrollX > 0, "Should detect horizontal overflow")
@@ -1293,8 +1254,6 @@ function TestOverflowDetection:test_no_overflow_when_content_fits()
     height = 100,
   })
 
-  FlexLove.endFrame()
-  FlexLove.beginFrame(1920, 1080)
 
   local maxScrollX, maxScrollY = container:getMaxScroll()
   luaunit.assertEquals(maxScrollX, 0, "Should not have horizontal overflow")
@@ -1324,8 +1283,6 @@ function TestOverflowDetection:test_overflow_with_multiple_children()
     })
   end
 
-  FlexLove.endFrame()
-  FlexLove.beginFrame(1920, 1080)
 
   local maxScrollX, maxScrollY = container:getMaxScroll()
   luaunit.assertTrue(maxScrollY > 0, "Should detect overflow from multiple children")
@@ -1352,8 +1309,6 @@ function TestOverflowDetection:test_overflow_with_padding()
     height = 100,
   })
 
-  FlexLove.endFrame()
-  FlexLove.beginFrame(1920, 1080)
 
   local maxScrollX, maxScrollY = container:getMaxScroll()
   luaunit.assertTrue(maxScrollX > 0, "Should detect overflow accounting for padding")
@@ -1382,8 +1337,6 @@ function TestOverflowDetection:test_overflow_with_margins()
     margin = { top = 5, right = 20, bottom = 5, left = 5 }, -- Total width: 5+180+20=205, overflows 200px container
   })
 
-  FlexLove.endFrame()
-  FlexLove.beginFrame(1920, 1080)
 
   local maxScrollX, maxScrollY = container:getMaxScroll()
   luaunit.assertTrue(maxScrollX > 0, "Should include child margins in overflow calculation")
@@ -1409,8 +1362,6 @@ function TestOverflowDetection:test_visible_overflow_skips_detection()
     height = 300,
   })
 
-  FlexLove.endFrame()
-  FlexLove.beginFrame(1920, 1080)
 
   -- With overflow="visible", maxScroll should be 0 (no scrolling)
   local maxScrollX, maxScrollY = container:getMaxScroll()
@@ -1429,8 +1380,6 @@ function TestOverflowDetection:test_empty_container_no_overflow()
     -- No children
   })
 
-  FlexLove.endFrame()
-  FlexLove.beginFrame(1920, 1080)
 
   local maxScrollX, maxScrollY = container:getMaxScroll()
   luaunit.assertEquals(maxScrollX, 0, "Empty container should have no overflow")
@@ -1468,8 +1417,6 @@ function TestOverflowDetection:test_absolute_children_ignored_in_overflow()
     height = 400,
   })
 
-  FlexLove.endFrame()
-  FlexLove.beginFrame(1920, 1080)
 
   local maxScrollX, maxScrollY = container:getMaxScroll()
   -- Should not have overflow because absolute children are ignored
@@ -1496,8 +1443,6 @@ function TestOverflowDetection:test_scroll_clamped_to_max()
     height = 300, -- Creates 200px of vertical overflow
   })
 
-  FlexLove.endFrame()
-  FlexLove.beginFrame(1920, 1080)
 
   -- Try to scroll beyond max
   container:setScrollPosition(0, 999999)
@@ -1814,8 +1759,6 @@ TestManagedSelectHooks = {}
 
 function TestManagedSelectHooks:setUp()
   FlexLove.init()
-  FlexLove.setMode("immediate")
-  FlexLove.beginFrame()
   self.warnings = {}
   self.errorHandler = FlexLove._ErrorHandler or ErrorHandler.getInstance()
   self.originalWarn = rawget(self.errorHandler, "warn")
@@ -1828,7 +1771,6 @@ function TestManagedSelectHooks:tearDown()
   if self.errorHandler then
     self.errorHandler.warn = self.originalWarn
   end
-  FlexLove.endFrame()
 end
 
 function TestManagedSelectHooks:test_managed_select_frame_suppresses_percentage_warning()
@@ -1848,8 +1790,6 @@ function TestManagedSelectHooks:test_managed_select_frame_suppresses_percentage_
     height = 100,
   })
 
-  FlexLove.endFrame()
-  FlexLove.beginFrame()
 
   local hasPercentageWarning = false
   for _, w in ipairs(self.warnings) do

@@ -68,11 +68,9 @@ end
 TestFlexShorthand = {}
 
 function TestFlexShorthand:setUp()
-  FlexLove.beginFrame()
 end
 
 function TestFlexShorthand:tearDown()
-  FlexLove.endFrame()
 end
 
 function TestFlexShorthand:test_flex_number_shorthand()
@@ -175,11 +173,9 @@ end
 TestFlexPropertyValidation = {}
 
 function TestFlexPropertyValidation:setUp()
-  FlexLove.beginFrame()
 end
 
 function TestFlexPropertyValidation:tearDown()
-  FlexLove.endFrame()
 end
 
 function TestFlexPropertyValidation:test_default_flex_values()
@@ -284,11 +280,9 @@ end
 TestFlexGrow = {}
 
 function TestFlexGrow:setUp()
-  FlexLove.beginFrame()
 end
 
 function TestFlexGrow:tearDown()
-  FlexLove.endFrame()
 end
 
 function TestFlexGrow:test_single_item_with_flex_grow()
@@ -478,11 +472,9 @@ end
 TestFlexShrink = {}
 
 function TestFlexShrink:setUp()
-  FlexLove.beginFrame()
 end
 
 function TestFlexShrink:tearDown()
-  FlexLove.endFrame()
 end
 
 function TestFlexShrink:test_items_shrink_equally()
@@ -683,11 +675,9 @@ end
 TestFlexBasis = {}
 
 function TestFlexBasis:setUp()
-  FlexLove.beginFrame()
 end
 
 function TestFlexBasis:tearDown()
-  FlexLove.endFrame()
 end
 
 function TestFlexBasis:test_flexBasis_auto_uses_element_width()
@@ -832,11 +822,9 @@ end
 TestFlexComplexScenarios = {}
 
 function TestFlexComplexScenarios:setUp()
-  FlexLove.beginFrame()
 end
 
 function TestFlexComplexScenarios:tearDown()
-  FlexLove.endFrame()
 end
 
 function TestFlexComplexScenarios:test_mixed_grow_no_grow()

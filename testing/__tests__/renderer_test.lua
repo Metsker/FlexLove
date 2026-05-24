@@ -670,11 +670,9 @@ TestRendererEdgeCases = {}
 
 function TestRendererEdgeCases:setUp()
   love.window.setMode(1920, 1080)
-  FlexLove.beginFrame()
 end
 
 function TestRendererEdgeCases:tearDown()
-  FlexLove.endFrame()
 end
 
 function TestRendererEdgeCases:test_nil_background_color()

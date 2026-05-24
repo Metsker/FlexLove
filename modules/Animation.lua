@@ -80,12 +80,12 @@ end
 
 ---@type EasingFunction
 function Easing.easeInExpo(t)
-  return t == 0 and 0 or math.pow(2, 10 * (t - 1))
+  return t == 0 and 0 or 2 ^ (10 * (t - 1))
 end
 
 ---@type EasingFunction
 function Easing.easeOutExpo(t)
-  return t == 1 and 1 or 1 - math.pow(2, -10 * t)
+  return t == 1 and 1 or 1 - 2 ^ (-10 * t)
 end
 
 ---@type EasingFunction
@@ -98,9 +98,9 @@ function Easing.easeInOutExpo(t)
   end
 
   if t < 0.5 then
-    return 0.5 * math.pow(2, 20 * t - 10)
+    return 0.5 * 2 ^ (20 * t - 10)
   else
-    return 1 - 0.5 * math.pow(2, -20 * t + 10)
+    return 1 - 0.5 * 2 ^ (-20 * t + 10)
   end
 end
 
@@ -178,7 +178,7 @@ function Easing.easeInElastic(t)
   end
 
   local c4 = (2 * math.pi) / 3
-  return -math.pow(2, 10 * t - 10) * math.sin((t * 10 - 10.75) * c4)
+  return -2 ^ (10 * t - 10) * math.sin((t * 10 - 10.75) * c4)
 end
 
 ---@type EasingFunction
@@ -191,7 +191,7 @@ function Easing.easeOutElastic(t)
   end
 
   local c4 = (2 * math.pi) / 3
-  return math.pow(2, -10 * t) * math.sin((t * 10 - 0.75) * c4) + 1
+  return 2 ^ (-10 * t) * math.sin((t * 10 - 0.75) * c4) + 1
 end
 
 ---@type EasingFunction
@@ -206,9 +206,9 @@ function Easing.easeInOutElastic(t)
   local c5 = (2 * math.pi) / 4.5
 
   if t < 0.5 then
-    return -(math.pow(2, 20 * t - 10) * math.sin((20 * t - 11.125) * c5)) / 2
+    return -(2 ^ (20 * t - 10) * math.sin((20 * t - 11.125) * c5)) / 2
   else
-    return (math.pow(2, -20 * t + 10) * math.sin((20 * t - 11.125) * c5)) / 2 + 1
+    return (2 ^ (-20 * t + 10) * math.sin((20 * t - 11.125) * c5)) / 2 + 1
   end
 end
 
@@ -283,7 +283,7 @@ function Easing.elastic(amplitude, period)
       s = period / (2 * math.pi) * math.asin(1 / a)
     end
 
-    return a * math.pow(2, -10 * t) * math.sin((t - s) * (2 * math.pi) / period) + 1
+    return a * 2 ^ (-10 * t) * math.sin((t - s) * (2 * math.pi) / period) + 1
   end
 end
 

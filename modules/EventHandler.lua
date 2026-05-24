@@ -129,8 +129,21 @@ end
 ---@param isHovering boolean Whether mouse is over element
 ---@param isActiveElement boolean Whether this is the top element at mouse position
 function EventHandler:processMouseEvents(element, mx, my, isHovering, isActiveElement)
+  -- Pick up any direct mutation of element.onEvent / element.onTouchEvent /
+  -- element.onGesture made after construction so users don't need a setter.
+  -- Only override when the element declares the callback - tests/internal code
+  -- may write directly to the handler's field.
+  if element.onEvent ~= nil then
+    self.onEvent = element.onEvent
+  end
+  if element.onTouchEvent ~= nil then
+    self.onTouchEvent = element.onTouchEvent
+  end
+  if element.onGesture ~= nil then
+    self.onGesture = element.onGesture
+  end
+
   -- Start performance timing
-  -- Performance accessed via EventHandler._Performance
   if EventHandler._Performance and EventHandler._Performance.enabled then
     EventHandler._Performance:startTimer("event_mouse")
   end

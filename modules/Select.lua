@@ -6,7 +6,6 @@ local Select = {}
 function Select.init(deps)
   Select._ErrorHandler = deps.ErrorHandler
   Select._Context = deps.Context
-  Select._StateManager = deps.StateManager
   Select._utils = deps.utils
   Select._Element = deps.Element
 end
@@ -27,22 +26,6 @@ function Select.initSelectParent(element, selectParentConfig)
     expectedFrameParent = nil,
     frameAdopted = false,
   }
-
-  if Select._Context._immediateMode and element._stateId and element._stateId ~= "" then
-    local state = Select._StateManager.getState(element._stateId)
-    if state and state._selectOpen ~= nil then
-      element._selectState.open = state._selectOpen
-    end
-    if state and state._selectValue ~= nil then
-      element._selectState.value = state._selectValue
-      if element.selectParent then
-        element.selectParent.value = state._selectValue
-      end
-    end
-    if state and state._selectSelectedLabel ~= nil then
-      element._selectState.selectedLabel = state._selectSelectedLabel
-    end
-  end
 end
 
 ---Initialize selectOption on an element
@@ -244,10 +227,8 @@ function Select.adoptSelectFrame(element, frame)
   Select.applyManagedFrameLayout(element, frame)
   Select.syncManagedFrameVisibility(element)
 
-  if not Select._Context._immediateMode then
-    anchor:layoutChildren()
-    element:layoutChildren()
-  end
+  anchor:layoutChildren()
+  element:layoutChildren()
 
   local pendingOptions = {}
   for _, child in ipairs(element.children) do
@@ -402,9 +383,7 @@ function Select.attachOptionToManagedFrame(element)
     end
 
     element:setParent(selectFrame)
-    if not Select._Context._immediateMode then
-      Select.ensureFrameState(selectParent)
-    end
+    Select.ensureFrameState(selectParent)
   end
 end
 
@@ -429,20 +408,6 @@ function Select.unregisterFromSelectParent(element)
 end
 
 ---@param element Element
-function Select.saveStateToStateManager(element)
-  if not element._selectState then
-    return
-  end
-  if element._stateId and Select._Context._immediateMode and element._stateId ~= "" then
-    Select._StateManager.updateState(element._stateId, {
-      _selectOpen = element._selectState.open,
-      _selectValue = element._selectState.value,
-      _selectSelectedLabel = element._selectState.selectedLabel,
-    })
-  end
-end
-
----@param element Element
 function Select.openSelect(element)
   if not element._selectState then
     return
@@ -455,7 +420,6 @@ function Select.openSelect(element)
     element.selectParent.open = true
   end
   Select.syncManagedFrameVisibility(element)
-  Select.saveStateToStateManager(element)
 end
 
 ---@param element Element
@@ -471,7 +435,6 @@ function Select.closeSelect(element)
     element.selectParent.open = false
   end
   Select.syncManagedFrameVisibility(element)
-  Select.saveStateToStateManager(element)
 end
 
 ---@param element Element
@@ -559,7 +522,6 @@ function Select.setSelectValue(element, value, optionElement)
 
   Select.syncOptionStates(element)
   Select.closeSelect(element)
-  Select.saveStateToStateManager(element)
 
   if element.onEvent then
     element.onEvent(element, { type = "selectchange", value = value, option = optionElement })

@@ -402,7 +402,7 @@ function GestureRecognizer:_detectSwipeEnded(touchId, event)
 
     if velocity >= self._config.swipeMinVelocity then
       -- Determine swipe direction
-      local angle = math.atan2(dy, dx)
+      local angle = math.atan(dy, dx)
       local direction = "right"
 
       if angle >= -math.pi / 4 and angle < math.pi / 4 then
@@ -533,10 +533,10 @@ function GestureRecognizer:_detectRotate(event)
   local t2 = touches[2].touch
 
   -- Calculate current angle
-  local currentAngle = math.atan2(t2.y - t1.y, t2.x - t1.x)
+  local currentAngle = math.atan(t2.y - t1.y, t2.x - t1.x)
 
   -- Calculate initial angle
-  local initialAngle = math.atan2(t2.startY - t1.startY, t2.startX - t1.startX)
+  local initialAngle = math.atan(t2.startY - t1.startY, t2.startX - t1.startX)
 
   -- Calculate rotation (in degrees)
   local rotation = (currentAngle - initialAngle) * 180 / math.pi

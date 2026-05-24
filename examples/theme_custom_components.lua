@@ -20,7 +20,7 @@ function ThemeExample:render()
     y = "10%",
     width = "80%",
     height = "80%",
-    positioning = "flex",
+    display = "flex",
     flexDirection = "vertical",
     gap = 10,
     padding = { horizontal = 10, vertical = 10 },
@@ -39,7 +39,7 @@ function ThemeExample:render()
   -- Theme selector
   local themeSelector = FlexLove.new({
     parent = flex,
-    positioning = "flex",
+    display = "flex",
     flexDirection = "horizontal",
     justifyContent = "space-between",
     alignItems = "center",
@@ -76,7 +76,7 @@ function ThemeExample:render()
   -- Custom component example - A styled card
   local customCard = FlexLove.new({
     parent = flex,
-    positioning = "flex",
+    display = "flex",
     flexDirection = "vertical",
     justifyContent = "center",
     alignItems = "center",
@@ -109,7 +109,7 @@ function ThemeExample:render()
   -- Another custom component - Status indicator
   local statusIndicator = FlexLove.new({
     parent = flex,
-    positioning = "flex",
+    display = "flex",
     flexDirection = "horizontal",
     justifyContent = "space-between",
     alignItems = "center",
@@ -130,7 +130,7 @@ function ThemeExample:render()
 
   local statusDot = FlexLove.new({
     parent = statusIndicator,
-    positioning = "flex",
+    display = "flex",
     width = 20,
     height = 20,
     backgroundColor = "#48bb78", -- Green dot

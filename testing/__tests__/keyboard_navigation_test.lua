@@ -25,7 +25,6 @@ local Theme = require("modules.Theme")
 
 -- Set up FlexLove in retained mode for testing (simpler for navigation tests)
 FlexLove.init()
-FlexLove.setMode("retained")
 
 -- Initialize KeyboardNavigation
 KeyboardNavigation.init({
@@ -479,14 +478,12 @@ local tests = {
 
   testImmediateModeNavigation = function()
     -- Switch to immediate mode
-    FlexLove.setMode("immediate")
 
     -- Track elements created in immediate mode
     local btn1, btn2, btn3
     local container
 
     -- Run a frame to create elements in immediate mode
-    FlexLove.beginFrame()
     container = Element.new({
       x = 0,
       y = 0,
@@ -501,7 +498,6 @@ local tests = {
     btn2 = Element.new({ parent = container, id = "btn2", text = "Button 2", onEvent = function() end })
     btn3 = Element.new({ parent = container, id = "btn3", text = "Button 3", onEvent = function() end })
 
-    FlexLove.endFrame() -- Triggers layout and populates z-index order
 
     -- Set navigation container for immediate mode
     Context.setNavigationContainer(container)
@@ -523,7 +519,6 @@ local tests = {
     assert(success == true, "Shift+Tab should succeed in immediate mode")
 
     -- Restore retained mode
-    FlexLove.setMode("retained")
 
     print("[PASS] testImmediateModeNavigation")
   end,

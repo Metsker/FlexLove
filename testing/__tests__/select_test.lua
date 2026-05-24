@@ -22,11 +22,9 @@ TestSelectModule = {}
 
 function TestSelectModule:setUp()
   FlexLove.init()
-  FlexLove.beginFrame()
 end
 
 function TestSelectModule:tearDown()
-  FlexLove.endFrame()
   FlexLove.destroy()
 end
 

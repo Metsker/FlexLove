@@ -403,7 +403,7 @@ function LayoutEngine:layoutChildren()
   local flexChildren = {}
   for _, child in ipairs(self.element.children) do
     local isFlexChild = not (child.positioning == self._Positioning.ABSOLUTE and child._explicitlyAbsolute)
-      and child.display ~= false
+      and child.display ~= "none"
     if isFlexChild then
       table.insert(flexChildren, child)
 
@@ -428,7 +428,7 @@ function LayoutEngine:layoutChildren()
   if #flexChildren == 0 then
     -- Position absolutely positioned children even when there are no flex children
     for i, child in ipairs(self.element.children) do
-      if child.positioning == self._Positioning.ABSOLUTE and child._explicitlyAbsolute and child.display ~= false then
+      if child.positioning == self._Positioning.ABSOLUTE and child._explicitlyAbsolute and child.display ~= "none" then
         self:applyPositioningOffsets(child)
 
         -- If child has children, layout them after position change
@@ -940,7 +940,7 @@ function LayoutEngine:layoutChildren()
 
   -- Position explicitly absolute children after flex layout
   for i, child in ipairs(self.element.children) do
-    if child.positioning == self._Positioning.ABSOLUTE and child._explicitlyAbsolute and child.display ~= false then
+    if child.positioning == self._Positioning.ABSOLUTE and child._explicitlyAbsolute and child.display ~= "none" then
       -- Apply positioning offsets (top, right, bottom, left)
       self:applyPositioningOffsets(child)
 
@@ -1028,7 +1028,7 @@ function LayoutEngine:calculateAutoWidth()
   -- Exclude display=false (CSS display:none) and explicitly absolute children
   local flexChildren = {}
   for _, child in ipairs(self.element.children) do
-    if not child._explicitlyAbsolute and child.display ~= false then
+    if not child._explicitlyAbsolute and child.display ~= "none" then
       table.insert(flexChildren, child)
     end
   end
@@ -1111,7 +1111,7 @@ function LayoutEngine:calculateAutoHeight()
   -- Exclude display=false (CSS display:none) and explicitly absolute children
   local flexChildren = {}
   for _, child in ipairs(self.element.children) do
-    if not child._explicitlyAbsolute and child.display ~= false then
+    if not child._explicitlyAbsolute and child.display ~= "none" then
       table.insert(flexChildren, child)
     end
   end

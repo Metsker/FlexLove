@@ -17,7 +17,6 @@ FlexLove.init()
 TestScrollbarPlacement = {}
 
 function TestScrollbarPlacement:setUp()
-  FlexLove.setMode("retained")
 end
 
 function TestScrollbarPlacement:test_reserve_space_with_percentage_height_children()

@@ -24,7 +24,7 @@ function InputExample:render()
     y = "10%",
     width = "80%",
     height = "80%",
-    positioning = "flex",
+    display = "flex",
     flexDirection = "vertical",
     gap = 10,
     padding = { horizontal = 10, vertical = 10 },
@@ -43,7 +43,7 @@ function InputExample:render()
   -- Mouse interaction section
   local mouseSection = FlexLove.new({
     parent = flex,
-    positioning = "flex",
+    display = "flex",
     flexDirection = "horizontal",
     justifyContent = "space-between",
     alignItems = "center",
@@ -65,7 +65,7 @@ function InputExample:render()
   -- Hoverable area
   local hoverArea = FlexLove.new({
     parent = mouseSection,
-    positioning = "flex",
+    display = "flex",
     justifyContent = "center",
     alignItems = "center",
     width = "30%",
@@ -99,7 +99,7 @@ function InputExample:render()
   -- Keyboard input section
   local keyboardSection = FlexLove.new({
     parent = flex,
-    positioning = "flex",
+    display = "flex",
     flexDirection = "horizontal",
     justifyContent = "space-between",
     alignItems = "center",
@@ -138,7 +138,7 @@ function InputExample:render()
   -- Touch input section
   local touchSection = FlexLove.new({
     parent = flex,
-    positioning = "flex",
+    display = "flex",
     flexDirection = "horizontal",
     justifyContent = "space-between",
     alignItems = "center",
@@ -160,7 +160,7 @@ function InputExample:render()
   -- Touchable area
   local touchArea = FlexLove.new({
     parent = touchSection,
-    positioning = "flex",
+    display = "flex",
     justifyContent = "center",
     alignItems = "center",
     width = "30%",
@@ -188,7 +188,7 @@ function InputExample:render()
   -- Status section showing interaction counts
   local statusSection = FlexLove.new({
     parent = flex,
-    positioning = "flex",
+    display = "flex",
     flexDirection = "horizontal",
     justifyContent = "space-between",
     alignItems = "center",

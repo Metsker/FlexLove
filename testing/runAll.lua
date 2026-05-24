@@ -57,7 +57,9 @@ else
   eprint("========================================")
 end
 
-silence()
+if not verbose then
+  silence()
+end
 
 local luaunit = require("testing.luaunit")
 
@@ -71,7 +73,6 @@ local testFiles = {
   "testing/__tests__/critical_failures_test.lua",
   "testing/__tests__/deferred_image_loading_test.lua",
   "testing/__tests__/element_test.lua",
-  "testing/__tests__/element_mode_override_test.lua",
   "testing/__tests__/event_handler_test.lua",
   "testing/__tests__/flex_grow_shrink_test.lua",
   "testing/__tests__/flexlove_test.lua",
@@ -79,14 +80,11 @@ local testFiles = {
   "testing/__tests__/image_cache_test.lua",
   "testing/__tests__/image_renderer_test.lua",
   "testing/__tests__/image_scaler_test.lua",
-  "testing/__tests__/init_queue_test.lua",
   "testing/__tests__/input_event_test.lua",
   "testing/__tests__/layout_engine_test.lua",
-  "testing/__tests__/module_loader_test.lua",
   "testing/__tests__/ninepatch_test.lua",
   "testing/__tests__/performance_test.lua",
   "testing/__tests__/renderer_test.lua",
-  "testing/__tests__/release_variants_test.lua",
   "testing/__tests__/roundedrect_test.lua",
   "testing/__tests__/scroll_manager_test.lua",
   "testing/__tests__/scrollbar_placement_test.lua",

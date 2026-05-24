@@ -193,7 +193,6 @@ function TestAbsolutePositioning:testMultipleAbsoluteChildren()
 end
 
 function TestAbsolutePositioning:testAbsoluteInImmediateMode()
-  FlexLove.setMode("immediate")
 
   local parent, child
 
@@ -215,22 +214,17 @@ function TestAbsolutePositioning:testAbsoluteInImmediateMode()
   end
 
   -- First frame
-  FlexLove.beginFrame()
   createUI()
-  FlexLove.endFrame()
 
   luaunit.assertEquals(child.x, 300, "Frame 1: Child x should be 300")
   luaunit.assertEquals(child.y, 300, "Frame 1: Child y should be 300")
 
   -- Second frame (recreate UI)
-  FlexLove.beginFrame()
   createUI()
-  FlexLove.endFrame()
 
   luaunit.assertEquals(child.x, 300, "Frame 2: Child x should be 300")
   luaunit.assertEquals(child.y, 300, "Frame 2: Child y should be 300")
 
-  FlexLove.setMode("retained")
 end
 
 function TestAbsolutePositioning:testExplicitlyAbsoluteFlagIsSet()

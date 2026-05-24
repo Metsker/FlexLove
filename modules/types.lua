@@ -67,9 +67,8 @@ local Transform = {}
 -- For Element.lua
 --=====================================--
 ---@class ElementProps
----@field id string? -- Unique identifier for the element (auto-generated in immediate mode if not provided)
----@field mode "immediate"|"retained"|nil -- Lifecycle mode override: "immediate" (auto-managed state), "retained" (manual state), nil (use global mode from FlexLove.getMode(), default)
----@field parent Element? -- Parent element for hierarchical structure
+---@field id string? -- Unique identifier for the element (auto-generated if not provided)
+---@field children ElementProps[]|Element[]? -- Declarative children. Each entry may be either a prop table (constructs a new child) or a pre-built Element instance (reparented into this element)
 ---@field x number|string|CalcObject? -- X coordinate: number (px), string ("50%", "10vw"), or CalcObject from FlexLove.calc() (default: 0)
 ---@field y number|string|CalcObject? -- Y coordinate: number (px), string ("50%", "10vh"), or CalcObject from FlexLove.calc() (default: 0)
 ---@field z number? -- Z-index for layering (default: 0, clamped to -999..999)
@@ -88,7 +87,8 @@ local Transform = {}
 ---@field borderColor Color? -- Color of the border (default: black)
 ---@field opacity number? -- Element opacity 0-1 (default: 1)
 ---@field visibility "visible"|"hidden"? -- Element visibility (default: "visible")
----@field display boolean? -- Whether element participates in layout, rendering, and hit testing (default: true). Set false for CSS display:none behavior (zero layout space, no rendering, no hit testing). NOTE: In retained mode, toggling at runtime requires setting the parent's `_dirty = true` or calling `layoutChildren()` on the parent to trigger re-layout.
+---@field display "block"|"flex"|"grid"|"none"? -- CSS display mode. "block" (default) participates in layout but does not lay out its children as a container; "flex"/"grid" enable container layout for children; "none" removes the element from layout, rendering, and hit testing.
+---@field position "static"|"relative"|"absolute"|"fixed"? -- CSS position scheme. "static"/"relative" (default) use natural flow; "absolute"/"fixed" detach from flow so top/right/bottom/left coordinates apply.
 ---@field backgroundColor Color? -- Background color (default: transparent)
 ---@field cornerRadius number|{topLeft:number?, topRight:number?, bottomLeft:number?, bottomRight:number?}? -- Corner radius: number (all corners) or table for individual corners (default: 0)
 ---@field gap number|string|CalcObject? -- Space between children elements: number (px), string ("50%", "10vw"), or CalcObject from FlexLove.calc() (default: 0)
@@ -102,7 +102,6 @@ local Transform = {}
 ---@field maxTextSize number? -- Maximum text size in pixels for auto-scaling
 ---@field fontFamily string? -- Font family name from theme or path to font file (default: theme default or system default, inherits from parent)
 ---@field autoScaleText boolean? -- Whether text should auto-scale with window size (default: true)
----@field positioning Positioning? -- Layout positioning mode: "absolute"|"relative"|"flex"|"grid" (default: RELATIVE)
 ---@field flexDirection FlexDirection? -- Direction of flex layout: "horizontal"|"vertical"|"row"|"column" (row→horizontal, column→vertical, default: HORIZONTAL)
 ---@field justifyContent JustifyContent? -- Alignment of items along main axis (default: FLEX_START)
 ---@field alignItems AlignItems? -- Alignment of items along cross axis (default: STRETCH)
@@ -275,10 +274,6 @@ local KeyboardNavigationConfig = {}
 ---@class FlexLoveConfig
 ---@field baseScale {width:number?, height:number?}? -- Base resolution for responsive scaling (default: nil, no scaling)
 ---@field theme string|ThemeDefinition? -- Theme name (string) or ThemeDefinition to use (default: nil, no theme)
----@field immediateMode boolean? -- Enable immediate mode (React-like, recreates UI each frame) vs retained mode (default: false)
----@field autoFrameManagement boolean? -- Automatically call beginFrame/endFrame (default: false)
----@field stateRetentionFrames number? -- Number of frames to retain unused state in immediate mode (default: 60)
----@field maxStateEntries number? -- Maximum number of state entries before forcing cleanup (default: 1000)
 ---@field includeStackTrace boolean? -- Include stack traces in error messages (default: true)
 ---@field reportingLogLevel LOG_LEVEL? -- Error log level: 1: critical, 2: error, 3: warn, 4: info, 5: debug/all (default: 3:warn)
 ---@field errorLogTarget string? -- Error log target: "console", "file", "both" (default: "console")
@@ -293,12 +288,11 @@ local KeyboardNavigationConfig = {}
 ---@field performanceCriticalThreshold number? -- Frame time critical threshold in ms (default: 16.67)
 ---@field performanceLogToConsole boolean? -- Log performance metrics to console (default: false)
 ---@field performanceWarnings boolean? -- Enable performance warnings (default: false)
----@field memoryProfiling boolean? -- Enable memory profiling (default: false, auto-enabled in immediate mode)
+---@field memoryProfiling boolean? -- Enable memory profiling (default: false)
 ---@field gcStrategy string? -- Garbage collection strategy: "auto", "periodic", "manual", "disabled" (default: "auto")
 ---@field gcMemoryThreshold number? -- Memory threshold in MB before forcing GC (default: 100)
 ---@field gcInterval number? -- Frames between GC steps in periodic mode (default: 60)
 ---@field gcStepSize number? -- Work units per GC step, higher = more aggressive (default: 200)
----@field immediateModeBlurOptimizations boolean? -- Cache blur canvases in immediate mode to avoid re-rendering each frame (default: true)
 ---@field keyboardNavigation boolean|KeyboardNavigationConfig? -- Enable keyboard navigation with defaults (`true`) or provide configuration overrides
 ---@field debugDraw boolean? -- Enable debug draw overlay showing element boundaries with random colors (default: false)
 ---@field debugDrawKey string? -- Key to toggle debug draw overlay at runtime (default: nil, no toggle key)
@@ -651,7 +645,6 @@ local FlexLove = {}
 ---@field Grid table -- Grid module
 ---@field InputEvent table -- InputEvent module
 ---@field GestureRecognizer table? -- GestureRecognizer module
----@field StateManager StateManager -- StateManager module
 ---@field TextEditor table -- TextEditor module
 ---@field LayoutEngine LayoutEngine -- LayoutEngine module
 ---@field Renderer table -- Renderer module

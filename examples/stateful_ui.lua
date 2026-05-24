@@ -23,7 +23,7 @@ function StatefulUIExample:render()
     y = "10%",
     width = "80%",
     height = "80%",
-    positioning = "flex",
+    display = "flex",
     flexDirection = "vertical",
     gap = 10,
     padding = { horizontal = 10, vertical = 10 },
@@ -42,7 +42,7 @@ function StatefulUIExample:render()
   -- Counter section
   local counterSection = FlexLove.new({
     parent = flex,
-    positioning = "flex",
+    display = "flex",
     flexDirection = "horizontal",
     justifyContent = "space-between",
     alignItems = "center",
@@ -94,7 +94,7 @@ function StatefulUIExample:render()
   -- Toggle switch section
   local toggleSection = FlexLove.new({
     parent = flex,
-    positioning = "flex",
+    display = "flex",
     flexDirection = "horizontal",
     justifyContent = "space-between",
     alignItems = "center",
@@ -116,7 +116,7 @@ function StatefulUIExample:render()
   -- Toggle button
   local toggleButton = FlexLove.new({
     parent = toggleSection,
-    positioning = "flex",
+    display = "flex",
     width = 60,
     height = 30,
     backgroundColor = self.isToggled and "#48bb78" or "#a0aec0", -- Green when on, gray when off
@@ -146,7 +146,7 @@ function StatefulUIExample:render()
   -- Input section
   local inputSection = FlexLove.new({
     parent = flex,
-    positioning = "flex",
+    display = "flex",
     flexDirection = "horizontal",
     justifyContent = "space-between",
     alignItems = "center",
@@ -183,7 +183,7 @@ function StatefulUIExample:render()
   -- Dropdown section
   local dropdownSection = FlexLove.new({
     parent = flex,
-    positioning = "flex",
+    display = "flex",
     flexDirection = "horizontal",
     justifyContent = "space-between",
     alignItems = "center",
@@ -221,7 +221,7 @@ function StatefulUIExample:render()
   -- Status indicator at the bottom
   local statusIndicator = FlexLove.new({
     parent = flex,
-    positioning = "flex",
+    display = "flex",
     flexDirection = "horizontal",
     justifyContent = "space-between",
     alignItems = "center",

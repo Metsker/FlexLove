@@ -133,45 +133,6 @@ function TestDeferredImageLoading:test_imagePath_does_not_crash()
   luaunit.assertNotNil(element)
 end
 
--- Immediate mode: image loads after endFrame
-function TestDeferredImageLoading:test_immediate_mode_image_loading()
-  ImageCache.clear()
-  FlexLove.destroy()
-  FlexLove.init({})
-  FlexLove.setMode("immediate")
-
-  local mockImage = makeMockImage()
-
-  FlexLove.beginFrame()
-
-  local loadedImage = nil
-  local onLoadCalled = false
-  local element = FlexLove.new({
-    width = 100,
-    height = 100,
-    imagePath = "test/immediate.png",
-    onImageLoad = function(el, img)
-      onLoadCalled = true
-      loadedImage = img
-    end,
-  })
-
-  luaunit.assertFalse(onLoadCalled, "onImageLoad should not fire in constructor")
-
-  -- Pre-populate cache so _loadImage finds it during endFrame update
-  ImageCache._cache["test/immediate.png"] = {
-    image = mockImage,
-    imageData = nil,
-  }
-
-  FlexLove.endFrame()
-
-  luaunit.assertTrue(onLoadCalled, "onImageLoad should fire after endFrame")
-  luaunit.assertEquals(loadedImage, mockImage, "Loaded image should match cached image after endFrame")
-
-  FlexLove.setMode("retained")
-end
-
 if not _G.RUNNING_ALL_TESTS then
   os.exit(luaunit.LuaUnit.run())
 end

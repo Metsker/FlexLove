@@ -27,11 +27,9 @@ TestAnimationValidation = {}
 
 function TestAnimationValidation:setUp()
   love.window.setMode(1920, 1080)
-  FlexLove.beginFrame()
 end
 
 function TestAnimationValidation:tearDown()
-  FlexLove.endFrame()
 end
 
 function TestAnimationValidation:test_new_with_invalid_props()
@@ -207,11 +205,9 @@ TestAnimationUpdate = {}
 
 function TestAnimationUpdate:setUp()
   love.window.setMode(1920, 1080)
-  FlexLove.beginFrame()
 end
 
 function TestAnimationUpdate:tearDown()
-  FlexLove.endFrame()
 end
 
 function TestAnimationUpdate:test_update_with_negative_dt()
@@ -442,11 +438,9 @@ TestAnimationInterpolation = {}
 
 function TestAnimationInterpolation:setUp()
   love.window.setMode(1920, 1080)
-  FlexLove.beginFrame()
 end
 
 function TestAnimationInterpolation:tearDown()
-  FlexLove.endFrame()
 end
 
 function TestAnimationInterpolation:test_interpolate_before_update()
@@ -538,11 +532,9 @@ TestAnimationHelpers = {}
 
 function TestAnimationHelpers:setUp()
   love.window.setMode(1920, 1080)
-  FlexLove.beginFrame()
 end
 
 function TestAnimationHelpers:tearDown()
-  FlexLove.endFrame()
 end
 
 function TestAnimationHelpers:test_fade_with_negative_opacity()
@@ -604,11 +596,9 @@ TestAnimationTransform = {}
 
 function TestAnimationTransform:setUp()
   love.window.setMode(1920, 1080)
-  FlexLove.beginFrame()
 end
 
 function TestAnimationTransform:tearDown()
-  FlexLove.endFrame()
 end
 
 function TestAnimationTransform:test_transform_property()
@@ -646,11 +636,9 @@ TestEasing = {}
 
 function TestEasing:setUp()
   love.window.setMode(1920, 1080)
-  FlexLove.beginFrame()
 end
 
 function TestEasing:tearDown()
-  FlexLove.endFrame()
 end
 
 -- Test that all easing functions exist
@@ -1026,11 +1014,9 @@ TestAnimationProperties = {}
 
 function TestAnimationProperties:setUp()
   love.window.setMode(1920, 1080)
-  FlexLove.beginFrame()
 end
 
 function TestAnimationProperties:tearDown()
-  FlexLove.endFrame()
 end
 
 -- Test Color.lerp() method
@@ -1412,11 +1398,9 @@ TestKeyframeAnimation = {}
 
 function TestKeyframeAnimation:setUp()
   love.window.setMode(1920, 1080)
-  FlexLove.beginFrame()
 end
 
 function TestKeyframeAnimation:tearDown()
-  FlexLove.endFrame()
 end
 
 -- Test basic keyframe animation creation
