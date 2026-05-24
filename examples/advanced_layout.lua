@@ -21,46 +21,41 @@ local window = FlexLove.new({
 })
 
 -- Title
-FlexLove.new({
-  parent = window,
+window:appendChild(FlexLove.new({
   text = "Advanced Layout Example",
   textAlign = "center",
   fontSize = "3xl",
   width = "100%",
-})
+}))
 
 -- Flex container with complex layout
-local flexContainer = FlexLove.new({
-  parent = window,
+local flexContainer = window:appendChild(FlexLove.new({
   display = "flex",
   flexDirection = "row",
   justifyContent = "space-between",
   alignItems = "stretch",
   gap = 15,
   height = "70%",
-})
+}))
 
 -- Left panel - True Grid Layout
-local leftPanel = FlexLove.new({
-  parent = flexContainer,
+local leftPanel = flexContainer:appendChild(FlexLove.new({
   width = "40%",
   display = "flex",
   flexDirection = "column",
   gap = 10,
   padding = { horizontal = 10, vertical = 10 },
-})
+}))
 
-FlexLove.new({
-  parent = leftPanel,
+leftPanel:appendChild(FlexLove.new({
   text = "True Grid Layout (3x3)",
   textAlign = "center",
   fontSize = "lg",
   width = "100%",
-})
+}))
 
 -- Grid container using display = "grid"
-local gridContainer = FlexLove.new({
-  parent = leftPanel,
+local gridContainer = leftPanel:appendChild(FlexLove.new({
   display = "grid",
   gridRows = 3,
   gridColumns = 3,
@@ -68,12 +63,11 @@ local gridContainer = FlexLove.new({
   rowGap = 5,
   height = "80%",
   alignItems = "stretch",
-})
+}))
 
 -- Grid items (will auto-flow into cells)
 for i = 1, 9 do
-  FlexLove.new({
-    parent = gridContainer,
+  gridContainer:appendChild(FlexLove.new({
     themeComponent = "buttonv2",
     text = "Cell " .. i,
     textAlign = "center",
@@ -83,25 +77,23 @@ for i = 1, 9 do
         print("Grid cell " .. i .. " clicked")
       end
     end,
-  })
+  }))
 end
 
 -- Right panel - Grid with Headers (like a schedule)
-local rightPanel = FlexLove.new({
-  parent = flexContainer,
+local rightPanel = flexContainer:appendChild(FlexLove.new({
   width = "55%",
   display = "flex",
   flexDirection = "column",
   gap = 10,
-})
+}))
 
-FlexLove.new({
-  parent = rightPanel,
+rightPanel:appendChild(FlexLove.new({
   text = "Grid with Headers (4x4)",
   textAlign = "center",
   fontSize = "lg",
   width = "100%",
-})
+}))
 
 -- Example data for schedule-like grid
 local columnHeaders = { "Mon", "Tue", "Wed" }
@@ -111,8 +103,7 @@ local rowHeaders = { "Task A", "Task B", "Task C" }
 local numRows = #rowHeaders + 1 -- +1 for header row
 local numColumns = #columnHeaders + 1 -- +1 for row labels column
 
-local scheduleGrid = FlexLove.new({
-  parent = rightPanel,
+local scheduleGrid = rightPanel:appendChild(FlexLove.new({
   display = "grid",
   gridRows = numRows,
   gridColumns = numColumns,
@@ -120,20 +111,18 @@ local scheduleGrid = FlexLove.new({
   rowGap = 2,
   height = "80%",
   alignItems = "stretch",
-})
+}))
 
 local accentColor = Theme.getColor("primary")
 local color = Theme.getColor("text")
 
 -- Top-left corner cell (empty)
-FlexLove.new({
-  parent = scheduleGrid,
-})
+scheduleGrid:appendChild(FlexLove.new({
+}))
 
 -- Column headers
 for _, header in ipairs(columnHeaders) do
-  FlexLove.new({
-    parent = scheduleGrid,
+  scheduleGrid:appendChild(FlexLove.new({
     text = header,
     color = color,
     textAlign = "center",
@@ -141,14 +130,13 @@ for _, header in ipairs(columnHeaders) do
     border = { top = true, right = true, bottom = true, left = true },
     borderColor = accentColor,
     fontSize = 12,
-  })
+  }))
 end
 
 -- Data rows
 for i, rowHeader in ipairs(rowHeaders) do
   -- Row header
-  FlexLove.new({
-    parent = scheduleGrid,
+  scheduleGrid:appendChild(FlexLove.new({
     text = rowHeader,
     backgroundColor = Color.new(0, 0, 0, 0.3),
     color = color,
@@ -156,13 +144,12 @@ for i, rowHeader in ipairs(rowHeaders) do
     border = { top = true, right = true, bottom = true, left = true },
     borderColor = accentColor,
     fontSize = 10,
-  })
+  }))
 
   -- Data cells
   for j = 1, #columnHeaders do
     local value = (i * j) % 5
-    FlexLove.new({
-      parent = scheduleGrid,
+    scheduleGrid:appendChild(FlexLove.new({
       text = tostring(value),
       textAlign = "center",
       border = { top = true, right = true, bottom = true, left = true },
@@ -176,30 +163,27 @@ for i, rowHeader in ipairs(rowHeaders) do
           print("Cell [" .. i .. "," .. j .. "] clicked, new value: " .. newValue)
         end
       end,
-    })
+    }))
   end
 end
 
 -- Footer with progress bar
-local footer = FlexLove.new({
-  parent = window,
+local footer = window:appendChild(FlexLove.new({
   display = "flex",
   flexDirection = "row",
   justifyContent = "space-between",
   alignItems = "center",
   gap = 15,
   height = "20%",
-})
+}))
 
-FlexLove.new({
-  parent = footer,
+footer:appendChild(FlexLove.new({
   text = "Progress:",
   textAlign = "start",
   fontSize = "md",
-})
+}))
 
-local progressContainer = FlexLove.new({
-  parent = footer,
+local progressContainer = footer:appendChild(FlexLove.new({
   width = "60%",
   height = "30%",
   themeComponent = "framev3",
@@ -207,19 +191,17 @@ local progressContainer = FlexLove.new({
   flexDirection = "row",
   alignItems = "center",
   gap = 5,
-})
+}))
 
 -- Progress bar fill
-local progressFill = FlexLove.new({
-  parent = progressContainer,
+local progressFill = progressContainer:appendChild(FlexLove.new({
   width = "70%",
   height = "100%",
   themeComponent = "buttonv1",
-})
+}))
 
-FlexLove.new({
-  parent = footer,
+footer:appendChild(FlexLove.new({
   text = "70%",
   textAlign = "end",
   fontSize = "md",
-})
+}))

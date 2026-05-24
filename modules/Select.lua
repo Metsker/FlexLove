@@ -133,7 +133,6 @@ function Select.getOrCreateManagedAnchor(element)
   local Element = Select._Element
   local anchor = Element.new({
     id = string.format("%s__select_anchor", element.id or "select"),
-    parent = element,
     positioning = Select._utils.enums.Positioning.ABSOLUTE,
     left = 0,
     top = element:getBorderBoxHeight(),
@@ -141,7 +140,7 @@ function Select.getOrCreateManagedAnchor(element)
     opacity = 1,
     visibility = "hidden",
     disabled = true,
-  })
+  }, element)
 
   anchor._managedSelectAnchor = true
   anchor._managedSelectOwner = element

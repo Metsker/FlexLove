@@ -29,14 +29,13 @@ function TestAbsolutePositioning:testAbsoluteBottomRightInFlexParent()
   })
 
   -- Create an absolutely positioned child with bottom and right offsets
-  local child = FlexLove.new({
-    parent = parent,
+  local child = parent:appendChild(FlexLove.new({
     positioning = "absolute",
     bottom = 0,
     right = 0,
     width = 100,
     height = 100,
-  })
+  }))
 
   -- Child should be positioned at bottom-right
   luaunit.assertEquals(child.x, 300, "Child x should be 300 (400 - 100)")
@@ -52,14 +51,13 @@ function TestAbsolutePositioning:testAbsoluteTopLeftInFlexParent()
   })
 
   -- Create an absolutely positioned child with top and left offsets
-  local child = FlexLove.new({
-    parent = parent,
+  local child = parent:appendChild(FlexLove.new({
     positioning = "absolute",
     top = 10,
     left = 10,
     width = 100,
     height = 100,
-  })
+  }))
 
   -- Child should be positioned at top-left with 10px offset
   luaunit.assertEquals(child.x, 10, "Child x should be 10")
@@ -76,14 +74,13 @@ function TestAbsolutePositioning:testAbsoluteWithPaddingParent()
   })
 
   -- Create an absolutely positioned child
-  local child = FlexLove.new({
-    parent = parent,
+  local child = parent:appendChild(FlexLove.new({
     positioning = "absolute",
     bottom = 0,
     right = 0,
     width = 100,
     height = 100,
-  })
+  }))
 
   -- Absolute positioning is relative to parent's padding box
   -- Parent content box: 400 - 20 (left padding) - 20 (right padding) = 360
@@ -102,27 +99,24 @@ function TestAbsolutePositioning:testAbsoluteDoesNotAffectFlexLayout()
   })
 
   -- Add flex children
-  local flexChild1 = FlexLove.new({
-    parent = parent,
+  local flexChild1 = parent:appendChild(FlexLove.new({
     width = 100,
     height = 100,
-  })
+  }))
 
-  local flexChild2 = FlexLove.new({
-    parent = parent,
+  local flexChild2 = parent:appendChild(FlexLove.new({
     width = 100,
     height = 100,
-  })
+  }))
 
   -- Add absolutely positioned child
-  local absChild = FlexLove.new({
-    parent = parent,
+  local absChild = parent:appendChild(FlexLove.new({
     positioning = "absolute",
     top = 0,
     left = 0,
     width = 50,
     height = 50,
-  })
+  }))
 
   -- Flex children should be positioned normally (absolute child doesn't affect layout)
   luaunit.assertEquals(flexChild1.x, 0, "First flex child at x=0")
@@ -142,41 +136,37 @@ function TestAbsolutePositioning:testMultipleAbsoluteChildren()
   })
 
   -- Create multiple absolutely positioned children
-  local topLeft = FlexLove.new({
-    parent = parent,
+  local topLeft = parent:appendChild(FlexLove.new({
     positioning = "absolute",
     top = 0,
     left = 0,
     width = 50,
     height = 50,
-  })
+  }))
 
-  local topRight = FlexLove.new({
-    parent = parent,
+  local topRight = parent:appendChild(FlexLove.new({
     positioning = "absolute",
     top = 0,
     right = 0,
     width = 50,
     height = 50,
-  })
+  }))
 
-  local bottomLeft = FlexLove.new({
-    parent = parent,
+  local bottomLeft = parent:appendChild(FlexLove.new({
     positioning = "absolute",
     bottom = 0,
     left = 0,
     width = 50,
     height = 50,
-  })
+  }))
 
-  local bottomRight = FlexLove.new({
-    parent = parent,
+  local bottomRight = parent:appendChild(FlexLove.new({
     positioning = "absolute",
     bottom = 0,
     right = 0,
     width = 50,
     height = 50,
-  })
+  }))
 
   -- Verify positions
   luaunit.assertEquals(topLeft.x, 0, "Top-left x")
@@ -203,14 +193,13 @@ function TestAbsolutePositioning:testAbsoluteInImmediateMode()
       height = 400,
     })
 
-    child = FlexLove.new({
-      parent = parent,
+    child = parent:appendChild(FlexLove.new({
       positioning = "absolute",
       bottom = 0,
       right = 0,
       width = 100,
       height = 100,
-    })
+    }))
   end
 
   -- First frame
@@ -236,19 +225,17 @@ function TestAbsolutePositioning:testExplicitlyAbsoluteFlagIsSet()
   })
 
   -- Child with explicit absolute positioning
-  local absoluteChild = FlexLove.new({
-    parent = parent,
+  local absoluteChild = parent:appendChild(FlexLove.new({
     positioning = "absolute",
     width = 100,
     height = 100,
-  })
+  }))
 
   -- Child without explicit positioning (participates in flex)
-  local flexChild = FlexLove.new({
-    parent = parent,
+  local flexChild = parent:appendChild(FlexLove.new({
     width = 100,
     height = 100,
-  })
+  }))
 
   -- Absolute child should not affect flex layout: flex child positioned at x=0
   luaunit.assertEquals(flexChild.x, 0, "Flex child should be at x=0 (not affected by absolute child)")

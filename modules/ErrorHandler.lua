@@ -537,6 +537,24 @@ local ErrorCodes = {
       description = "Invalid display property value",
       suggestion = "The display property accepts only boolean values (true/false). Pass `true` to show the element or `false` to hide it from layout, rendering, and hit testing.",
     },
+    ELEM_011 = {
+      code = "FLEXLOVE_ELEM_011",
+      category = "VAL",
+      description = "Nil entry in children array",
+      suggestion = "Skipping nil entry. If you intentionally built a sparse array, prefer collecting the surviving entries into a dense one before passing as children.",
+    },
+    ELEM_012 = {
+      code = "FLEXLOVE_ELEM_012",
+      category = "VAL",
+      description = "Non-table entry in children array",
+      suggestion = "children entries must be either a prop table or a pre-built Element instance. Skipping the invalid entry.",
+    },
+    ELEM_013 = {
+      code = "FLEXLOVE_ELEM_013",
+      category = "VAL",
+      description = "Legacy `parent` prop is no longer supported",
+      suggestion = "Use `children = { ... }` on the parent's prop table, `parent:appendNew({ ... })` for construction-time attachment, or `parent:appendChild(existing)` for reparenting.",
+    },
 
     -- Module Loader Warnings (MOD_001 - MOD_099)
     MOD_001 = {

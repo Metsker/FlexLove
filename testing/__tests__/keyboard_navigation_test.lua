@@ -267,8 +267,7 @@ local tests = {
     })
     Context.setNavigationContainer(container)
 
-    Element.new({
-      parent = container,
+    container:appendChild(Element.new({
       id = "btn1",
       text = "Button 1",
       onEvent = function(elem, event)
@@ -276,7 +275,7 @@ local tests = {
           activated = true
         end
       end,
-    })
+    }))
     Element.new({ parent = container, id = "btn2", text = "Button 2", onEvent = function() end })
     Element.new({ parent = container, id = "btn3", text = "Button 3", onEvent = function() end })
     Element.new({ parent = container, id = "input1", editable = true })
@@ -353,13 +352,12 @@ local tests = {
     })
     Context.setNavigationContainer(container)
 
-    local button = Element.new({
-      parent = container,
+    local button = container:appendChild(Element.new({
       id = "themed-btn",
       text = "Themed Button",
       themeComponent = "button",
       onEvent = function() end,
-    })
+    }))
 
     local success = KeyboardNavigation:nextFocusable()
     assert(success == true, "Keyboard navigation should focus the themed button")
@@ -385,20 +383,18 @@ local tests = {
     })
     Context.setNavigationContainer(container)
 
-    local keepFocusButton = Element.new({
-      parent = container,
+    local keepFocusButton = container:appendChild(Element.new({
       id = "keep-focus-btn",
       text = "Keep Focus",
       onEvent = function() end,
-    })
+    }))
 
-    local dropFocusButton = Element.new({
-      parent = container,
+    local dropFocusButton = container:appendChild(Element.new({
       id = "drop-focus-btn",
       text = "Drop Focus",
       dropFocusOnSelection = true,
       onEvent = function() end,
-    })
+    }))
 
     Context.setFocused(keepFocusButton)
     FocusIndicator.setFocused(keepFocusButton)
@@ -423,13 +419,12 @@ local tests = {
     assert(success == true, "Activation should succeed with global drop-focus config")
     assert(Context.getFocused() == nil, "Global config should drop focus after activation")
 
-    local keepFocusOverrideButton = Element.new({
-      parent = container,
+    local keepFocusOverrideButton = container:appendChild(Element.new({
       id = "keep-focus-override-btn",
       text = "Keep Focus Override",
       dropFocusOnSelection = false,
       onEvent = function() end,
-    })
+    }))
 
     Context.setFocused(keepFocusOverrideButton)
     FocusIndicator.setFocused(keepFocusOverrideButton)

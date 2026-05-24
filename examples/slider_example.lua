@@ -30,8 +30,7 @@ function SliderExample:create_slider(parent, label, min, max, initial_value, dis
   display_multiplier = display_multiplier or 1
   initial_value = initial_value or min
 
-  local row = FlexLove.new({
-    parent = parent,
+  local row = parent:appendChild(FlexLove.new({
     width = "100%",
     height = "5vh",
     display = "flex",
@@ -39,26 +38,24 @@ function SliderExample:create_slider(parent, label, min, max, initial_value, dis
     justifyContent = "space-between",
     alignItems = "center",
     gap = 10,
-  })
+  }))
 
   -- Label
-  FlexLove.new({
-    parent = row,
+  row:appendChild(FlexLove.new({
     text = label,
     textAlign = "start",
     fontSize = "md",
     width = "30%",
-  })
+  }))
 
-  local slider_container = FlexLove.new({
-    parent = row,
+  local slider_container = row:appendChild(FlexLove.new({
     width = "50%",
     height = "100%",
     display = "flex",
     flexDirection = "row",
     alignItems = "center",
     gap = 5,
-  })
+  }))
 
   local value = initial_value
   local normalized = (value - min) / (max - min)
@@ -78,8 +75,7 @@ function SliderExample:create_slider(parent, label, min, max, initial_value, dis
     value_display.text = string.format("%d", value * display_multiplier)
   end
 
-  local slider_track = FlexLove.new({
-    parent = slider_container,
+  local slider_track = slider_container:appendChild(FlexLove.new({
     width = "80%",
     height = "75%",
     display = "flex",
@@ -88,25 +84,23 @@ function SliderExample:create_slider(parent, label, min, max, initial_value, dis
     onEvent = function(elem, event)
       convert_x_to_percentage(event.x, elem.x, elem.width)
     end,
-  })
+  }))
 
-  local fill_bar = FlexLove.new({
-    parent = slider_track,
+  local fill_bar = slider_track:appendChild(FlexLove.new({
     width = (normalized * 100) .. "%",
     height = "100%",
     themeComponent = "buttonv1",
     onEvent = function(_, event)
       convert_x_to_percentage(event.x, slider_track.x, slider_track.width)
     end,
-  })
+  }))
 
-  local value_display = FlexLove.new({
-    parent = slider_container,
+  local value_display = slider_container:appendChild(FlexLove.new({
     text = string.format("%d", value * display_multiplier),
     textAlign = "center",
     fontSize = "md",
     width = "15%",
-  })
+  }))
 end
 
 --- Create an example UI with multiple sliders
@@ -128,25 +122,23 @@ function SliderExample:render_example()
     gap = 20,
   })
 
-  FlexLove.new({
-    parent = window,
+  window:appendChild(FlexLove.new({
     text = "Slider Example",
     textAlign = "center",
     fontSize = "3xl",
     width = "100%",
     margin = { top = "-4%", bottom = "4%" },
-  })
+  }))
 
   -- Content container
-  local content = FlexLove.new({
-    parent = window,
+  local content = window:appendChild(FlexLove.new({
     width = "100%",
     height = "100%",
     display = "flex",
     flexDirection = "column",
     padding = { top = "4%" },
     gap = 20,
-  })
+  }))
 
   -- Create a few example sliders
   self:create_slider(content, "Volume", 0, 100, 75, 1)

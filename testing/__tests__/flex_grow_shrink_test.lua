@@ -294,12 +294,11 @@ function TestFlexGrow:test_single_item_with_flex_grow()
     gap = 0,
   })
 
-  local child = FlexLove.new({
+  local child = container:appendChild(FlexLove.new({
     width = 100,
     height = 50,
     flexGrow = 1,
-    parent = container,
-  })
+  }))
 
   container:layoutChildren()
 
@@ -316,19 +315,17 @@ function TestFlexGrow:test_two_items_equal_flex_grow()
     gap = 0,
   })
 
-  local child1 = FlexLove.new({
+  local child1 = container:appendChild(FlexLove.new({
     width = 100,
     height = 50,
     flexGrow = 1,
-    parent = container,
-  })
+  }))
 
-  local child2 = FlexLove.new({
+  local child2 = container:appendChild(FlexLove.new({
     width = 100,
     height = 50,
     flexGrow = 1,
-    parent = container,
-  })
+  }))
 
   container:layoutChildren()
 
@@ -346,19 +343,17 @@ function TestFlexGrow:test_proportional_flex_grow()
     gap = 0,
   })
 
-  local child1 = FlexLove.new({
+  local child1 = container:appendChild(FlexLove.new({
     width = 100,
     height = 50,
     flexGrow = 1,
-    parent = container,
-  })
+  }))
 
-  local child2 = FlexLove.new({
+  local child2 = container:appendChild(FlexLove.new({
     width = 100,
     height = 50,
     flexGrow = 2,
-    parent = container,
-  })
+  }))
 
   container:layoutChildren()
 
@@ -378,19 +373,17 @@ function TestFlexGrow:test_flex_grow_with_gap()
     gap = 20,
   })
 
-  local child1 = FlexLove.new({
+  local child1 = container:appendChild(FlexLove.new({
     width = 100,
     height = 50,
     flexGrow = 1,
-    parent = container,
-  })
+  }))
 
-  local child2 = FlexLove.new({
+  local child2 = container:appendChild(FlexLove.new({
     width = 100,
     height = 50,
     flexGrow = 1,
-    parent = container,
-  })
+  }))
 
   container:layoutChildren()
 
@@ -409,19 +402,17 @@ function TestFlexGrow:test_flex_grow_vertical()
     gap = 0,
   })
 
-  local child1 = FlexLove.new({
+  local child1 = container:appendChild(FlexLove.new({
     width = 50,
     height = 100,
     flexGrow = 1,
-    parent = container,
-  })
+  }))
 
-  local child2 = FlexLove.new({
+  local child2 = container:appendChild(FlexLove.new({
     width = 50,
     height = 100,
     flexGrow = 1,
-    parent = container,
-  })
+  }))
 
   container:layoutChildren()
 
@@ -439,21 +430,19 @@ function TestFlexGrow:test_flex_grow_with_margins()
     gap = 0,
   })
 
-  local child1 = FlexLove.new({
+  local child1 = container:appendChild(FlexLove.new({
     width = 100,
     height = 50,
     flexGrow = 1,
     margin = { left = 10, right = 10, top = 0, bottom = 0 },
-    parent = container,
-  })
+  }))
 
-  local child2 = FlexLove.new({
+  local child2 = container:appendChild(FlexLove.new({
     width = 100,
     height = 50,
     flexGrow = 1,
     margin = { left = 10, right = 10, top = 0, bottom = 0 },
-    parent = container,
-  })
+  }))
 
   container:layoutChildren()
 
@@ -487,19 +476,17 @@ function TestFlexShrink:test_items_shrink_equally()
     gap = 0,
   })
 
-  local child1 = FlexLove.new({
+  local child1 = container:appendChild(FlexLove.new({
     width = 200,
     height = 50,
     flexShrink = 1,
-    parent = container,
-  })
+  }))
 
-  local child2 = FlexLove.new({
+  local child2 = container:appendChild(FlexLove.new({
     width = 200,
     height = 50,
     flexShrink = 1,
-    parent = container,
-  })
+  }))
 
   container:layoutChildren()
 
@@ -519,17 +506,15 @@ function TestFlexShrink:test_default_flex_shrink_applies_when_unspecified()
     gap = 0,
   })
 
-  local child1 = FlexLove.new({
+  local child1 = container:appendChild(FlexLove.new({
     width = 200,
     height = 50,
-    parent = container,
-  })
+  }))
 
-  local child2 = FlexLove.new({
+  local child2 = container:appendChild(FlexLove.new({
     width = 200,
     height = 50,
-    parent = container,
-  })
+  }))
 
   container:layoutChildren()
 
@@ -546,19 +531,17 @@ function TestFlexShrink:test_proportional_shrink()
     gap = 0,
   })
 
-  local child1 = FlexLove.new({
+  local child1 = container:appendChild(FlexLove.new({
     width = 200,
     height = 50,
     flexShrink = 1,
-    parent = container,
-  })
+  }))
 
-  local child2 = FlexLove.new({
+  local child2 = container:appendChild(FlexLove.new({
     width = 200,
     height = 50,
     flexShrink = 2,
-    parent = container,
-  })
+  }))
 
   container:layoutChildren()
 
@@ -579,19 +562,17 @@ function TestFlexShrink:test_flex_shrink_zero_prevents_shrinking()
     gap = 0,
   })
 
-  local child1 = FlexLove.new({
+  local child1 = container:appendChild(FlexLove.new({
     width = 150,
     height = 50,
     flexShrink = 0,
-    parent = container,
-  })
+  }))
 
-  local child2 = FlexLove.new({
+  local child2 = container:appendChild(FlexLove.new({
     width = 200,
     height = 50,
     flexShrink = 1,
-    parent = container,
-  })
+  }))
 
   container:layoutChildren()
 
@@ -610,19 +591,17 @@ function TestFlexShrink:test_different_basis_affects_shrink()
     gap = 0,
   })
 
-  local child1 = FlexLove.new({
+  local child1 = container:appendChild(FlexLove.new({
     width = 100,
     height = 50,
     flexShrink = 1,
-    parent = container,
-  })
+  }))
 
-  local child2 = FlexLove.new({
+  local child2 = container:appendChild(FlexLove.new({
     width = 300,
     height = 50,
     flexShrink = 1,
-    parent = container,
-  })
+  }))
 
   container:layoutChildren()
 
@@ -643,21 +622,19 @@ function TestFlexShrink:test_shrink_with_margins()
     gap = 0,
   })
 
-  local child1 = FlexLove.new({
+  local child1 = container:appendChild(FlexLove.new({
     width = 200,
     height = 50,
     flexShrink = 1,
     margin = { left = 10, right = 10, top = 0, bottom = 0 },
-    parent = container,
-  })
+  }))
 
-  local child2 = FlexLove.new({
+  local child2 = container:appendChild(FlexLove.new({
     width = 200,
     height = 50,
     flexShrink = 1,
     margin = { left = 10, right = 10, top = 0, bottom = 0 },
-    parent = container,
-  })
+  }))
 
   container:layoutChildren()
 
@@ -689,13 +666,12 @@ function TestFlexBasis:test_flexBasis_auto_uses_element_width()
     gap = 0,
   })
 
-  local child = FlexLove.new({
+  local child = container:appendChild(FlexLove.new({
     width = 150,
     height = 50,
     flexBasis = "auto",
     flexGrow = 0,
-    parent = container,
-  })
+  }))
 
   container:layoutChildren()
 
@@ -712,13 +688,12 @@ function TestFlexBasis:test_flexBasis_numeric_overrides_width()
     gap = 0,
   })
 
-  local child = FlexLove.new({
+  local child = container:appendChild(FlexLove.new({
     width = 150,
     height = 50,
     flexBasis = 200,
     flexGrow = 0,
-    parent = container,
-  })
+  }))
 
   container:layoutChildren()
 
@@ -735,13 +710,12 @@ function TestFlexBasis:test_flexBasis_percentage()
     gap = 0,
   })
 
-  local child = FlexLove.new({
+  local child = container:appendChild(FlexLove.new({
     width = 100,
     height = 50,
     flexBasis = "50%",
     flexGrow = 0,
-    parent = container,
-  })
+  }))
 
   container:layoutChildren()
 
@@ -758,21 +732,19 @@ function TestFlexBasis:test_flexBasis_with_grow()
     gap = 0,
   })
 
-  local child1 = FlexLove.new({
+  local child1 = container:appendChild(FlexLove.new({
     width = 100,
     height = 50,
     flexBasis = 100,
     flexGrow = 1,
-    parent = container,
-  })
+  }))
 
-  local child2 = FlexLove.new({
+  local child2 = container:appendChild(FlexLove.new({
     width = 200,
     height = 50,
     flexBasis = 200,
     flexGrow = 1,
-    parent = container,
-  })
+  }))
 
   container:layoutChildren()
 
@@ -791,21 +763,19 @@ function TestFlexBasis:test_flexBasis_zero_with_grow()
     gap = 0,
   })
 
-  local child1 = FlexLove.new({
+  local child1 = container:appendChild(FlexLove.new({
     width = 100,
     height = 50,
     flexBasis = 0,
     flexGrow = 1,
-    parent = container,
-  })
+  }))
 
-  local child2 = FlexLove.new({
+  local child2 = container:appendChild(FlexLove.new({
     width = 200,
     height = 50,
     flexBasis = 0,
     flexGrow = 1,
-    parent = container,
-  })
+  }))
 
   container:layoutChildren()
 
@@ -836,26 +806,23 @@ function TestFlexComplexScenarios:test_mixed_grow_no_grow()
     gap = 0,
   })
 
-  local child1 = FlexLove.new({
+  local child1 = container:appendChild(FlexLove.new({
     width = 150,
     height = 50,
     flexGrow = 0,
-    parent = container,
-  })
+  }))
 
-  local child2 = FlexLove.new({
+  local child2 = container:appendChild(FlexLove.new({
     width = 150,
     height = 50,
     flexGrow = 1,
-    parent = container,
-  })
+  }))
 
-  local child3 = FlexLove.new({
+  local child3 = container:appendChild(FlexLove.new({
     width = 150,
     height = 50,
     flexGrow = 2,
-    parent = container,
-  })
+  }))
 
   container:layoutChildren()
 
@@ -878,26 +845,23 @@ function TestFlexComplexScenarios:test_wrapping_with_flex_grow()
     gap = 0,
   })
 
-  local child1 = FlexLove.new({
+  local child1 = container:appendChild(FlexLove.new({
     width = 150,
     height = 50,
     flexGrow = 1,
-    parent = container,
-  })
+  }))
 
-  local child2 = FlexLove.new({
+  local child2 = container:appendChild(FlexLove.new({
     width = 150,
     height = 50,
     flexGrow = 1,
-    parent = container,
-  })
+  }))
 
-  local child3 = FlexLove.new({
+  local child3 = container:appendChild(FlexLove.new({
     width = 150,
     height = 50,
     flexGrow = 1,
-    parent = container,
-  })
+  }))
 
   container:layoutChildren()
 
@@ -919,21 +883,19 @@ function TestFlexComplexScenarios:test_exact_fit_no_grow_no_shrink()
     gap = 0,
   })
 
-  local child1 = FlexLove.new({
+  local child1 = container:appendChild(FlexLove.new({
     width = 200,
     height = 50,
     flexGrow = 1,
     flexShrink = 1,
-    parent = container,
-  })
+  }))
 
-  local child2 = FlexLove.new({
+  local child2 = container:appendChild(FlexLove.new({
     width = 200,
     height = 50,
     flexGrow = 1,
     flexShrink = 1,
-    parent = container,
-  })
+  }))
 
   container:layoutChildren()
 
@@ -951,29 +913,26 @@ function TestFlexComplexScenarios:test_nested_flex_containers()
     gap = 0,
   })
 
-  local inner = FlexLove.new({
+  local inner = outer:appendChild(FlexLove.new({
     width = 400,
     height = 100,
     positioning = "flex",
     flexDirection = "row",
     flexGrow = 1,
     gap = 0,
-    parent = outer,
-  })
+  }))
 
-  local child1 = FlexLove.new({
+  local child1 = inner:appendChild(FlexLove.new({
     width = 100,
     height = 50,
     flexGrow = 1,
-    parent = inner,
-  })
+  }))
 
-  local child2 = FlexLove.new({
+  local child2 = inner:appendChild(FlexLove.new({
     width = 100,
     height = 50,
     flexGrow = 1,
-    parent = inner,
-  })
+  }))
 
   outer:layoutChildren()
 
@@ -994,19 +953,17 @@ function TestFlexComplexScenarios:test_flex_with_padding()
     padding = { left = 20, right = 20, top = 10, bottom = 10 },
   })
 
-  local child1 = FlexLove.new({
+  local child1 = container:appendChild(FlexLove.new({
     width = 100,
     height = 50,
     flexGrow = 1,
-    parent = container,
-  })
+  }))
 
-  local child2 = FlexLove.new({
+  local child2 = container:appendChild(FlexLove.new({
     width = 100,
     height = 50,
     flexGrow = 1,
-    parent = container,
-  })
+  }))
 
   container:layoutChildren()
 
@@ -1025,20 +982,18 @@ function TestFlexComplexScenarios:test_flex_main_size_keeps_border_box_model()
     gap = 0,
   })
 
-  local child1 = FlexLove.new({
+  local child1 = container:appendChild(FlexLove.new({
     width = 100,
     height = 60,
     flexGrow = 1,
     padding = { left = 20, right = 20, top = 0, bottom = 0 },
-    parent = container,
-  })
+  }))
 
-  local child2 = FlexLove.new({
+  local child2 = container:appendChild(FlexLove.new({
     width = 100,
     height = 60,
     flexGrow = 1,
-    parent = container,
-  })
+  }))
 
   container:layoutChildren()
 

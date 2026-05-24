@@ -38,12 +38,11 @@ function TestGridLayout:test_default_grid_single_child()
     -- Default: gridRows=1, gridColumns=1
   })
 
-  local child = FlexLove.new({
+  local child = container:appendChild(FlexLove.new({
     id = "child1",
-    parent = container,
     width = 50, -- Will be stretched by grid
     height = 50,
-  })
+  }))
 
 
   -- Child should be stretched to fill the entire grid cell
@@ -68,12 +67,11 @@ function TestGridLayout:test_2x2_grid_four_children()
 
   local children = {}
   for i = 1, 4 do
-    children[i] = FlexLove.new({
+    children[i] = container:appendChild(FlexLove.new({
       id = "child" .. i,
-      parent = container,
       width = 50,
       height = 50,
-    })
+    }))
   end
 
 
@@ -114,12 +112,11 @@ function TestGridLayout:test_grid_with_gaps()
 
   local children = {}
   for i = 1, 4 do
-    children[i] = FlexLove.new({
+    children[i] = container:appendChild(FlexLove.new({
       id = "child" .. i,
-      parent = container,
       width = 50,
       height = 50,
-    })
+    }))
   end
 
 
@@ -152,12 +149,11 @@ function TestGridLayout:test_grid_overflow_children()
 
   local children = {}
   for i = 1, 6 do -- 6 children, but only 4 cells
-    children[i] = FlexLove.new({
+    children[i] = container:appendChild(FlexLove.new({
       id = "child" .. i,
-      parent = container,
       width = 50,
       height = 50,
-    })
+    }))
   end
 
 
@@ -183,12 +179,11 @@ function TestGridLayout:test_grid_align_center()
     alignItems = "center",
   })
 
-  local child = FlexLove.new({
+  local child = container:appendChild(FlexLove.new({
     id = "child1",
-    parent = container,
     width = 100,
     height = 100,
-  })
+  }))
 
 
   -- Cell is 200x200, child is 100x100, should be centered
@@ -213,12 +208,11 @@ function TestGridLayout:test_grid_align_flex_start()
     alignItems = "flex-start",
   })
 
-  local child = FlexLove.new({
+  local child = container:appendChild(FlexLove.new({
     id = "child1",
-    parent = container,
     width = 100,
     height = 100,
-  })
+  }))
 
 
   -- Child should be at top-left of cell
@@ -242,12 +236,11 @@ function TestGridLayout:test_grid_align_flex_end()
     alignItems = "flex-end",
   })
 
-  local child = FlexLove.new({
+  local child = container:appendChild(FlexLove.new({
     id = "child1",
-    parent = container,
     width = 100,
     height = 100,
-  })
+  }))
 
 
   -- Cell is 200x200, child is 100x100, should be at bottom-right
@@ -271,12 +264,11 @@ function TestGridLayout:test_grid_with_padding()
     gridColumns = 2,
   })
 
-  local child = FlexLove.new({
+  local child = container:appendChild(FlexLove.new({
     id = "child1",
-    parent = container,
     width = 50,
     height = 50,
-  })
+  }))
 
 
   -- Available space: 500 - 50 - 50 = 400
@@ -302,31 +294,28 @@ function TestGridLayout:test_grid_with_absolute_child()
   })
 
   -- Regular child
-  local child1 = FlexLove.new({
+  local child1 = container:appendChild(FlexLove.new({
     id = "child1",
-    parent = container,
     width = 50,
     height = 50,
-  })
+  }))
 
   -- Absolutely positioned child (should be ignored by grid layout)
-  local child2 = FlexLove.new({
+  local child2 = container:appendChild(FlexLove.new({
     id = "child2",
-    parent = container,
     positioning = "absolute",
     x = 10,
     y = 10,
     width = 30,
     height = 30,
-  })
+  }))
 
   -- Another regular child
-  local child3 = FlexLove.new({
+  local child3 = container:appendChild(FlexLove.new({
     id = "child3",
-    parent = container,
     width = 50,
     height = 50,
-  })
+  }))
 
 
   -- child1 should be in first grid cell (0, 0)
@@ -374,12 +363,11 @@ function TestGridLayout:test_grid_zero_dimensions()
     gridColumns = 0, -- Invalid: 0 columns
   })
 
-  local child = FlexLove.new({
+  local child = container:appendChild(FlexLove.new({
     id = "child1",
-    parent = container,
     width = 50,
     height = 50,
-  })
+  }))
 
   -- This might cause division by zero or other errors
 
@@ -401,24 +389,22 @@ function TestGridLayout:test_nested_grids()
   })
 
   -- First cell contains another grid
-  local innerGrid = FlexLove.new({
+  local innerGrid = outerGrid:appendChild(FlexLove.new({
     id = "inner",
-    parent = outerGrid,
     width = 200,
     height = 200,
     positioning = "grid",
     gridRows = 2,
     gridColumns = 2,
-  })
+  }))
 
   -- Add children to inner grid
   for i = 1, 4 do
-    FlexLove.new({
+    innerGrid:appendChild(FlexLove.new({
       id = "inner_child" .. i,
-      parent = innerGrid,
       width = 25,
       height = 25,
-    })
+    }))
   end
 
 
@@ -442,23 +428,21 @@ function TestGridLayout:test_grid_with_reserved_space()
   })
 
   -- Absolute child with left positioning (reserves left space)
-  FlexLove.new({
+  container:appendChild(FlexLove.new({
     id = "absolute_left",
-    parent = container,
     positioning = "absolute",
     left = 0,
     top = 0,
     width = 50,
     height = 50,
-  })
+  }))
 
   -- Regular grid child
-  local child1 = FlexLove.new({
+  local child1 = container:appendChild(FlexLove.new({
     id = "child1",
-    parent = container,
     width = 50,
     height = 50,
-  })
+  }))
 
 
   -- Grid should account for reserved space
@@ -490,10 +474,9 @@ function TestGridLayout:test_variable_column_widths_mixed()
 
   local children = {}
   for i = 1, 6 do
-    children[i] = FlexLove.new({
+    children[i] = container:appendChild(FlexLove.new({
       id = "child" .. i,
-      parent = container,
-    })
+    }))
   end
 
 
@@ -534,10 +517,9 @@ function TestGridLayout:test_variable_row_heights_mixed()
 
   local children = {}
   for i = 1, 6 do
-    children[i] = FlexLove.new({
+    children[i] = container:appendChild(FlexLove.new({
       id = "child" .. i,
-      parent = container,
-    })
+    }))
   end
 
 
@@ -571,10 +553,9 @@ function TestGridLayout:test_variable_all_px()
 
   local children = {}
   for i = 1, 3 do
-    children[i] = FlexLove.new({
+    children[i] = container:appendChild(FlexLove.new({
       id = "child" .. i,
-      parent = container,
-    })
+    }))
   end
 
 
@@ -601,10 +582,9 @@ function TestGridLayout:test_variable_auto_tracks()
 
   local children = {}
   for i = 1, 6 do
-    children[i] = FlexLove.new({
+    children[i] = container:appendChild(FlexLove.new({
       id = "child" .. i,
-      parent = container,
-    })
+    }))
   end
 
 
@@ -633,10 +613,9 @@ function TestGridLayout:test_variable_percent_tracks()
 
   local children = {}
   for i = 1, 3 do
-    children[i] = FlexLove.new({
+    children[i] = container:appendChild(FlexLove.new({
       id = "child" .. i,
-      parent = container,
-    })
+    }))
   end
 
 
@@ -661,10 +640,9 @@ function TestGridLayout:test_variable_with_gaps()
 
   local children = {}
   for i = 1, 3 do
-    children[i] = FlexLove.new({
+    children[i] = container:appendChild(FlexLove.new({
       id = "child" .. i,
-      parent = container,
-    })
+    }))
   end
 
 
@@ -690,10 +668,9 @@ function TestGridLayout:test_variable_fallback_to_equal()
     -- No gridColumns/TemplateRows set -- fallback to equal 1fr
   })
 
-  local child = FlexLove.new({
+  local child = container:appendChild(FlexLove.new({
     id = "child1",
-    parent = container,
-  })
+  }))
 
 
   -- 3 equal 1fr columns = 100 each
@@ -715,12 +692,11 @@ function TestGridLayout:test_variable_align_center()
     alignItems = "center",
   })
 
-  local child = FlexLove.new({
+  local child = container:appendChild(FlexLove.new({
     id = "child1",
-    parent = container,
     width = 50,
     height = 30,
-  })
+  }))
 
 
   -- Cell 1: (~133.33, 150)
@@ -747,9 +723,9 @@ function TestGridLayout:test_variable_auto_content_sized()
   })
 
   local children = {}
-  children[1] = FlexLove.new({ id = "child1", parent = container, width = 100, height = 50 })
-  children[2] = FlexLove.new({ id = "child2", parent = container })
-  children[3] = FlexLove.new({ id = "child3", parent = container })
+  children[1] = container:appendChild(FlexLove.new({ id = "child1", width = 100, height = 50 }))
+  children[2] = container:appendChild(FlexLove.new({ id = "child2" }))
+  children[3] = container:appendChild(FlexLove.new({ id = "child3" }))
 
 
   -- auto track: child1 has width=100, so auto = 100
@@ -779,7 +755,7 @@ function TestGridLayout:test_variable_auto_no_content()
 
   local children = {}
   for i = 1, 3 do
-    children[i] = FlexLove.new({ id = "child" .. i, parent = container })
+    children[i] = container:appendChild(FlexLove.new({ id = "child" .. i }))
   end
 
 
@@ -809,10 +785,10 @@ function TestGridLayout:test_variable_auto_max_content()
 
   -- Children in col1: child1 (width=80), child3 (width=120) — auto should be 120
   local children = {}
-  children[1] = FlexLove.new({ id = "child1", parent = container, width = 80, height = 50 })
-  children[2] = FlexLove.new({ id = "child2", parent = container })
-  children[3] = FlexLove.new({ id = "child3", parent = container, width = 120, height = 50 })
-  children[4] = FlexLove.new({ id = "child4", parent = container })
+  children[1] = container:appendChild(FlexLove.new({ id = "child1", width = 80, height = 50 }))
+  children[2] = container:appendChild(FlexLove.new({ id = "child2" }))
+  children[3] = container:appendChild(FlexLove.new({ id = "child3", width = 120, height = 50 }))
+  children[4] = container:appendChild(FlexLove.new({ id = "child4" }))
 
 
   -- auto track: max(80, 120) = 120
@@ -839,10 +815,9 @@ function TestGridLayout:test_guard_negative_fr_tracks()
     gridRows = { "1fr" },
   })
 
-  local child = FlexLove.new({
+  local child = container:appendChild(FlexLove.new({
     id = "child1",
-    parent = container,
-  })
+  }))
 
 
   -- col1 = 100px (clamped to availableWidth), col2 = 1fr = 0 (no space remaining)
@@ -864,10 +839,9 @@ function TestGridLayout:test_guard_all_px_overflow()
     gridRows = { "1fr" },
   })
 
-  local child = FlexLove.new({
+  local child = container:appendChild(FlexLove.new({
     id = "child1",
-    parent = container,
-  })
+  }))
 
 
   luaunit.assertTrue(child.width >= 0, "Child width should never be negative, got " .. tostring(child.width))
@@ -887,20 +861,18 @@ function TestGridLayout:test_guard_negative_available_space()
   })
 
   -- Absolute child that reserves more space than container has
-  FlexLove.new({
+  container:appendChild(FlexLove.new({
     id = "abs_child",
-    parent = container,
     positioning = "absolute",
     left = 0,
     top = 0,
     width = 200, -- larger than container width
     height = 200, -- larger than container height
-  })
+  }))
 
-  local child = FlexLove.new({
+  local child = container:appendChild(FlexLove.new({
     id = "child1",
-    parent = container,
-  })
+  }))
 
 
   -- Available space should be clamped to 0 (not negative)
@@ -922,12 +894,11 @@ function TestGridLayout:test_guard_extreme_overflow()
     gridRows = { "auto", "auto" },
   })
 
-  local child = FlexLove.new({
+  local child = container:appendChild(FlexLove.new({
     id = "child1",
-    parent = container,
     width = 500,
     height = 500,
-  })
+  }))
 
 
   luaunit.assertTrue(child.width >= 0, "Child width should never be negative, got " .. tostring(child.width))
@@ -954,7 +925,7 @@ function TestGridLayout:test_units_vw_columns()
 
   local children = {}
   for i = 1, 2 do
-    children[i] = FlexLove.new({ id = "child" .. i, parent = container })
+    children[i] = container:appendChild(FlexLove.new({ id = "child" .. i }))
   end
 
 
@@ -981,7 +952,7 @@ function TestGridLayout:test_units_vh_rows()
 
   local children = {}
   for i = 1, 2 do
-    children[i] = FlexLove.new({ id = "child" .. i, parent = container })
+    children[i] = container:appendChild(FlexLove.new({ id = "child" .. i }))
   end
 
 
@@ -1009,7 +980,7 @@ function TestGridLayout:test_units_vw_vh_mixed()
 
   local children = {}
   for i = 1, 2 do
-    children[i] = FlexLove.new({ id = "child" .. i, parent = container })
+    children[i] = container:appendChild(FlexLove.new({ id = "child" .. i }))
   end
 
 
@@ -1036,7 +1007,7 @@ function TestGridLayout:test_units_calc_vw_columns()
 
   local children = {}
   for i = 1, 2 do
-    children[i] = FlexLove.new({ id = "child" .. i, parent = container })
+    children[i] = container:appendChild(FlexLove.new({ id = "child" .. i }))
   end
 
 
@@ -1063,7 +1034,7 @@ function TestGridLayout:test_units_calc_percent_columns()
 
   local children = {}
   for i = 1, 2 do
-    children[i] = FlexLove.new({ id = "child" .. i, parent = container })
+    children[i] = container:appendChild(FlexLove.new({ id = "child" .. i }))
   end
 
 
@@ -1090,7 +1061,7 @@ function TestGridLayout:test_units_vw_with_gap()
 
   local children = {}
   for i = 1, 2 do
-    children[i] = FlexLove.new({ id = "child" .. i, parent = container })
+    children[i] = container:appendChild(FlexLove.new({ id = "child" .. i }))
   end
 
 

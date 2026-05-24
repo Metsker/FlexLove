@@ -30,18 +30,16 @@ function StatefulUIExample:render()
   })
 
   -- Title
-  FlexLove.new({
-    parent = flex,
+  flex:appendChild(FlexLove.new({
     text = "Stateful Interactive UI Example",
     textAlign = "center",
     fontSize = "2xl",
     width = "100%",
     height = "10%",
-  })
+  }))
 
   -- Counter section
-  local counterSection = FlexLove.new({
-    parent = flex,
+  local counterSection = flex:appendChild(FlexLove.new({
     display = "flex",
     flexDirection = "row",
     justifyContent = "space-between",
@@ -51,19 +49,17 @@ function StatefulUIExample:render()
     backgroundColor = "#2d3748",
     borderRadius = 8,
     padding = { horizontal = 15 },
-  })
+  }))
 
-  FlexLove.new({
-    parent = counterSection,
+  counterSection:appendChild(FlexLove.new({
     text = "Counter: " .. self.counter,
     textAlign = "left",
     fontSize = "lg",
     width = "40%",
-  })
+  }))
 
   -- Increment button
-  FlexLove.new({
-    parent = counterSection,
+  counterSection:appendChild(FlexLove.new({
     themeComponent = "buttonv2",
     text = "Increment",
     textAlign = "center",
@@ -74,11 +70,10 @@ function StatefulUIExample:render()
         print("Counter incremented to: " .. self.counter)
       end
     end,
-  })
+  }))
 
   -- Reset button
-  FlexLove.new({
-    parent = counterSection,
+  counterSection:appendChild(FlexLove.new({
     themeComponent = "buttonv2",
     text = "Reset",
     textAlign = "center",
@@ -89,11 +84,10 @@ function StatefulUIExample:render()
         print("Counter reset to: " .. self.counter)
       end
     end,
-  })
+  }))
 
   -- Toggle switch section
-  local toggleSection = FlexLove.new({
-    parent = flex,
+  local toggleSection = flex:appendChild(FlexLove.new({
     display = "flex",
     flexDirection = "row",
     justifyContent = "space-between",
@@ -103,36 +97,33 @@ function StatefulUIExample:render()
     backgroundColor = "#4a5568",
     borderRadius = 8,
     padding = { horizontal = 15 },
-  })
+  }))
 
-  FlexLove.new({
-    parent = toggleSection,
+  toggleSection:appendChild(FlexLove.new({
     text = "Toggle Switch: " .. tostring(self.isToggled),
     textAlign = "left",
     fontSize = "lg",
     width = "40%",
-  })
+  }))
 
   -- Toggle button
-  local toggleButton = FlexLove.new({
-    parent = toggleSection,
+  local toggleButton = toggleSection:appendChild(FlexLove.new({
     display = "flex",
     width = 60,
     height = 30,
     backgroundColor = self.isToggled and "#48bb78" or "#a0aec0", -- Green when on, gray when off
     borderRadius = 15,
     padding = { horizontal = 5 },
-  })
+  }))
 
-  FlexLove.new({
-    parent = toggleButton,
+  toggleButton:appendChild(FlexLove.new({
     text = self.isToggled and "ON" or "OFF",
     textAlign = "center",
     fontSize = "sm",
     width = "100%",
     height = "100%",
     color = "#ffffff", -- White text
-  })
+  }))
 
   -- Toggle event handler
   toggleButton.onEvent = function(_, event)
@@ -144,8 +135,7 @@ function StatefulUIExample:render()
   end
 
   -- Input section
-  local inputSection = FlexLove.new({
-    parent = flex,
+  local inputSection = flex:appendChild(FlexLove.new({
     display = "flex",
     flexDirection = "row",
     justifyContent = "space-between",
@@ -155,18 +145,16 @@ function StatefulUIExample:render()
     backgroundColor = "#2d3748",
     borderRadius = 8,
     padding = { horizontal = 15 },
-  })
+  }))
 
-  FlexLove.new({
-    parent = inputSection,
+  inputSection:appendChild(FlexLove.new({
     text = "Input Value:",
     textAlign = "left",
     fontSize = "lg",
     width = "30%",
-  })
+  }))
 
-  FlexLove.new({
-    parent = inputSection,
+  inputSection:appendChild(FlexLove.new({
     themeComponent = "inputv2",
     text = self.inputValue,
     textAlign = "left",
@@ -178,11 +166,10 @@ function StatefulUIExample:render()
         print("Input value changed to: " .. self.inputValue)
       end
     end,
-  })
+  }))
 
   -- Dropdown section
-  local dropdownSection = FlexLove.new({
-    parent = flex,
+  local dropdownSection = flex:appendChild(FlexLove.new({
     display = "flex",
     flexDirection = "row",
     justifyContent = "space-between",
@@ -192,18 +179,16 @@ function StatefulUIExample:render()
     backgroundColor = "#4a5568",
     borderRadius = 8,
     padding = { horizontal = 15 },
-  })
+  }))
 
-  FlexLove.new({
-    parent = dropdownSection,
+  dropdownSection:appendChild(FlexLove.new({
     text = "Selected Option:",
     textAlign = "left",
     fontSize = "lg",
     width = "30%",
-  })
+  }))
 
-  FlexLove.new({
-    parent = dropdownSection,
+  dropdownSection:appendChild(FlexLove.new({
     themeComponent = "dropdownv2",
     text = self.selectedOption,
     textAlign = "left",
@@ -216,11 +201,10 @@ function StatefulUIExample:render()
         print("Selected option changed to: " .. self.selectedOption)
       end
     end,
-  })
+  }))
 
   -- Status indicator at the bottom
-  local statusIndicator = FlexLove.new({
-    parent = flex,
+  local statusIndicator = flex:appendChild(FlexLove.new({
     display = "flex",
     flexDirection = "row",
     justifyContent = "space-between",
@@ -230,15 +214,14 @@ function StatefulUIExample:render()
     backgroundColor = "#2d3748",
     borderRadius = 8,
     padding = { horizontal = 15 },
-  })
+  }))
 
-  FlexLove.new({
-    parent = statusIndicator,
+  statusIndicator:appendChild(FlexLove.new({
     text = "Current State - Counter: " .. self.counter .. ", Toggle: " .. tostring(self.isToggled),
     textAlign = "left",
     fontSize = "sm",
     width = "70%",
-  })
+  }))
 
   return flex
 end

@@ -185,11 +185,10 @@ function TestPerformanceWarnings:testHierarchyDepthWarning()
 
   local current = root
   for i = 1, 20 do
-    local child = Element.new({
+    local child = current:appendChild(Element.new({
       id = "child_" .. i,
       width = 50,
       height = 50,
-      parent = current,
     }, Element.defaultDependencies)
     table.insert(current.children, child)
     current = child
@@ -214,11 +213,10 @@ function TestPerformanceWarnings:testElementCountWarning()
 
   -- Add many child elements
   for i = 1, 50 do -- Keep test fast, just verify the counting logic works
-    local child = Element.new({
+    local child = root:appendChild(Element.new({
       id = "child_" .. i,
       width = 20,
       height = 20,
-      parent = root,
     }, Element.defaultDependencies)
     table.insert(root.children, child)
   end
@@ -238,11 +236,10 @@ function TestPerformanceWarnings:testAnimationTracking()
 
   -- Add some animated children
   for i = 1, 3 do
-    local child = Element.new({
+    local child = root:appendChild(Element.new({
       id = "animated_child_" .. i,
       width = 20,
       height = 20,
-      parent = root,
     }, Element.defaultDependencies)
 
     -- Add mock animation
@@ -276,11 +273,10 @@ function TestPerformanceWarnings:testWarningsCanBeDisabled()
 
   local current = root
   for i = 1, 20 do
-    local child = Element.new({
+    local child = current:appendChild(Element.new({
       id = "child_" .. i,
       width = 50,
       height = 50,
-      parent = current,
     }, Element.defaultDependencies)
     table.insert(current.children, child)
     current = child

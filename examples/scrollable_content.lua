@@ -30,19 +30,17 @@ function ScrollableContentExample.new()
   })
 
   -- Header
-  FlexLove.new({
-    parent = self.window,
+  self.window:appendChild(FlexLove.new({
     text = "Scrollable Content Example",
     textAlign = "center",
     fontSize = "2xl",
     width = "100%",
     color = Color.new(1, 1, 1, 1),
     margin = { bottom = 10 },
-  })
+  }))
 
   -- Create scroll container with overflow handling
-  self.scrollContainer = FlexLove.new({
-    parent = self.window,
+  self.scrollContainer = self.window:appendChild(FlexLove.new({
     width = "90%",
     height = "70%",
     display = "flex",
@@ -52,7 +50,7 @@ function ScrollableContentExample.new()
     padding = { horizontal = 10, vertical = 5 },
     themeComponent = "framev3",
     backgroundColor = Color.new(0.2, 0.2, 0.2, 0.5),
-  })
+  }))
 
   -- Add multiple scrollable elements to demonstrate scrolling
   for i = 1, 30 do
@@ -61,8 +59,7 @@ function ScrollableContentExample.new()
       i
     )
 
-    FlexLove.new({
-      parent = self.scrollContainer,
+    self.scrollContainer:appendChild(FlexLove.new({
       text = text,
       textAlign = "start",
       fontSize = "md",
@@ -71,19 +68,18 @@ function ScrollableContentExample.new()
       padding = { vertical = 5 },
       themeComponent = i % 3 == 0 and "panel" or "cardv2",
       backgroundColor = i % 3 == 0 and Color.new(0.3, 0.3, 0.3, 0.7) or Color.new(0.4, 0.4, 0.4, 0.5),
-    })
+    }))
   end
 
   -- Footer with instructions
-  FlexLove.new({
-    parent = self.window,
+  self.window:appendChild(FlexLove.new({
     text = "Scroll using the mouse wheel or drag the scrollbar",
     textAlign = "center",
     fontSize = "sm",
     width = "100%",
     color = Color.new(0.7, 0.7, 0.7, 1),
     margin = { top = 10 },
-  })
+  }))
 
   return self
 end

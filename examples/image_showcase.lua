@@ -28,8 +28,7 @@ function lv.draw()
   })
 
   -- Title
-  FlexLove.new({
-    parent = container,
+  container:appendChild(FlexLove.new({
     text = "FlexLove Image Showcase",
     fontSize = "xxl",
     color = Color.new(0.2, 0.2, 0.2, 1),
@@ -38,18 +37,16 @@ function lv.draw()
     width = "100%",
     z = 1000,
     padding = { top = 0, right = 0, bottom = 20, left = 0 },
-  })
+  }))
 
   -- Section 1: Object-Fit Modes
-  local fitSection = FlexLove.new({
-    parent = container,
+  local fitSection = container:appendChild(FlexLove.new({
     width = "100%",
     flexDirection = "column",
     gap = 10,
-  })
+  }))
 
-  FlexLove.new({
-    parent = fitSection,
+  fitSection:appendChild(FlexLove.new({
     text = "Object-Fit Modes",
     fontSize = "lg",
     color = Color.new(0.3, 0.3, 0.3, 1),
@@ -57,10 +54,9 @@ function lv.draw()
     width = "100%",
     z = 1000,
     padding = { top = 5, right = 0, bottom = 5, left = 0 },
-  })
+  }))
 
-  local fitRow = FlexLove.new({
-    parent = fitSection,
+  local fitRow = fitSection:appendChild(FlexLove.new({
     width = "100%",
     display = "flex",
     flexDirection = "row",
@@ -68,7 +64,7 @@ function lv.draw()
     justifyContent = "space-between",
     alignItems = "flex-start",
     padding = { top = 30 },
-  })
+  }))
 
   local fitModes = { "fill", "contain", "cover", "scale-down", "none" }
   local fitSizes = {
@@ -81,8 +77,7 @@ function lv.draw()
 
   for i, mode in ipairs(fitModes) do
     local size = fitSizes[i]
-    local fitBox = FlexLove.new({
-      parent = fitRow,
+    local fitBox = fitRow:appendChild(FlexLove.new({
       width = size.width,
       height = size.height,
       display = "flex",
@@ -91,19 +86,17 @@ function lv.draw()
       backgroundColor = Color.new(1, 1, 1, 1),
       borderRadius = 8,
       padding = { top = 10, right = 10, bottom = 10, left = 10 },
-    })
+    }))
 
-    FlexLove.new({
-      parent = fitBox,
+    fitBox:appendChild(FlexLove.new({
       width = size.imgWidth,
       height = size.imgHeight,
       backgroundColor = Color.new(0.9, 0.9, 0.9, 1),
       backgroundImage = "sample.jpg",
       backgroundSize = mode,
-    })
+    }))
 
-    FlexLove.new({
-      parent = fitBox,
+    fitBox:appendChild(FlexLove.new({
       text = mode,
       fontSize = "sm",
       color = Color.new(0.4, 0.4, 0.4, 1),
@@ -112,19 +105,17 @@ function lv.draw()
       width = "100%",
       z = 1000,
       padding = { top = 3, right = 0, bottom = 3, left = 0 },
-    })
+    }))
   end
 
   -- Section 2: Object-Position
-  local posSection = FlexLove.new({
-    parent = container,
+  local posSection = container:appendChild(FlexLove.new({
     width = "100%",
     flexDirection = "column",
     gap = 10,
-  })
+  }))
 
-  FlexLove.new({
-    parent = posSection,
+  posSection:appendChild(FlexLove.new({
     text = "Object-Position",
     fontSize = "lg",
     color = Color.new(0.3, 0.3, 0.3, 1),
@@ -132,10 +123,9 @@ function lv.draw()
     width = "100%",
     z = 1000,
     padding = { top = 5, right = 0, bottom = 5, left = 0 },
-  })
+  }))
 
-  local posRow = FlexLove.new({
-    parent = posSection,
+  local posRow = posSection:appendChild(FlexLove.new({
     width = "100%",
     display = "flex",
     flexDirection = "row",
@@ -143,7 +133,7 @@ function lv.draw()
     justifyContent = "space-between",
     alignItems = "flex-start",
     padding = { top = 30 },
-  })
+  }))
 
   local positions = { "top left", "center center", "bottom right", "50% 20%", "left center" }
   local posSizes = {
@@ -156,8 +146,7 @@ function lv.draw()
 
   for i, pos in ipairs(positions) do
     local size = posSizes[i]
-    local posBox = FlexLove.new({
-      parent = posRow,
+    local posBox = posRow:appendChild(FlexLove.new({
       width = size.width,
       height = size.height,
       display = "flex",
@@ -166,20 +155,18 @@ function lv.draw()
       backgroundColor = Color.new(1, 1, 1, 1),
       borderRadius = 8,
       padding = { top = 10, right = 10, bottom = 10, left = 10 },
-    })
+    }))
 
-    FlexLove.new({
-      parent = posBox,
+    posBox:appendChild(FlexLove.new({
       width = size.imgWidth,
       height = size.imgHeight,
       backgroundColor = Color.new(0.9, 0.9, 0.9, 1),
       backgroundImage = "sample.jpg",
       backgroundSize = "none",
       backgroundPosition = pos,
-    })
+    }))
 
-    FlexLove.new({
-      parent = posBox,
+    posBox:appendChild(FlexLove.new({
       text = pos,
       fontSize = "xs",
       color = Color.new(0.4, 0.4, 0.4, 1),
@@ -188,19 +175,17 @@ function lv.draw()
       width = "100%",
       z = 1000,
       padding = { top = 3, right = 0, bottom = 3, left = 0 },
-    })
+    }))
   end
 
   -- Section 3: Image Tiling/Repeat
-  local tileSection = FlexLove.new({
-    parent = container,
+  local tileSection = container:appendChild(FlexLove.new({
     width = "100%",
     flexDirection = "column",
     gap = 10,
-  })
+  }))
 
-  FlexLove.new({
-    parent = tileSection,
+  tileSection:appendChild(FlexLove.new({
     text = "Image Tiling (Repeat Modes)",
     fontSize = "lg",
     color = Color.new(0.3, 0.3, 0.3, 1),
@@ -208,10 +193,9 @@ function lv.draw()
     width = "100%",
     z = 1000,
     padding = { top = 5, right = 0, bottom = 5, left = 0 },
-  })
+  }))
 
-  local tileRow = FlexLove.new({
-    parent = tileSection,
+  local tileRow = tileSection:appendChild(FlexLove.new({
     width = "100%",
     display = "flex",
     flexDirection = "row",
@@ -219,7 +203,7 @@ function lv.draw()
     justifyContent = "space-between",
     alignItems = "flex-start",
     padding = { top = 30 },
-  })
+  }))
 
   local repeatModes = { "no-repeat", "repeat", "repeat-x", "repeat-y" }
   local tileSizes = {
@@ -231,8 +215,7 @@ function lv.draw()
 
   for i, mode in ipairs(repeatModes) do
     local size = tileSizes[i]
-    local tileBox = FlexLove.new({
-      parent = tileRow,
+    local tileBox = tileRow:appendChild(FlexLove.new({
       width = size.width,
       height = size.height,
       display = "flex",
@@ -241,19 +224,17 @@ function lv.draw()
       backgroundColor = Color.new(1, 1, 1, 1),
       borderRadius = 8,
       padding = { top = 10, right = 10, bottom = 10, left = 10 },
-    })
+    }))
 
-    FlexLove.new({
-      parent = tileBox,
+    tileBox:appendChild(FlexLove.new({
       width = size.imgWidth,
       height = size.imgHeight,
       backgroundColor = Color.new(0.9, 0.9, 0.9, 1),
       backgroundImage = "sample.jpg",
       backgroundRepeat = mode,
-    })
+    }))
 
-    FlexLove.new({
-      parent = tileBox,
+    tileBox:appendChild(FlexLove.new({
       text = mode,
       fontSize = "sm",
       color = Color.new(0.4, 0.4, 0.4, 1),
@@ -262,19 +243,17 @@ function lv.draw()
       width = "100%",
       z = 1000,
       padding = { top = 3, right = 0, bottom = 3, left = 0 },
-    })
+    }))
   end
 
   -- Section 4: Image Tinting and Opacity
-  local tintSection = FlexLove.new({
-    parent = container,
+  local tintSection = container:appendChild(FlexLove.new({
     width = "100%",
     flexDirection = "column",
     gap = 10,
-  })
+  }))
 
-  FlexLove.new({
-    parent = tintSection,
+  tintSection:appendChild(FlexLove.new({
     text = "Image Tinting & Opacity",
     fontSize = "lg",
     color = Color.new(0.3, 0.3, 0.3, 1),
@@ -282,10 +261,9 @@ function lv.draw()
     width = "100%",
     z = 1000,
     padding = { top = 5, right = 0, bottom = 5, left = 0 },
-  })
+  }))
 
-  local tintRow = FlexLove.new({
-    parent = tintSection,
+  local tintRow = tintSection:appendChild(FlexLove.new({
     width = "100%",
     display = "flex",
     flexDirection = "row",
@@ -293,7 +271,7 @@ function lv.draw()
     justifyContent = "space-between",
     alignItems = "flex-start",
     padding = { top = 30 },
-  })
+  }))
 
   local tints = {
     { name = "No Tint", color = nil, opacity = 1 },
@@ -313,8 +291,7 @@ function lv.draw()
 
   for i, tint in ipairs(tints) do
     local size = tintSizes[i]
-    local tintBox = FlexLove.new({
-      parent = tintRow,
+    local tintBox = tintRow:appendChild(FlexLove.new({
       width = size.width,
       height = size.height,
       display = "flex",
@@ -323,20 +300,18 @@ function lv.draw()
       backgroundColor = Color.new(1, 1, 1, 1),
       borderRadius = 8,
       padding = { top = 10, right = 10, bottom = 10, left = 10 },
-    })
+    }))
 
-    FlexLove.new({
-      parent = tintBox,
+    tintBox:appendChild(FlexLove.new({
       width = size.imgWidth,
       height = size.imgHeight,
       backgroundColor = Color.new(0.9, 0.9, 0.9, 1),
       backgroundImage = "sample.jpg",
       imageTint = tint.color,
       backgroundOpacity = tint.opacity,
-    })
+    }))
 
-    FlexLove.new({
-      parent = tintBox,
+    tintBox:appendChild(FlexLove.new({
       text = tint.name,
       fontSize = "xs",
       color = Color.new(0.4, 0.4, 0.4, 1),
@@ -345,12 +320,11 @@ function lv.draw()
       width = "100%",
       z = 1000,
       padding = { top = 3, right = 0, bottom = 3, left = 0 },
-    })
+    }))
   end
 
   -- Footer note
-  FlexLove.new({
-    parent = container,
+  container:appendChild(FlexLove.new({
     text = "Image showcase demonstrating various FlexLove image properties",
     fontSize = "xs",
     color = Color.new(0.5, 0.5, 0.5, 1),
@@ -359,7 +333,7 @@ function lv.draw()
     width = "100%",
     z = 1000,
     padding = { top = 10, right = 0, bottom = 10, left = 0 },
-  })
+  }))
 end
 
 function lv.mousepressed(x, y, button)

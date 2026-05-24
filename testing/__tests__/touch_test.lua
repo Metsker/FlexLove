@@ -1359,22 +1359,20 @@ function TestTouchRouting:test_multi_touch_different_elements()
     width = 400,
     height = 200,
   })
-  local element1 = FlexLove.new({
+  local element1 = container:appendChild(FlexLove.new({
     width = 200,
     height = 200,
     onTouchEvent = function(el, event)
       table.insert(events1, event)
     end,
-    parent = container,
-  })
-  local element2 = FlexLove.new({
+  }))
+  local element2 = container:appendChild(FlexLove.new({
     width = 200,
     height = 200,
     onTouchEvent = function(el, event)
       table.insert(events2, event)
     end,
-    parent = container,
-  })
+  }))
 
   FlexLove.touchpressed("touch1", 50, 100, 0, 0, 1.0)
   FlexLove.touchpressed("touch2", 300, 100, 0, 0, 1.0)
@@ -1630,15 +1628,14 @@ function TestTouchRouting:test_child_receives_touch_over_parent()
       table.insert(parentEvents, event)
     end,
   })
-  local child = FlexLove.new({
+  local child = parent:appendChild(FlexLove.new({
     width = 200,
     height = 200,
     z = 1,
     onTouchEvent = function(el, event)
       table.insert(childEvents, event)
     end,
-    parent = parent,
-  })
+  }))
 
   FlexLove.touchpressed("touch1", 100, 100, 0, 0, 1.0)
 

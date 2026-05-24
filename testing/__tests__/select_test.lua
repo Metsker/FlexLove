@@ -54,14 +54,13 @@ function TestSelectModule:test_select_option_registers_with_parent()
     selectParent = { value = "a" },
   })
 
-  local opt = FlexLove.new({
+  local opt = sp:appendChild(FlexLove.new({
     id = "opt1",
-    parent = sp,
     width = 300,
     height = 20,
     text = "Option A",
     selectOption = { value = "a" },
-  })
+  }))
 
   luaunit.assertEquals(sp:getSelectValue(), "a")
   luaunit.assertTrue(opt:isSelectedSelectOption())
@@ -76,21 +75,19 @@ function TestSelectModule:test_select_option_registers_nested()
     selectParent = { value = "a" },
   })
 
-  local wrapper = FlexLove.new({
+  local wrapper = sp:appendChild(FlexLove.new({
     id = "wrapper",
-    parent = sp,
     width = 300,
     height = 20,
-  })
+  }))
 
-  local opt = FlexLove.new({
+  local opt = wrapper:appendChild(FlexLove.new({
     id = "opt_nested",
-    parent = wrapper,
     width = 300,
     height = 20,
     text = "Nested Option",
     selectOption = { value = "a" },
-  })
+  }))
 
   luaunit.assertEquals(sp:getSelectValue(), "a")
   luaunit.assertTrue(opt:isSelectedSelectOption())
@@ -105,21 +102,19 @@ function TestSelectModule:test_multiple_options_register_in_order()
     selectParent = { value = "x" },
   })
 
-  local opt1 = FlexLove.new({
+  local opt1 = sp:appendChild(FlexLove.new({
     id = "multi1",
-    parent = sp,
     width = 300,
     height = 20,
     selectOption = { value = "x" },
-  })
+  }))
 
-  local opt2 = FlexLove.new({
+  local opt2 = sp:appendChild(FlexLove.new({
     id = "multi2",
-    parent = sp,
     width = 300,
     height = 20,
     selectOption = { value = "y" },
-  })
+  }))
 
   luaunit.assertEquals(sp:getSelectValue(), "x")
   luaunit.assertTrue(opt1:isSelectedSelectOption())
@@ -168,14 +163,13 @@ function TestSelectModule:test_get_value_and_label()
   luaunit.assertEquals(sp:getSelectValue(), "initial")
   luaunit.assertEquals(sp:getSelectLabel(), "Pick one")
 
-  FlexLove.new({
+  sp:appendChild(FlexLove.new({
     id = "opt_label1",
-    parent = sp,
     width = 200,
     height = 30,
     text = "Option Alpha",
     selectOption = { value = "alpha", label = "Alpha" },
-  })
+  }))
 
   sp:setSelectValue("alpha")
   luaunit.assertEquals(sp:getSelectValue(), "alpha")
@@ -199,14 +193,13 @@ function TestSelectModule:test_set_value_fires_onchange()
     },
   })
 
-  FlexLove.new({
+  sp:appendChild(FlexLove.new({
     id = "opt_newval",
-    parent = sp,
     width = 200,
     height = 30,
     text = "New",
     selectOption = { value = "new" },
-  })
+  }))
 
   sp:setSelectValue("new")
 
@@ -243,21 +236,19 @@ function TestSelectModule:test_is_selected_option()
     selectParent = { value = "a" },
   })
 
-  local optA = FlexLove.new({
+  local optA = sp:appendChild(FlexLove.new({
     id = "sel_opt_a",
-    parent = sp,
     width = 200,
     height = 30,
     selectOption = { value = "a" },
-  })
+  }))
 
-  local optB = FlexLove.new({
+  local optB = sp:appendChild(FlexLove.new({
     id = "sel_opt_b",
-    parent = sp,
     width = 200,
     height = 30,
     selectOption = { value = "b" },
-  })
+  }))
 
   luaunit.assertTrue(optA:isSelectedSelectOption())
   luaunit.assertFalse(optB:isSelectedSelectOption())
@@ -276,14 +267,13 @@ function TestSelectModule:test_disabled_option_does_not_select()
     selectParent = { value = "a" },
   })
 
-  local optDisabled = FlexLove.new({
+  local optDisabled = sp:appendChild(FlexLove.new({
     id = "opt_disabled",
-    parent = sp,
     width = 200,
     height = 30,
     text = "Disabled",
     selectOption = { value = "disabled", disabled = true },
-  })
+  }))
 
   sp:setSelectValue("disabled", optDisabled)
   luaunit.assertEquals(sp:getSelectValue(), "disabled", "Should still set value even for disabled option")
@@ -372,14 +362,13 @@ function TestSelectModule:test_options_route_to_managed_frame()
     },
   })
 
-  local opt = FlexLove.new({
+  local opt = sp:appendChild(FlexLove.new({
     id = "opt_routed",
-    parent = sp,
     width = 200,
     height = 30,
     text = "Routed",
     selectOption = { value = "a" },
-  })
+  }))
 
   luaunit.assertTrue(opt.parent == frame, "Option should be reparented into the managed frame")
   luaunit.assertTrue(opt:isSelectedSelectOption())
@@ -410,14 +399,13 @@ function TestSelectModule:test_handle_release_selects_option()
     selectParent = { value = "a" },
   })
 
-  local opt = FlexLove.new({
+  local opt = sp:appendChild(FlexLove.new({
     id = "opt_release",
-    parent = sp,
     width = 200,
     height = 30,
     text = "Release",
     selectOption = { value = "b" },
-  })
+  }))
 
   sp:openSelect()
   opt:_handleSelectRelease()

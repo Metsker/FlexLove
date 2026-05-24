@@ -762,12 +762,11 @@ function TestLayoutEdgeCases:test_percentage_width_with_auto_parent_warns()
     flexDirection = "row",
   })
 
-  FlexLove.new({
+  container:appendChild(FlexLove.new({
     id = "child_with_percentage",
-    parent = container,
     width = "50%", -- Percentage width with auto-sizing parent - should warn
     height = 100,
-  })
+  }))
 
 
   -- Check that a warning was issued
@@ -788,12 +787,11 @@ function TestLayoutEdgeCases:test_percentage_height_with_auto_parent_warns()
     flexDirection = "column",
   })
 
-  FlexLove.new({
+  container:appendChild(FlexLove.new({
     id = "child_with_percentage",
-    parent = container,
     width = 100,
     height = "50%", -- Percentage height with auto-sizing parent - should warn
-  })
+  }))
 
 
   -- Check that a warning was issued
@@ -814,12 +812,11 @@ function TestLayoutEdgeCases:test_pixel_width_with_auto_parent_no_warn()
     flexDirection = "row",
   })
 
-  FlexLove.new({
+  container:appendChild(FlexLove.new({
     id = "child_with_pixels",
-    parent = container,
     width = 100, -- Pixel width - should NOT warn
     height = 100,
-  })
+  }))
 
 
   -- Check that NO warning was issued about percentage sizing
@@ -840,15 +837,14 @@ function TestLayoutEdgeCases:test_css_positioning_top_offset()
     positioning = "absolute",
   })
 
-  local child = FlexLove.new({
+  local child = container:appendChild(FlexLove.new({
     id = "child",
-    parent = container,
     positioning = "absolute",
     top = 50, -- 50px from top
     left = 0,
     width = 100,
     height = 100,
-  })
+  }))
 
   -- Trigger layout by ending and restarting frame
 
@@ -867,15 +863,14 @@ function TestLayoutEdgeCases:test_css_positioning_bottom_offset()
     positioning = "absolute",
   })
 
-  local child = FlexLove.new({
+  local child = container:appendChild(FlexLove.new({
     id = "child",
-    parent = container,
     positioning = "absolute",
     bottom = 50, -- 50px from bottom
     left = 0,
     width = 100,
     height = 100,
-  })
+  }))
 
 
   -- Child should be positioned 50px from container's bottom edge
@@ -893,15 +888,14 @@ function TestLayoutEdgeCases:test_css_positioning_left_offset()
     positioning = "absolute",
   })
 
-  local child = FlexLove.new({
+  local child = container:appendChild(FlexLove.new({
     id = "child",
-    parent = container,
     positioning = "absolute",
     top = 0,
     left = 50, -- 50px from left
     width = 100,
     height = 100,
-  })
+  }))
 
 
   -- Child should be positioned 50px from container's left edge
@@ -919,15 +913,14 @@ function TestLayoutEdgeCases:test_css_positioning_right_offset()
     positioning = "absolute",
   })
 
-  local child = FlexLove.new({
+  local child = container:appendChild(FlexLove.new({
     id = "child",
-    parent = container,
     positioning = "absolute",
     top = 0,
     right = 50, -- 50px from right
     width = 100,
     height = 100,
-  })
+  }))
 
 
   -- Child should be positioned 50px from container's right edge
@@ -945,16 +938,15 @@ function TestLayoutEdgeCases:test_css_positioning_top_and_bottom()
     positioning = "absolute",
   })
 
-  local child = FlexLove.new({
+  local child = container:appendChild(FlexLove.new({
     id = "child",
-    parent = container,
     positioning = "absolute",
     top = 10,
     bottom = 20, -- Both specified - last one wins in current implementation
     left = 0,
     width = 100,
     height = 100,
-  })
+  }))
 
 
   -- Bottom should override top
@@ -972,16 +964,15 @@ function TestLayoutEdgeCases:test_css_positioning_left_and_right()
     positioning = "absolute",
   })
 
-  local child = FlexLove.new({
+  local child = container:appendChild(FlexLove.new({
     id = "child",
-    parent = container,
     positioning = "absolute",
     top = 0,
     left = 10,
     right = 20, -- Both specified - last one wins in current implementation
     width = 100,
     height = 100,
-  })
+  }))
 
 
   -- Right should override left
@@ -1000,15 +991,14 @@ function TestLayoutEdgeCases:test_css_positioning_with_padding()
     positioning = "absolute",
   })
 
-  local child = FlexLove.new({
+  local child = container:appendChild(FlexLove.new({
     id = "child",
-    parent = container,
     positioning = "absolute",
     top = 10,
     left = 10,
     width = 100,
     height = 100,
-  })
+  }))
 
 
   -- Offsets should be relative to content area (after padding)
@@ -1030,14 +1020,13 @@ function TestLayoutEdgeCases:test_css_positioning_ignored_in_flex()
     flexDirection = "row",
   })
 
-  local child = FlexLove.new({
+  local child = container:appendChild(FlexLove.new({
     id = "child",
-    parent = container,
     top = 100, -- This should be IGNORED in flex layout
     left = 100, -- This should be IGNORED in flex layout
     width = 100,
     height = 100,
-  })
+  }))
 
 
   -- In flex layout, child should be positioned by flex rules, not CSS offsets
@@ -1056,15 +1045,14 @@ function TestLayoutEdgeCases:test_css_positioning_in_relative_container()
     positioning = "relative",
   })
 
-  local child = FlexLove.new({
+  local child = container:appendChild(FlexLove.new({
     id = "child",
-    parent = container,
     positioning = "absolute",
     top = 30,
     left = 30,
     width = 100,
     height = 100,
-  })
+  }))
 
 
   -- Should work the same as absolute container
@@ -1099,14 +1087,13 @@ function TestOverflowDetection:test_vertical_overflow_detected()
   })
 
   -- Add child that exceeds container height
-  FlexLove.new({
+  container:appendChild(FlexLove.new({
     id = "tall_child",
-    parent = container,
     x = 0,
     y = 0,
     width = 100,
     height = 200, -- Taller than container (100)
-  })
+  }))
 
   -- Force layout to trigger detectOverflow
 
@@ -1127,15 +1114,14 @@ function TestOverflowDetection:test_horizontal_overflow_detected()
   })
 
   -- Add child that exceeds container width
-  FlexLove.new({
+  container:appendChild(FlexLove.new({
     id = "wide_child",
-    parent = container,
     x = 0,
     y = 0,
     width = 300, -- Wider than container (100)
     height = 50,
     flexShrink = 0,
-  })
+  }))
 
 
   local maxScrollX, maxScrollY = container:getMaxScroll()
@@ -1154,19 +1140,17 @@ function TestOverflowDetection:test_main_axis_scroll_keeps_default_items_unshrun
     overflowY = "hidden",
   })
 
-  local child1 = FlexLove.new({
+  local child1 = container:appendChild(FlexLove.new({
     id = "child1",
-    parent = container,
     width = 80,
     height = 40,
-  })
+  }))
 
-  local child2 = FlexLove.new({
+  local child2 = container:appendChild(FlexLove.new({
     id = "child2",
-    parent = container,
     width = 80,
     height = 40,
-  })
+  }))
 
 
   local maxScrollX = container:getMaxScroll()
@@ -1186,19 +1170,17 @@ function TestOverflowDetection:test_main_axis_scroll_keeps_default_items_unshrun
     overflowX = "hidden",
   })
 
-  local child1 = FlexLove.new({
+  local child1 = container:appendChild(FlexLove.new({
     id = "child1",
-    parent = container,
     width = 80,
     height = 60,
-  })
+  }))
 
-  local child2 = FlexLove.new({
+  local child2 = container:appendChild(FlexLove.new({
     id = "child2",
-    parent = container,
     width = 80,
     height = 60,
-  })
+  }))
 
 
   local _, maxScrollY = container:getMaxScroll()
@@ -1218,15 +1200,14 @@ function TestOverflowDetection:test_both_axes_overflow()
   })
 
   -- Add child that exceeds both dimensions
-  FlexLove.new({
+  container:appendChild(FlexLove.new({
     id = "large_child",
-    parent = container,
     x = 0,
     y = 0,
     width = 200,
     height = 200,
     flexShrink = 0,
-  })
+  }))
 
 
   local maxScrollX, maxScrollY = container:getMaxScroll()
@@ -1245,14 +1226,13 @@ function TestOverflowDetection:test_no_overflow_when_content_fits()
   })
 
   -- Add child that fits within container
-  FlexLove.new({
+  container:appendChild(FlexLove.new({
     id = "small_child",
-    parent = container,
     x = 0,
     y = 0,
     width = 100,
     height = 100,
-  })
+  }))
 
 
   local maxScrollX, maxScrollY = container:getMaxScroll()
@@ -1274,13 +1254,12 @@ function TestOverflowDetection:test_overflow_with_multiple_children()
 
   -- Add multiple children that together exceed container
   for i = 1, 5 do
-    FlexLove.new({
+    container:appendChild(FlexLove.new({
       id = "child_" .. i,
-      parent = container,
       width = 150,
       height = 60, -- 5 * 60 = 300, exceeds container height of 200
       flexShrink = 0,
-    })
+    }))
   end
 
 
@@ -1300,14 +1279,13 @@ function TestOverflowDetection:test_overflow_with_padding()
   })
 
   -- Child that fits in container but exceeds available content area (200 - 20 = 180)
-  FlexLove.new({
+  container:appendChild(FlexLove.new({
     id = "child",
-    parent = container,
     x = 0,
     y = 0,
     width = 190, -- Exceeds content width (180)
     height = 100,
-  })
+  }))
 
 
   local maxScrollX, maxScrollY = container:getMaxScroll()
@@ -1328,14 +1306,13 @@ function TestOverflowDetection:test_overflow_with_margins()
 
   -- Child with margins that contribute to overflow
   -- In flex layout, margins are properly accounted for in positioning
-  FlexLove.new({
+  container:appendChild(FlexLove.new({
     id = "child",
-    parent = container,
     width = 180,
     height = 180,
     flexShrink = 0,
     margin = { top = 5, right = 20, bottom = 5, left = 5 }, -- Total width: 5+180+20=205, overflows 200px container
-  })
+  }))
 
 
   local maxScrollX, maxScrollY = container:getMaxScroll()
@@ -1353,14 +1330,13 @@ function TestOverflowDetection:test_visible_overflow_skips_detection()
   })
 
   -- Add oversized child
-  FlexLove.new({
+  container:appendChild(FlexLove.new({
     id = "large_child",
-    parent = container,
     x = 0,
     y = 0,
     width = 300,
     height = 300,
-  })
+  }))
 
 
   -- With overflow="visible", maxScroll should be 0 (no scrolling)
@@ -1397,25 +1373,23 @@ function TestOverflowDetection:test_absolute_children_ignored_in_overflow()
   })
 
   -- Regular child that fits
-  FlexLove.new({
+  container:appendChild(FlexLove.new({
     id = "normal_child",
-    parent = container,
     x = 0,
     y = 0,
     width = 150,
     height = 150,
-  })
+  }))
 
   -- Absolutely positioned child that extends beyond (should NOT cause overflow)
-  FlexLove.new({
+  container:appendChild(FlexLove.new({
     id = "absolute_child",
-    parent = container,
     positioning = "absolute",
     top = 0,
     left = 0,
     width = 400,
     height = 400,
-  })
+  }))
 
 
   local maxScrollX, maxScrollY = container:getMaxScroll()
@@ -1434,14 +1408,13 @@ function TestOverflowDetection:test_scroll_clamped_to_max()
     overflow = "scroll",
   })
 
-  FlexLove.new({
+  container:appendChild(FlexLove.new({
     id = "child",
-    parent = container,
     x = 0,
     y = 0,
     width = 100,
     height = 300, -- Creates 200px of vertical overflow
-  })
+  }))
 
 
   -- Try to scroll beyond max
@@ -1783,12 +1756,11 @@ function TestManagedSelectHooks:test_managed_select_frame_suppresses_percentage_
     flexDirection = "row",
   })
 
-  FlexLove.new({
+  container:appendChild(FlexLove.new({
     id = "ms_child",
-    parent = container,
     width = "50%",
     height = 100,
-  })
+  }))
 
 
   local hasPercentageWarning = false
@@ -1839,7 +1811,7 @@ end
 function TestManagedSelectHooks:test_adjust_cross_axis_percentage_width()
   FlexLove.init()
   local element = FlexLove.new({ id = "ms2", x = 0, y = 0, width = 100, height = 100 })
-  local child = FlexLove.new({ id = "child1", parent = element, width = 50, height = 30 })
+  local child = element:appendChild(FlexLove.new({ id = "child1", width = 50, height = 30 }))
   element._managedSelectFrame = true
   element.autosizing = { width = true, height = false }
 
@@ -1873,8 +1845,9 @@ end
 function TestManagedSelectHooks:test_adjust_auto_width_child_border_box()
   FlexLove.init()
   local element = FlexLove.new({ id = "ms4", x = 0, y = 0, width = 200, height = 200 })
-  local child =
-    FlexLove.new({ id = "child2", parent = element, width = "100%", height = 30, padding = { left = 0, right = 0 } })
+  local child = element:appendChild(
+    FlexLove.new({ id = "child2", width = "100%", height = 30, padding = { left = 0, right = 0 } })
+  )
   element._managedSelectFrame = true
   element.autosizing = { width = true, height = false }
 
@@ -1916,7 +1889,7 @@ end
 
 function TestMinMax:test_percentage_minWidth_resolved_against_parent()
   local parent = FlexLove.new({ width = 400, height = 200 })
-  local child = FlexLove.new({ width = 50, height = 50, minWidth = "50%", parent = parent })
+  local child = parent:appendNew({ width = 50, height = 50, minWidth = "50%" })
   luaunit.assertEquals(child.minWidth, 200)
   luaunit.assertEquals(child.width, 200)
 end
@@ -1926,8 +1899,8 @@ function TestMinMax:test_flex_grow_clamped_by_maxWidth_redistributes()
     width = 600, height = 100,
     positioning = "flex", flexDirection = "row", gap = 0,
   })
-  local capped = FlexLove.new({ width = 100, height = 50, flexGrow = 1, maxWidth = 200, parent = container })
-  local free = FlexLove.new({ width = 100, height = 50, flexGrow = 1, parent = container })
+  local capped = container:appendChild(FlexLove.new({ width = 100, height = 50, flexGrow = 1, maxWidth = 200 }))
+  local free = container:appendChild(FlexLove.new({ width = 100, height = 50, flexGrow = 1 }))
   container:layoutChildren()
   luaunit.assertEquals(capped.width, 200)
   luaunit.assertEquals(free.width, 300)
@@ -1939,7 +1912,7 @@ function TestMinMax:test_cross_axis_stretch_clamped_by_maxHeight()
     positioning = "flex", flexDirection = "row",
     alignItems = "stretch", gap = 0,
   })
-  local child = FlexLove.new({ width = 100, maxHeight = 100, parent = container })
+  local child = container:appendChild(FlexLove.new({ width = 100, maxHeight = 100 }))
   container:layoutChildren()
   luaunit.assertEquals(child.height, 100)
 end

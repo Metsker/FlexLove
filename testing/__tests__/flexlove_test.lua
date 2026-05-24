@@ -174,6 +174,26 @@ function TestFlexLove:testChildrenAcceptsPropTables()
   luaunit.assertEquals(#parent.children, 2)
 end
 
+function TestFlexLove:testAppendNewResolvesPercentageAgainstParent()
+  -- Construction-time path: percentage width resolved against the parent's
+  -- 1000px width, not the viewport.
+  local parent = FlexLove.new({ width = 1000, height = 500 })
+  local child = parent:appendNew({ width = "50%", height = "50%" })
+  luaunit.assertEquals(child.width, 500)
+  luaunit.assertEquals(child.height, 250)
+  luaunit.assertEquals(child.parent, parent)
+end
+
+function TestFlexLove:testParentPropWarnsAndIsIgnored()
+  -- Legacy `parent =` in props no longer attaches; the constructor warns and
+  -- the element stays at the top level.
+  local container = FlexLove.new({ id = "tc", width = 100, height = 100 })
+  local before = #FlexLove.topElements
+  local stray = FlexLove.new({ parent = container, width = 10, height = 10 })
+  luaunit.assertNil(stray.parent)
+  luaunit.assertEquals(#FlexLove.topElements, before + 1)
+end
+
 function TestFlexLove:testChildrenAcceptsElementInstances()
   local childA = FlexLove.new({ id = "ca", width = 20, height = 20 })
   local childB = FlexLove.new({ id = "cb", width = 20, height = 20 })

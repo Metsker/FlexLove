@@ -27,18 +27,16 @@ function ThemeExample:render()
   })
 
   -- Title
-  FlexLove.new({
-    parent = flex,
+  flex:appendChild(FlexLove.new({
     text = "Theming and Custom Components Example",
     textAlign = "center",
     fontSize = "2xl",
     width = "100%",
     height = "10%",
-  })
+  }))
 
   -- Theme selector
-  local themeSelector = FlexLove.new({
-    parent = flex,
+  local themeSelector = flex:appendChild(FlexLove.new({
     display = "flex",
     flexDirection = "row",
     justifyContent = "space-between",
@@ -48,18 +46,16 @@ function ThemeExample:render()
     backgroundColor = "#2d3748",
     borderRadius = 8,
     padding = { horizontal = 10 },
-  })
+  }))
 
-  FlexLove.new({
-    parent = themeSelector,
+  themeSelector:appendChild(FlexLove.new({
     text = "Current Theme: " .. self.themes[self.themeIndex],
     textAlign = "left",
     fontSize = "md",
     width = "50%",
-  })
+  }))
 
-  FlexLove.new({
-    parent = themeSelector,
+  themeSelector:appendChild(FlexLove.new({
     themeComponent = "buttonv2",
     text = "Switch Theme",
     textAlign = "center",
@@ -71,11 +67,10 @@ function ThemeExample:render()
         print("Theme switched to: " .. self.themes[self.themeIndex])
       end
     end,
-  })
+  }))
 
   -- Custom component example - A styled card
-  local customCard = FlexLove.new({
-    parent = flex,
+  local customCard = flex:appendChild(FlexLove.new({
     display = "flex",
     flexDirection = "column",
     justifyContent = "center",
@@ -85,30 +80,27 @@ function ThemeExample:render()
     themeComponent = "cardv2", -- Uses theme styling
     padding = { horizontal = 20, vertical = 20 },
     margin = { top = 10 },
-  })
+  }))
 
-  FlexLove.new({
-    parent = customCard,
+  customCard:appendChild(FlexLove.new({
     text = "Custom Card Component",
     textAlign = "center",
     fontSize = "lg",
     width = "100%",
     height = "30%",
-  })
+  }))
 
-  FlexLove.new({
-    parent = customCard,
+  customCard:appendChild(FlexLove.new({
     text = "This demonstrates how to create reusable components with theme support",
     textAlign = "center",
     fontSize = "sm",
     width = "100%",
     height = "50%",
     color = "#a0aec0", -- Light gray text
-  })
+  }))
 
   -- Another custom component - Status indicator
-  local statusIndicator = FlexLove.new({
-    parent = flex,
+  local statusIndicator = flex:appendChild(FlexLove.new({
     display = "flex",
     flexDirection = "row",
     justifyContent = "space-between",
@@ -118,24 +110,22 @@ function ThemeExample:render()
     backgroundColor = "#4a5568",
     borderRadius = 8,
     padding = { horizontal = 15 },
-  })
+  }))
 
-  FlexLove.new({
-    parent = statusIndicator,
+  statusIndicator:appendChild(FlexLove.new({
     text = "Status: Active",
     textAlign = "left",
     fontSize = "md",
     width = "50%",
-  })
+  }))
 
-  local statusDot = FlexLove.new({
-    parent = statusIndicator,
+  local statusDot = statusIndicator:appendChild(FlexLove.new({
     display = "flex",
     width = 20,
     height = 20,
     backgroundColor = "#48bb78", -- Green dot
     borderRadius = 10, -- Circle
-  })
+  }))
 
   return flex
 end

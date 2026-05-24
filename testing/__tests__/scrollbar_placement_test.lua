@@ -31,11 +31,10 @@ function TestScrollbarPlacement:test_reserve_space_with_percentage_height_childr
     scrollbarPlacement = "reserve-space",
   })
 
-  local child1 = FlexLove.new({
+  local child1 = container:appendChild(FlexLove.new({
     width = 100,
     height = "100%",
-    parent = container,
-  })
+  }))
 
   -- Trigger layout
   container:layoutChildren()
@@ -63,11 +62,10 @@ function TestScrollbarPlacement:test_reserve_space_with_percentage_width_childre
     scrollbarPlacement = "reserve-space",
   })
 
-  local child1 = FlexLove.new({
+  local child1 = container:appendChild(FlexLove.new({
     width = "100%",
     height = 100,
-    parent = container,
-  })
+  }))
 
   -- Trigger layout
   container:layoutChildren()
@@ -95,10 +93,9 @@ function TestScrollbarPlacement:test_overlay_mode_no_size_adjustment()
     scrollbarPlacement = "overlay",
   })
 
-  local child1 = FlexLove.new({
+  local child1 = container:appendNew({
     width = 100,
     height = "100%",
-    parent = container,
   })
 
   -- Trigger layout
@@ -121,11 +118,10 @@ function TestScrollbarPlacement:test_auto_overflow_reserves_space_only_when_need
   })
 
   -- Child that doesn't cause overflow
-  local child1 = FlexLove.new({
+  local child1 = container:appendChild(FlexLove.new({
     width = "100%",
     height = 100,
-    parent = container,
-  })
+  }))
 
   -- Trigger layout and overflow detection
   container:layoutChildren()
@@ -151,12 +147,11 @@ function TestScrollbarPlacement:test_vertical_overflow_detected_with_reserved_sp
   })
 
   -- Child that WILL cause overflow
-  local child1 = FlexLove.new({
+  local child1 = container:appendChild(FlexLove.new({
     width = "100%",
     height = 300,
     flexShrink = 0,
-    parent = container,
-  })
+  }))
 
   -- Trigger layout and overflow detection
   container:layoutChildren()
@@ -183,11 +178,10 @@ function TestScrollbarPlacement:test_scrollbar_balance_vertical()
     scrollbarBalance = true,
   })
 
-  local child1 = FlexLove.new({
+  local child1 = container:appendChild(FlexLove.new({
     width = "100%",
     height = 100,
-    parent = container,
-  })
+  }))
 
   container:layoutChildren()
 
@@ -212,11 +206,10 @@ function TestScrollbarPlacement:test_scrollbar_balance_horizontal()
     scrollbarBalance = true,
   })
 
-  local child1 = FlexLove.new({
+  local child1 = container:appendChild(FlexLove.new({
     width = 100,
     height = "100%",
-    parent = container,
-  })
+  }))
 
   container:layoutChildren()
 
@@ -240,11 +233,10 @@ function TestScrollbarPlacement:test_scrollbar_balance_both()
     scrollbarBalance = true,
   })
 
-  local child1 = FlexLove.new({
+  local child1 = container:appendChild(FlexLove.new({
     width = "100%",
     height = "100%",
-    parent = container,
-  })
+  }))
 
   container:layoutChildren()
 

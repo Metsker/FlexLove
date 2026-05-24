@@ -114,11 +114,18 @@ local row = FlexLove.new({
 -- Construction-time (the only time `children` is interpreted):
 local panel = FlexLove.new({ children = { childA, childB } })
 
--- Runtime mutation:
-panel:appendChild(childC)      -- add
-panel:removeChild(childA)      -- remove a specific child
-panel:replaceChildren()        -- clear all
-childA:setParent(otherParent)  -- move
+-- Construct-and-attach in one step. Resolves percentage units, auto-sizing,
+-- and other parent-dependent layout against `panel` at construction time -
+-- prefer this when building procedurally:
+local childC = panel:appendNew({ width = "50%", height = "100%" })
+
+-- Reparent an existing element:
+panel:appendChild(strayElement)
+
+-- Other runtime mutation:
+panel:removeChild(childA)
+panel:replaceChildren()         -- clear all
+childA:setParent(otherParent)   -- move
 
 -- `panel.children` is a read-mostly array of currently-attached Element
 -- instances. Iterate it freely; don't reassign it.
@@ -127,7 +134,12 @@ for _, child in ipairs(panel.children) do print(child.id) end
 
 There is no diff/reconciliation step - this is a retained-mode UI tree, not a React-style virtual DOM. Build trees declaratively at construction; mutate them imperatively after.
 
-DOM-named tree-mutation methods: `appendChild`, `removeChild`, `replaceChildren`, `setParent`, `getChildCount`. Find elements via `FlexLove.getElementById(id)` and `FlexLove.elementFromPoint(x, y)`.
+**There is no `parent` prop.** Trees go together one of three ways:
+1. `children = { ... }` on the parent's prop table (construction-time).
+2. `parent:appendNew({ ... })` for procedurally-built children that need parent-aware unit resolution.
+3. `parent:appendChild(existingChild)` or `child:setParent(parent)` for reparenting elements that already exist.
+
+DOM-named tree-mutation methods: `appendNew`, `appendChild`, `removeChild`, `replaceChildren`, `setParent`, `getChildCount`. Find elements via `FlexLove.getElementById(id)` and `FlexLove.elementFromPoint(x, y)`.
 
 #### Conditional and looped children
 

@@ -93,14 +93,13 @@ function TestElementCreation:test_element_with_children()
     height = 200,
   })
 
-  local child = FlexLove.new({
+  local child = parent:appendChild(FlexLove.new({
     id = "child1",
     x = 10,
     y = 10,
     width = 50,
     height = 50,
-    parent = parent,
-  })
+  }))
 
   luaunit.assertNotNil(parent)
   luaunit.assertNotNil(child)
@@ -135,34 +134,31 @@ function TestElementCreation:test_select_option_registers_in_parent_order()
     },
   })
 
-  local firstOption = FlexLove.new({
+  local firstOption = selectParent:appendChild(FlexLove.new({
     id = "select_option_first",
-    parent = selectParent,
     width = 300,
     height = 20,
     text = "Windowed",
     selectOption = {
       value = "windowed",
     },
-  })
+  }))
 
-  local wrapper = FlexLove.new({
+  local wrapper = selectParent:appendChild(FlexLove.new({
     id = "select_option_wrapper",
-    parent = selectParent,
     width = 300,
     height = 20,
-  })
+  }))
 
-  local secondOption = FlexLove.new({
+  local secondOption = wrapper:appendChild(FlexLove.new({
     id = "select_option_second",
-    parent = wrapper,
     width = 300,
     height = 20,
     text = "Fullscreen",
     selectOption = {
       value = "exclusive",
     },
-  })
+  }))
 
   luaunit.assertEquals(selectParent:getSelectValue(), "windowed")
   luaunit.assertEquals(selectParent:getSelectLabel(), "Windowed")
@@ -228,12 +224,11 @@ function TestElementCreation:test_select_frame_preparent_warning_is_emitted()
     width = 200,
     height = 60,
   })
-  local dropdownFrame = FlexLove.new({
+  local dropdownFrame = otherParent:appendChild(FlexLove.new({
     id = "preparented_select_frame",
-    parent = otherParent,
     width = 220,
     height = 80,
-  })
+  }))
 
   local selectParent = FlexLove.new({
     id = "select_parent_preparented_frame",
@@ -277,16 +272,15 @@ function TestElementCreation:test_select_options_are_routed_into_managed_frame()
     },
   })
 
-  local option = FlexLove.new({
+  local option = selectParent:appendChild(FlexLove.new({
     id = "option_moves_into_frame",
-    parent = selectParent,
     width = 220,
     height = 30,
     text = "Fullscreen",
     selectOption = {
       value = "exclusive",
     },
-  })
+  }))
 
   luaunit.assertTrue(option.parent == dropdownFrame)
   luaunit.assertEquals(selectParent:getSelectValue(), "windowed")
@@ -313,32 +307,29 @@ function TestElementCreation:test_managed_select_frame_options_stack_inside_fram
     },
   })
 
-  local first = FlexLove.new({
+  local first = selectParent:appendChild(FlexLove.new({
     id = "layout_option_windowed",
-    parent = selectParent,
     width = "100%",
     height = 30,
     text = "Windowed",
     selectOption = { value = "windowed" },
-  })
+  }))
 
-  local second = FlexLove.new({
+  local second = selectParent:appendChild(FlexLove.new({
     id = "layout_option_fullscreen",
-    parent = selectParent,
     width = "100%",
     height = 30,
     text = "Fullscreen",
     selectOption = { value = "exclusive" },
-  })
+  }))
 
-  local third = FlexLove.new({
+  local third = selectParent:appendChild(FlexLove.new({
     id = "layout_option_borderless",
-    parent = selectParent,
     width = "100%",
     height = 30,
     text = "Borderless Fullscreen",
     selectOption = { value = "desktop" },
-  })
+  }))
 
   selectParent:openSelect()
   dropdownFrame:layoutChildren()
@@ -365,9 +356,8 @@ function TestElementCreation:test_managed_select_frame_expands_for_wide_option_c
     padding = 12,
   })
 
-  local selectParent = FlexLove.new({
+  local selectParent = row:appendChild(FlexLove.new({
     id = "expanding_select_parent",
-    parent = row,
     width = 180,
     height = 40,
     fontSize = 18,
@@ -375,28 +365,26 @@ function TestElementCreation:test_managed_select_frame_expands_for_wide_option_c
       value = "windowed",
       selectFrame = dropdownFrame,
     },
-  })
+  }))
 
-  FlexLove.new({
+  selectParent:appendChild(FlexLove.new({
     id = "expanding_select_option_short",
-    parent = selectParent,
     width = "100%",
     height = 40,
     text = "Windowed",
     fontSize = 18,
     selectOption = { value = "windowed", label = "Windowed" },
-  })
+  }))
 
   local longLabel = "Borderless Fullscreen Recommended for Most Displays"
-  local longOption = FlexLove.new({
+  local longOption = selectParent:appendChild(FlexLove.new({
     id = "expanding_select_option_long",
-    parent = selectParent,
     width = "100%",
     height = 40,
     text = longLabel,
     fontSize = 18,
     selectOption = { value = "desktop", label = longLabel },
-  })
+  }))
 
   dropdownFrame:layoutChildren()
 
@@ -717,14 +705,13 @@ function TestElementUnits:test_element_with_percentage_width()
     height = 500,
   })
 
-  local child = FlexLove.new({
+  local child = parent:appendChild(FlexLove.new({
     id = "child_pct",
     x = 0,
     y = 0,
     width = "50%",
     height = 100,
-    parent = parent,
-  })
+  }))
 
   luaunit.assertNotNil(child)
   -- Width should be resolved to 500 (50% of parent's 1000)
@@ -759,11 +746,10 @@ function TestElementUnits:test_resize_with_percentage_units()
     height = 500,
   })
 
-  local child = FlexLove.new({
+  local child = parent:appendNew({
     id = "resize_child",
     width = "50%",
     height = "50%",
-    parent = parent,
   })
 
   -- Initial calculation should be 50% of parent
@@ -849,14 +835,13 @@ function TestElementPositioning:test_nested_element_positions()
     height = 200,
   })
 
-  local child = FlexLove.new({
+  local child = parent:appendChild(FlexLove.new({
     id = "nest_child",
     x = 20,
     y = 30,
     width = 50,
     height = 50,
-    parent = parent,
-  })
+  }))
 
   luaunit.assertNotNil(parent)
   luaunit.assertNotNil(child)
@@ -911,15 +896,14 @@ function TestElementPositioning:test_applyPositioningOffsets_with_absolute()
     positioning = "absolute",
   })
 
-  local child = FlexLove.new({
+  local child = parent:appendChild(FlexLove.new({
     id = "offset_child",
     width = 100,
     height = 100,
     positioning = "absolute",
     top = 50,
     left = 50,
-    parent = parent,
-  })
+  }))
 
   -- Apply positioning offsets
   parent:applyPositioningOffsets(child)
@@ -939,15 +923,14 @@ function TestElementPositioning:test_applyPositioningOffsets_with_right_bottom()
     positioning = "relative",
   })
 
-  local child = FlexLove.new({
+  local child = parent:appendChild(FlexLove.new({
     id = "rb_child",
     width = 100,
     height = 100,
     positioning = "absolute",
     right = 50,
     bottom = 50,
-    parent = parent,
-  })
+  }))
 
   parent:applyPositioningOffsets(child)
 
@@ -994,15 +977,14 @@ function TestElementFlex:test_element_with_flex_properties()
     flexDirection = "row",
   })
 
-  local element = FlexLove.new({
+  local element = parent:appendChild(FlexLove.new({
     id = "flex2",
-    parent = parent,
     width = 100,
     height = 100,
     flexGrow = 1,
     flexShrink = 0,
     flexBasis = "auto",
-  })
+  }))
 
   luaunit.assertNotNil(element)
   -- Just check element was created successfully
@@ -1075,12 +1057,11 @@ function TestElementGrid:test_grid_with_uneven_children()
 
   -- Add only 3 children to a 2x2 grid
   for i = 1, 3 do
-    FlexLove.new({
+    grid:appendChild(FlexLove.new({
       id = "grid_item_" .. i,
       width = 50,
       height = 50,
-      parent = grid,
-    })
+    }))
   end
 
   luaunit.assertEquals(#grid.children, 3)
@@ -1433,13 +1414,12 @@ function TestElementScroll:test_scrollToTop()
 
   -- Add content that overflows
   for i = 1, 10 do
-    FlexLove.new({
+    container:appendChild(FlexLove.new({
       id = "item_" .. i,
       width = 280,
       height = 50,
       flexShrink = 0,
-      parent = container,
-    })
+    }))
   end
 
   -- Scroll down first
@@ -1467,12 +1447,11 @@ function TestElementScroll:test_scrollToBottom()
 
   -- Add overflowing content
   for i = 1, 10 do
-    FlexLove.new({
+    container:appendChild(FlexLove.new({
       id = "item_" .. i,
       width = 280,
       height = 50,
-      parent = container,
-    })
+    }))
   end
 
   container:scrollToBottom()
@@ -1541,12 +1520,11 @@ function TestElementScroll:test_getScrollPercentage()
   })
 
   for i = 1, 10 do
-    FlexLove.new({
+    container:appendChild(FlexLove.new({
       id = "item_" .. i,
       width = 280,
       height = 50,
-      parent = container,
-    })
+    }))
   end
 
   -- At top
@@ -1602,12 +1580,11 @@ function TestElementScroll:test_scrollBy_per_axis_deferral()
 
   -- Children narrower than container (no X overflow) but taller (Y overflow)
   for i = 1, 10 do
-    FlexLove.new({
+    container:appendChild(FlexLove.new({
       id = "item_" .. i,
       width = 280,
       height = 50,
-      parent = container,
-    })
+    }))
   end
 
   local maxScrollX, maxScrollY = container:getMaxScroll()
@@ -1634,12 +1611,11 @@ function TestElementScroll:test_scrollBy_both_axes_valid()
 
   -- Children wider and taller than container (both axes overflow)
   for i = 1, 10 do
-    FlexLove.new({
+    container:appendChild(FlexLove.new({
       id = "item_" .. i,
       width = 300,
       height = 50,
-      parent = container,
-    })
+    }))
   end
 
   local maxScrollX, maxScrollY = container:getMaxScroll()
@@ -1782,19 +1758,17 @@ function TestElementChildren:test_removeChild_triggers_autosize_recalc()
     positioning = "flex",
   })
 
-  local child1 = FlexLove.new({
+  local child1 = parent:appendChild(FlexLove.new({
     id = "child1",
     width = 100,
     height = 100,
-    parent = parent,
-  })
+  }))
 
-  local child2 = FlexLove.new({
+  local child2 = parent:appendChild(FlexLove.new({
     id = "child2",
     width = 100,
     height = 100,
-    parent = parent,
-  })
+  }))
 
   local widthWithTwo = parent.width
 
@@ -1813,12 +1787,11 @@ function TestElementChildren:test_clearChildren_resets_autosize()
   })
 
   for i = 1, 5 do
-    FlexLove.new({
+    parent:appendChild(FlexLove.new({
       id = "child_" .. i,
       width = 50,
       height = 50,
-      parent = parent,
-    })
+    }))
   end
 
   local widthWithChildren = parent.width
@@ -2075,26 +2048,23 @@ function TestElementAutoSizing:test_autosize_with_nested_flex()
     flexDirection = "column",
   })
 
-  local row1 = FlexLove.new({
+  local row1 = root:appendChild(FlexLove.new({
     id = "row1",
     positioning = "flex",
     flexDirection = "row",
-    parent = root,
-  })
+  }))
 
-  FlexLove.new({
+  row1:appendChild(FlexLove.new({
     id = "item1",
     width = 100,
     height = 50,
-    parent = row1,
-  })
+  }))
 
-  FlexLove.new({
+  row1:appendChild(FlexLove.new({
     id = "item2",
     width = 100,
     height = 50,
-    parent = row1,
-  })
+  }))
 
   -- Root should auto-size to contain row
   luaunit.assertTrue(root.width >= 200)
@@ -2110,21 +2080,19 @@ function TestElementAutoSizing:test_autosize_with_absolutely_positioned_child()
   })
 
   -- Regular child affects size
-  FlexLove.new({
+  parent:appendChild(FlexLove.new({
     id = "regular",
     width = 100,
     height = 100,
-    parent = parent,
-  })
+  }))
 
   -- Absolutely positioned child should NOT affect parent size
-  FlexLove.new({
+  parent:appendChild(FlexLove.new({
     id = "absolute",
     width = 200,
     height = 200,
     positioning = "absolute",
-    parent = parent,
-  })
+  }))
 
   -- Parent should only size to regular child
   luaunit.assertTrue(parent.width < 150)
@@ -2141,21 +2109,19 @@ function TestElementAutoSizing:test_autosize_with_margin()
   })
 
   -- Add two children with margins to test margin collapsing
-  FlexLove.new({
+  parent:appendChild(FlexLove.new({
     id = "margin_child1",
     width = 100,
     height = 100,
     margin = { right = 20 },
-    parent = parent,
-  })
+  }))
 
-  FlexLove.new({
+  parent:appendChild(FlexLove.new({
     id = "margin_child2",
     width = 100,
     height = 100,
     margin = { left = 20 },
-    parent = parent,
-  })
+  }))
 
   -- Parent should size to children including margins (flexbox includes margins in sizing)
   -- Child1: 100px + 20px right margin = 120px
@@ -2825,12 +2791,11 @@ function TestElementTheme:test_children_shift_with_pressed_theme_state()
     themeComponent = "button",
   })
 
-  local child = FlexLove.new({
+  local child = parent:appendChild(FlexLove.new({
     id = "state_shift_child",
-    parent = parent,
     width = 20,
     height = 20,
-  })
+  }))
 
   parent._themeManager:setState("pressed")
   if parent._renderer then
@@ -2922,12 +2887,11 @@ function TestElementTheme:test_children_shift_uses_corner_scaling_not_full_stret
     scaleCorners = 2,
   })
 
-  local child = FlexLove.new({
+  local child = parent:appendChild(FlexLove.new({
     id = "state_shift_corner_scale_child",
-    parent = parent,
     width = 20,
     height = 20,
-  })
+  }))
 
   parent._themeManager:setState("pressed")
   if parent._renderer then
@@ -3203,13 +3167,12 @@ function TestConvenienceAPI:test_margin_single_number()
     height = 300,
   })
 
-  local element = FlexLove.new({
+  local element = parent:appendChild(FlexLove.new({
     id = "test_margin_num",
-    parent = parent,
     width = 100,
     height = 100,
     margin = 15,
-  })
+  }))
 
   luaunit.assertNotNil(element)
   luaunit.assertEquals(element.margin.top, 15)
@@ -3473,12 +3436,11 @@ function TestElementEdgeCases:test_clear_children_twice()
     height = 200,
   })
 
-  local child = FlexLove.new({
+  local child = parent:appendChild(FlexLove.new({
     id = "child",
     width = 50,
     height = 50,
-    parent = parent,
-  })
+  }))
 
   parent:replaceChildren()
   parent:replaceChildren()
@@ -3528,12 +3490,11 @@ function TestElementEdgeCases:test_destroy_with_children()
     height = 200,
   })
 
-  local child = FlexLove.new({
+  local child = parent:appendChild(FlexLove.new({
     id = "child",
     width = 50,
     height = 50,
-    parent = parent,
-  })
+  }))
 
   parent:destroy() -- Should destroy all children too
   luaunit.assertEquals(#parent.children, 0)
@@ -3548,14 +3509,13 @@ function TestElementEdgeCases:test_element_destroy()
     height = 200,
   })
 
-  local child = FlexLove.new({
+  local child = parent:appendChild(FlexLove.new({
     id = "child",
-    parent = parent,
     x = 0,
     y = 0,
     width = 50,
     height = 50,
-  })
+  }))
 
   luaunit.assertEquals(#parent.children, 1)
   child:destroy()

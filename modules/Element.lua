@@ -248,9 +248,23 @@ local function _refreshUnit(self, key, ref, ctx, scaleAxis)
   self[key] = type(resolved) == "number" and resolved or nil
 end
 
+--- Construct a new Element.
+--- The two-argument form (`Element.new(props, parent)`) is private: it's how
+--- the children-prop loop and other internal call sites attach a child during
+--- construction. Public callers always pass a single arg.
+--- A `parent` key on the props table is no longer honoured - the only public
+--- ways to attach a child are the `children` prop (construction-time) and
+--- `parent:appendChild(...)` / `child:setParent(parent)` (runtime).
 ---@param props ElementProps
+---@param _parent Element? Internal: parent reference used by the children loop.
 ---@return Element
-function Element.new(props)
+function Element.new(props, _parent)
+  if props.parent ~= nil and Element._ErrorHandler then
+    Element._ErrorHandler:warn("Element", "ELEM_013", {
+      issue = "the `parent` prop is no longer supported. Use the `children` prop or parent:appendChild(child) instead.",
+    })
+  end
+
   local self = setmetatable({}, Element)
 
   -- Create dependency subsets for sub-modules (defined once, used throughout)
@@ -529,7 +543,7 @@ function Element.new(props)
   end
 
   -- Set parent first so it's available for size calculations
-  self.parent = props.parent
+  self.parent = _parent
 
   ------ add non-hereditary ------
   --- self drawing---
@@ -1357,7 +1371,7 @@ function Element.new(props)
   -- Grid properties are set later in the constructor
 
   ------ add hereditary ------
-  if props.parent == nil then
+  if _parent == nil then
     table.insert(Element._Context.topElements, self)
 
     -- Handle x position with units
@@ -1547,7 +1561,7 @@ function Element.new(props)
       _resolveUnit(self, props.left, "left", viewportWidth, _ctx)
     end
 
-    props.parent:appendChild(self)
+    _parent:appendChild(self)
   end
 
   if self.positioning == Element._utils.enums.Positioning.FLEX then
@@ -1867,12 +1881,10 @@ function Element.new(props)
           -- setParent handles detaching from topElements / previous parent.
           entry:setParent(self)
         elseif type(entry) == "table" then
-          local childCopy = {}
-          for k, v in pairs(entry) do
-            childCopy[k] = v
-          end
-          childCopy.parent = self
-          Element.new(childCopy)
+          -- The two-arg Element.new form is private to the framework: the
+          -- public API attaches via children/appendChild, never via a
+          -- `parent` prop. We pass `self` as the parent ref directly.
+          Element.new(entry, self)
         else
           Element._ErrorHandler:warn("Element", "ELEM_012", {
             element = self.id or "unnamed",
@@ -2510,9 +2522,26 @@ function Element:_handleSelectRelease()
   Element._Select.handleRelease(self)
 end
 
---- Dynamically insert a child element into the hierarchy for runtime UI construction
---- Use this to build interfaces procedurally or add elements based on application state
+--- Construct a new child element under this one in a single step.
+---
+--- Use this (rather than `parent:appendChild(FlexLove.new({...}))`) when the
+--- child has units that resolve against the parent at construction time -
+--- percentage widths, auto-sizing inheritance, etc. `appendChild` reparents
+--- an already-built element; `appendNew` builds it knowing its parent.
+---@param props ElementProps
+---@return Element child The freshly constructed and attached child
+function Element:appendNew(props)
+  return Element.new(props or {}, self)
+end
+
+--- Append a child element to this one and return the child.
+--- Mirrors the DOM `parent.appendChild(node)` shape:
+---   local child = parent:appendChild(FlexLove.new({...}))
+--- Note that elements created standalone resolve percentage units against the
+--- viewport. If you want construction-time resolution against the parent,
+--- prefer `parent:appendNew({...})`.
 ---@param child Element
+---@return Element child The same element that was passed in (for chaining)
 function Element:appendChild(child)
   if self._managedSelectFrame and child.selectOption and self._managedSelectOwner then
     child._selectParentHint = self._managedSelectOwner
@@ -2604,6 +2633,8 @@ function Element:appendChild(child)
   then
     Element._Select.attachOptionToManagedFrame(child)
   end
+
+  return child
 end
 
 --- Remove a child element from the hierarchy to dynamically update UIs

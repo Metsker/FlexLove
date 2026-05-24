@@ -31,18 +31,16 @@ function InputExample:render()
   })
 
   -- Title
-  FlexLove.new({
-    parent = flex,
+  flex:appendChild(FlexLove.new({
     text = "Input Handling System Example",
     textAlign = "center",
     fontSize = "2xl",
     width = "100%",
     height = "10%",
-  })
+  }))
 
   -- Mouse interaction section
-  local mouseSection = FlexLove.new({
-    parent = flex,
+  local mouseSection = flex:appendChild(FlexLove.new({
     display = "flex",
     flexDirection = "row",
     justifyContent = "space-between",
@@ -52,19 +50,17 @@ function InputExample:render()
     backgroundColor = "#2d3748",
     borderRadius = 8,
     padding = { horizontal = 15 },
-  })
+  }))
 
-  FlexLove.new({
-    parent = mouseSection,
+  mouseSection:appendChild(FlexLove.new({
     text = "Mouse Position: (" .. self.mousePosition.x .. ", " .. self.mousePosition.y .. ")",
     textAlign = "left",
     fontSize = "md",
     width = "60%",
-  })
+  }))
 
   -- Hoverable area
-  local hoverArea = FlexLove.new({
-    parent = mouseSection,
+  local hoverArea = mouseSection:appendChild(FlexLove.new({
     display = "flex",
     justifyContent = "center",
     alignItems = "center",
@@ -84,21 +80,19 @@ function InputExample:render()
         self.isMouseOver = false
       end
     end,
-  })
+  }))
 
-  FlexLove.new({
-    parent = hoverArea,
+  hoverArea:appendChild(FlexLove.new({
     text = "Hover over me!",
     textAlign = "center",
     fontSize = "md",
     width = "100%",
     height = "100%",
     color = self.isMouseOver and "#48bb78" or "#a0aec0", -- Green when hovered
-  })
+  }))
 
   -- Keyboard input section
-  local keyboardSection = FlexLove.new({
-    parent = flex,
+  local keyboardSection = flex:appendChild(FlexLove.new({
     display = "flex",
     flexDirection = "row",
     justifyContent = "space-between",
@@ -108,19 +102,17 @@ function InputExample:render()
     backgroundColor = "#4a5568",
     borderRadius = 8,
     padding = { horizontal = 15 },
-  })
+  }))
 
-  FlexLove.new({
-    parent = keyboardSection,
+  keyboardSection:appendChild(FlexLove.new({
     text = "Last Key Pressed: " .. (self.keyPressed or "None"),
     textAlign = "left",
     fontSize = "md",
     width = "60%",
-  })
+  }))
 
   -- Input field for typing
-  local inputField = FlexLove.new({
-    parent = keyboardSection,
+  local inputField = keyboardSection:appendChild(FlexLove.new({
     themeComponent = "inputv2",
     text = "",
     textAlign = "left",
@@ -133,11 +125,10 @@ function InputExample:render()
         self.keyPressed = event.key
       end
     end,
-  })
+  }))
 
   -- Touch input section
-  local touchSection = FlexLove.new({
-    parent = flex,
+  local touchSection = flex:appendChild(FlexLove.new({
     display = "flex",
     flexDirection = "row",
     justifyContent = "space-between",
@@ -147,19 +138,17 @@ function InputExample:render()
     backgroundColor = "#2d3748",
     borderRadius = 8,
     padding = { horizontal = 15 },
-  })
+  }))
 
-  FlexLove.new({
-    parent = touchSection,
+  touchSection:appendChild(FlexLove.new({
     text = "Touch Position: (" .. self.touchPosition.x .. ", " .. self.touchPosition.y .. ")",
     textAlign = "left",
     fontSize = "md",
     width = "60%",
-  })
+  }))
 
   -- Touchable area
-  local touchArea = FlexLove.new({
-    parent = touchSection,
+  local touchArea = touchSection:appendChild(FlexLove.new({
     display = "flex",
     justifyContent = "center",
     alignItems = "center",
@@ -174,20 +163,18 @@ function InputExample:render()
         self.touchPosition.y = event.y
       end
     end,
-  })
+  }))
 
-  FlexLove.new({
-    parent = touchArea,
+  touchArea:appendChild(FlexLove.new({
     text = "Touch me!",
     textAlign = "center",
     fontSize = "md",
     width = "100%",
     height = "100%",
-  })
+  }))
 
   -- Status section showing interaction counts
-  local statusSection = FlexLove.new({
-    parent = flex,
+  local statusSection = flex:appendChild(FlexLove.new({
     display = "flex",
     flexDirection = "row",
     justifyContent = "space-between",
@@ -197,19 +184,17 @@ function InputExample:render()
     backgroundColor = "#4a5568",
     borderRadius = 8,
     padding = { horizontal = 15 },
-  })
+  }))
 
-  FlexLove.new({
-    parent = statusSection,
+  statusSection:appendChild(FlexLove.new({
     text = "Hover Count: " .. self.hoverCount,
     textAlign = "left",
     fontSize = "md",
     width = "30%",
-  })
+  }))
 
   -- Reset button
-  FlexLove.new({
-    parent = statusSection,
+  statusSection:appendChild(FlexLove.new({
     themeComponent = "buttonv2",
     text = "Reset All",
     textAlign = "center",
@@ -224,7 +209,7 @@ function InputExample:render()
         print("All input states reset")
       end
     end,
-  })
+  }))
 
   return flex
 end

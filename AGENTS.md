@@ -26,7 +26,12 @@ CSS-style UI for LÖVE2D. **Retained mode only**. Public prop names, methods, an
 - **DOM-style tree mutation:** `appendChild`, `removeChild`, `replaceChildren`, `setParent`. Find elements via `FlexLove.getElementById` and `FlexLove.elementFromPoint`.
 - **DOM-style typed event handlers:** `onClick`, `onMouseDown`, `onMouseUp`, `onMouseEnter`, `onMouseLeave`, `onMouseMove`, `onDrag`, `onContextMenu`, `onAuxClick`. The catch-all `onEvent(self, event)` still exists for power users; both fire if both are set.
 - **CSS shorthand strings:** `border = "2px solid #fff"` and `transition = "opacity 300ms ease-in-out"` are parsed at construction. Multi-property `transition = "opacity 0.3s, transform 0.5s ease-out 0.1s"` works.
-- **`children` prop is construction-time only.** Read exactly once inside `Element.new()`, then discarded. Each entry is constructed (table) or reparented (Element instance) at that moment. After construction, `el.children` is the live array of attached child Element instances; **reassigning `el.children = {...}` does nothing** - the framework won't re-interpret a fresh prop table. Use `appendChild`/`removeChild`/`replaceChildren`/`setParent` for runtime mutation. There is no reconciliation - the tree is retained, not virtual.
+- **`children` prop is construction-time only.** Read exactly once inside `Element.new()`, then discarded. Each entry is constructed (table) or reparented (Element instance) at that moment. After construction, `el.children` is the live array of attached child Element instances; **reassigning `el.children = {...}` does nothing**. Use `appendNew` / `appendChild` / `removeChild` / `replaceChildren` / `setParent` for runtime mutation. There is no reconciliation - the tree is retained, not virtual.
+- **No public `parent` prop.** The constructor warns (`ELEM_013`) and ignores it. Public ways to attach a child:
+  1. `children = { ... }` in the parent's prop table.
+  2. `parent:appendNew({ ... })` - construct-and-attach in one step; resolves parent-dependent units at construction.
+  3. `parent:appendChild(existing)` / `child:setParent(parent)` for reparenting.
+- **Internal two-arg form**: `Element.new(props, parent)`. The children loop and `Element:appendNew` use it. Not public.
 - **No public `parent` prop.** Internal `self.parent` field remains for traversal; user code should not read it.
 - **Direct field mutation** must work for: `backgroundColor`, `borderColor`, `borderRadius`, `opacity`, `themeComponent`, `onEvent`, every typed event handler, `onTouchEvent`, `onGesture`, `disabled`, `active`. These are picked up at draw time (`Renderer:draw` syncs from element) or at event time (`EventHandler:processMouseEvents` syncs). If you add a new "side-effect-on-write" field, wire it through one of those sync points - **don't** require users to call `setProperty`.
 
@@ -60,7 +65,7 @@ CSS-style UI for LÖVE2D. **Retained mode only**. Public prop names, methods, an
 
 ## Common pitfalls
 
-- Anything passed via `parent =` in props is still honoured internally (`appendChild` requires a parent reference during construction). When refactoring children handling, keep that path working for the existing tests.
+- The `parent` prop is gone from the public API. `Element.new` warns (`ELEM_013`) if it sees `props.parent`. The internal path is the second positional arg: `Element.new(props, parent)`, exposed via `parent:appendNew(props)`.
 - `display` is a **string** (`"block"`/`"flex"`/`"grid"`/`"none"`), not a boolean. Comparisons in `LayoutEngine.lua`, `Grid.lua`, `Element.lua`, and `FlexLove.lua` use the string.
 - `flexDirection` is `"row"` or `"column"` only; the old `"horizontal"`/`"vertical"` aliases are gone.
 - The `Renderer` caches visual props but `Renderer:draw` resyncs from the element each call. Don't reintroduce a "set once" cache - it breaks direct mutation.

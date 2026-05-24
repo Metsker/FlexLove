@@ -72,7 +72,7 @@ end
 -- Test: Child elements should be destroyed when parent is destroyed
 function TestCriticalFailures:test_child_cleanup_on_parent_destroy()
   local parent = FlexLove.new({ width = 200, height = 200 })
-  local child = FlexLove.new({ width = 50, height = 50, parent = parent })
+  local child = parent:appendChild(FlexLove.new({ width = 50, height = 50 }))
 
   luaunit.assertEquals(#parent.children, 1)
 
@@ -121,8 +121,8 @@ function TestCriticalFailures:test_flex_overflow_positioning()
   })
 
   -- Add children that exceed parent width
-  local child1 = FlexLove.new({ width = 80, height = 50, parent = parent })
-  local child2 = FlexLove.new({ width = 80, height = 50, parent = parent })
+  local child1 = parent:appendChild(FlexLove.new({ width = 80, height = 50 }))
+  local child2 = parent:appendChild(FlexLove.new({ width = 80, height = 50 }))
 
   -- Children should be positioned, even if they overflow
   -- Check that x positions are at least valid numbers
@@ -138,7 +138,7 @@ function TestCriticalFailures:test_percentage_width_zero_parent()
 
   -- This should not crash (division by zero in percentage calculation)
   local success, child = pcall(function()
-    return FlexLove.new({ width = "50%", height = 50, parent = parent })
+    return parent:appendChild(FlexLove.new({ width = "50%", height = 50 }))
   end)
 
   luaunit.assertTrue(success, "Should not crash with zero parent width")
@@ -157,7 +157,7 @@ function TestCriticalFailures:test_autosizing_circular_dependency()
 
   -- Child width is percentage of parent, but parent width depends on child
   local success, child = pcall(function()
-    return FlexLove.new({ width = "50%", height = 50, parent = parent })
+    return parent:appendChild(FlexLove.new({ width = "50%", height = 50 }))
   end)
 
   luaunit.assertTrue(success, "Should not crash with circular sizing")
@@ -196,7 +196,7 @@ function TestCriticalFailures:test_grid_zero_dimensions()
 
   -- This should not crash when adding children
   local success = pcall(function()
-    FlexLove.new({ width = 50, height = 50, parent = parent })
+    parent:appendChild(FlexLove.new({ width = 50, height = 50 }))
   end)
 
   luaunit.assertTrue(success, "Should not crash with zero grid dimensions")
@@ -278,11 +278,10 @@ function TestCriticalFailures:test_extreme_nesting_stack_overflow()
   -- Try to create 1000 levels of nesting
   local success = pcall(function()
     for i = 1, 1000 do
-      local child = FlexLove.new({
+      local child = current:appendChild(FlexLove.new({
         width = 10,
         height = 10,
-        parent = current,
-      })
+      }))
       current = child
     end
   end)
@@ -485,12 +484,11 @@ function TestCriticalFailures:test_scroll_overflow_immediate_mode_integration()
 
     -- Add children that exceed container height
     for i = 1, 10 do
-      FlexLove.new({
+      scrollContainer:appendChild(FlexLove.new({
         id = "child_" .. i,
         width = 180,
         height = 50,
-        parent = scrollContainer,
-      })
+      }))
     end
 
 
@@ -521,11 +519,10 @@ function TestCriticalFailures:test_grid_autosized_children_percentage_gap()
 
   -- Add auto-sized children (no explicit dimensions)
   for i = 1, 9 do
-    local child = FlexLove.new({
-      parent = grid,
+    local child = grid:appendChild(FlexLove.new({
       text = "Cell " .. i,
       -- Auto-sizing based on text
-    })
+    }))
 
     -- Verify child dimensions are valid
     luaunit.assertNotNil(child.width)
@@ -546,29 +543,26 @@ function TestCriticalFailures:test_nested_flex_conflicting_alignment()
     justifyContent = "center",
   })
 
-  local middle = FlexLove.new({
-    parent = outer,
+  local middle = outer:appendChild(FlexLove.new({
     height = 200,
     -- Auto width (should stretch)
     positioning = "flex",
     flexDirection = "row",
     alignItems = "flex-end",
     justifyContent = "space-between",
-  })
+  }))
 
-  local inner1 = FlexLove.new({
-    parent = middle,
+  local inner1 = middle:appendChild(FlexLove.new({
     width = 50,
     -- Auto height
     text = "A",
-  })
+  }))
 
-  local inner2 = FlexLove.new({
-    parent = middle,
+  local inner2 = middle:appendChild(FlexLove.new({
     width = 50,
     height = 100,
     text = "B",
-  })
+  }))
 
   -- Verify all elements have valid dimensions and positions
   luaunit.assertTrue(outer.width > 0)
@@ -589,13 +583,12 @@ function TestCriticalFailures:test_conflicting_size_sources()
   })
 
   local success = pcall(function()
-    FlexLove.new({
-      parent = parent,
+    parent:appendChild(FlexLove.new({
       width = 300, -- Exceeds parent width
       height = "50%", -- Percentage height
       text = "Very long text that should cause auto-sizing",
       padding = { top = 50, left = 50, right = 50, bottom = 50 },
-    })
+    }))
   end)
 
   luaunit.assertTrue(success, "Should handle conflicting size sources")
@@ -652,11 +645,10 @@ function TestCriticalFailures:test_update_during_layout()
     positioning = "flex",
   })
 
-  local child = FlexLove.new({
+  local child = parent:appendChild(FlexLove.new({
     width = 100,
     height = 100,
-    parent = parent,
-  })
+  }))
 
   -- Modify child properties immediately after creation (during layout)
   child:setText("Modified during layout")
@@ -720,7 +712,7 @@ end
 -- Test: Circular parent-child reference (should never happen, but test safety)
 function TestCriticalFailures:test_circular_parent_child_reference()
   local parent = FlexLove.new({ width = 200, height = 200 })
-  local child = FlexLove.new({ width = 100, height = 100, parent = parent })
+  local child = parent:appendChild(FlexLove.new({ width = 100, height = 100 }))
 
   -- Try to create circular reference (should be prevented)
   local success = pcall(function()
@@ -743,11 +735,10 @@ function TestCriticalFailures:test_modify_children_during_iteration()
   -- Add several children
   local children = {}
   for i = 1, 5 do
-    children[i] = FlexLove.new({
+    children[i] = parent:appendChild(FlexLove.new({
       width = 50,
       height = 50,
-      parent = parent,
-    })
+    }))
   end
 
   -- Remove child during layout (simulates user code modifying structure)
