@@ -1578,63 +1578,61 @@ function Element.new(props, _parent)
     _parent:appendChild(self)
   end
 
-  if self.display == "flex" then
-    -- Validate enum properties
-    if props.flexDirection then
-      Element._utils.validateEnum(props.flexDirection, Element._utils.enums.FlexDirection, "flexDirection")
-    end
-    if props.flexWrap then
-      Element._utils.validateEnum(props.flexWrap, Element._utils.enums.FlexWrap, "flexWrap")
-    end
-    if props.justifyContent then
-      Element._utils.validateEnum(props.justifyContent, Element._utils.enums.JustifyContent, "justifyContent")
-    end
-    if props.alignItems then
-      Element._utils.validateEnum(props.alignItems, Element._utils.enums.AlignItems, "alignItems")
-    end
-    if props.alignContent then
-      Element._utils.validateEnum(props.alignContent, Element._utils.enums.AlignContent, "alignContent")
-    end
-    if props.justifySelf then
-      Element._utils.validateEnum(props.justifySelf, Element._utils.enums.JustifySelf, "justifySelf")
-    end
-
-    -- Warn if grid properties are set on a flex container
-    if props.gridRows or props.gridColumns then
-      Element._ErrorHandler:warn("Element", "LAY_010", {
-        element = self.id or "unnamed",
-        display = "flex",
-        properties = "gridRows/gridColumns",
-      })
-    end
-
-    self.flexDirection = props.flexDirection or Element._utils.enums.FlexDirection.ROW
-    self.flexWrap = props.flexWrap or Element._utils.enums.FlexWrap.NOWRAP
-    self.justifyContent = props.justifyContent or Element._utils.enums.JustifyContent.FLEX_START
-    self.alignItems = props.alignItems or Element._utils.enums.AlignItems.STRETCH
-    self.alignContent = props.alignContent or Element._utils.enums.AlignContent.STRETCH
-    self.justifySelf = props.justifySelf or Element._utils.enums.JustifySelf.AUTO
+  -- Validate flex enum properties (independent of current display so
+  -- pre-configured values get validated even when display="none"/"block").
+  if props.flexDirection then
+    Element._utils.validateEnum(props.flexDirection, Element._utils.enums.FlexDirection, "flexDirection")
+  end
+  if props.flexWrap then
+    Element._utils.validateEnum(props.flexWrap, Element._utils.enums.FlexWrap, "flexWrap")
+  end
+  if props.justifyContent then
+    Element._utils.validateEnum(props.justifyContent, Element._utils.enums.JustifyContent, "justifyContent")
+  end
+  if props.alignItems then
+    Element._utils.validateEnum(props.alignItems, Element._utils.enums.AlignItems, "alignItems")
+  end
+  if props.alignContent then
+    Element._utils.validateEnum(props.alignContent, Element._utils.enums.AlignContent, "alignContent")
+  end
+  if props.justifySelf then
+    Element._utils.validateEnum(props.justifySelf, Element._utils.enums.JustifySelf, "justifySelf")
   end
 
-  -- Grid container properties
-  if self.display == "grid" then
-    -- Warn if flex properties are set on a grid container
-    if props.flexDirection or props.flexWrap or props.justifyContent then
-      Element._ErrorHandler:warn("Element", "LAY_009", {
-        element = self.id or "unnamed",
-        display = "grid",
-        properties = "flexDirection/flexWrap/justifyContent",
-      })
-    end
-
-    self.gridRows = props.gridRows
-    self.gridColumns = props.gridColumns
-    self.alignItems = props.alignItems or Element._utils.enums.AlignItems.STRETCH
-
-    -- Handle columnGap and rowGap
-    _resolveUnit(self, props.columnGap, "columnGap", self.width, _ctx, { default = 0 })
-    _resolveUnit(self, props.rowGap, "rowGap", self.height, _ctx, { default = 0 })
+  -- Construction-time cross-display warnings: props are still stored, but
+  -- they won't apply at the current display - usually a typo.
+  if self.display == "flex" and (props.gridRows or props.gridColumns) then
+    Element._ErrorHandler:warn("Element", "LAY_010", {
+      element = self.id or "unnamed",
+      display = "flex",
+      properties = "gridRows/gridColumns",
+    })
   end
+  if self.display == "grid" and (props.flexDirection or props.flexWrap or props.justifyContent) then
+    Element._ErrorHandler:warn("Element", "LAY_009", {
+      element = self.id or "unnamed",
+      display = "grid",
+      properties = "flexDirection/flexWrap/justifyContent",
+    })
+  end
+
+  -- Always store flex container properties, regardless of current display.
+  -- Mirrors CSS: flex-direction is a valid property on any element, but only
+  -- takes effect once the element actually becomes a flex container. Storing
+  -- unconditionally lets `element.display = "flex"` flips pick up values that
+  -- were configured at construction with display="none"/"block".
+  self.flexDirection = props.flexDirection or Element._utils.enums.FlexDirection.ROW
+  self.flexWrap = props.flexWrap or Element._utils.enums.FlexWrap.NOWRAP
+  self.justifyContent = props.justifyContent or Element._utils.enums.JustifyContent.FLEX_START
+  self.alignItems = props.alignItems or Element._utils.enums.AlignItems.STRETCH
+  self.alignContent = props.alignContent or Element._utils.enums.AlignContent.STRETCH
+  self.justifySelf = props.justifySelf or Element._utils.enums.JustifySelf.AUTO
+
+  -- Same story for grid container properties.
+  self.gridRows = props.gridRows
+  self.gridColumns = props.gridColumns
+  _resolveUnit(self, props.columnGap, "columnGap", self.width, _ctx, { default = 0 })
+  _resolveUnit(self, props.rowGap, "rowGap", self.height, _ctx, { default = 0 })
 
   self.alignSelf = props.alignSelf or Element._utils.enums.AlignSelf.AUTO
 

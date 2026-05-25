@@ -60,6 +60,11 @@ testing/              - luaunit-based test suite
 ## Editor-side pitfalls
 
 - The `Renderer` caches visual props but `Renderer:draw` resyncs from the element each call. Don't reintroduce a "set once" cache - it breaks direct mutation.
+- The `LayoutEngine` does the same for layout props: at the top of `LayoutEngine:layoutChildren()` it pulls `display`, `flexDirection`, `flexWrap`, `justifyContent`, `alignItems`, `alignContent`, `gap`, `gridRows`, `gridColumns`, `columnGap`, `rowGap` from the element. `_canSkipLayout`'s `layoutInputsHash` includes the same fields so direct mutation also invalidates the memoization cache. Don't snapshot these at construction and skip the resync - direct assignment is the documented contract (see `docs/usage.md` "Runtime mutation").
+- Flex/grid props are stored on the element regardless of its current `display` so `display` flips at runtime pick them up. The `display == "flex"` / `display == "grid"` gating happens at *use* time inside the engine, not at *storage* time in the constructor.
+- `setProperty` is **not** redundant with the pull-at-use-time reactivity. It exists for two cases that direct assignment cannot express, and folding either into a reactive `__newindex`-style hook will break invariants the rest of the codebase relies on:
+  - **Animation triggers.** A raw `el.opacity = 0` snaps the value. To animate via a configured `transition`, `setProperty` captures the current value, creates an interpolation animation, and the Animation module then writes the interpolated value to `el.opacity` every frame *via raw assignment*. That last detail is load-bearing: if you ever wire assignment to "start a new animation toward this value if a transition is configured," the animation engine's own per-frame writes will spawn nested animations on top of each other and the system implodes. Keep raw assignment as "snap" and `setProperty` as "animate" - they have to remain distinct operations.
+  - **Unit string resolution.** A raw `el.width = "50%"` would leave a string in `el.width` that downstream numeric code chokes on (NaN math, comparison errors). `setProperty("width", "50%")` parses the string, resolves it against the parent's content box, and stores two pieces of state: the resolved pixel number on `el.width` (what layout reads) and the unit spec on `el.units.width` (what `FlexLove.resize()` uses to re-resolve on viewport changes). A single field write can only carry one of those, hence the helper. If you want a more specific entry point than `setProperty`, add `Element:setWidth("50%")` / `Element:setUnit(prop, value)` rather than trying to teach `=` to do dual storage.
 - `EventHandler:processMouseEvents` syncs `onEvent`/`onTouchEvent`/`onGesture` from the element only when those fields are non-nil. Tests assign directly to the handler; keep that path working.
 - `TextEditor:_saveState` is a no-op stub kept only so existing internal call sites compile. Don't add new callers.
 - Lua 5.4: `for` loop variables are `const`. Don't reassign `for x in ... do x = ... end`; use `for raw in ... do local x = raw end` instead.
@@ -69,8 +74,8 @@ testing/              - luaunit-based test suite
 ## Adding a new prop
 
 1. Type it in `modules/types.lua` (`ElementProps`).
-2. Read it in `Element.new()` and store on `self`.
-3. If it affects layout, add the field to `_layoutEngine` setup and to `setProperty`'s `layoutProperties` table.
+2. Read it in `Element.new()` and store on `self`. For layout-related props, store the value regardless of current `display` so `display` flips pick it up.
+3. If it affects layout: (a) initialize the field in `LayoutEngine.new` defaults, (b) sync it from the element at the top of `LayoutEngine:layoutChildren()` (the "pull at use time" block), (c) include it in `_canSkipLayout`'s `layoutInputsHash`, and (d) add it to `setProperty`'s `layoutProperties` table so animated changes via `transition` still invalidate.
 4. If it affects rendering, sync it into the Renderer at the top of `Renderer:draw`.
 5. Add a test in the appropriate `*_test.lua`.
 6. Document it in `docs/usage.md` under the relevant API section.

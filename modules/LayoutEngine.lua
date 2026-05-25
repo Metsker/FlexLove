@@ -121,6 +121,7 @@ function LayoutEngine.new(props, deps)
     containerX = 0,
     containerY = 0,
     childrenHash = "",
+    layoutInputsHash = "",
   }
 
   return self
@@ -387,6 +388,25 @@ function LayoutEngine:layoutChildren()
   if self.element == nil then
     return
   end
+
+  -- Pull layout inputs from the element so direct field assignments like
+  -- `el.flexDirection = "column"` or `el.display = "flex"` take effect on
+  -- the next layout pass. Mirrors the Renderer's "pull at use time" pattern
+  -- (see modules/Renderer.lua:454) and the contract documented in
+  -- docs/usage.md ("Direct mutation works"). `_canSkipLayout` hashes these
+  -- so direct mutation also invalidates the layout cache.
+  local el = self.element
+  self.display = el.display
+  self.flexDirection = el.flexDirection
+  self.flexWrap = el.flexWrap
+  self.justifyContent = el.justifyContent
+  self.alignItems = el.alignItems
+  self.alignContent = el.alignContent
+  self.gap = el.gap
+  self.gridRows = el.gridRows
+  self.gridColumns = el.gridColumns
+  self.columnGap = el.columnGap
+  self.rowGap = el.rowGap
 
   -- Check if layout can be skipped (memoization optimization)
   if self:_canSkipLayout() then
@@ -1687,15 +1707,42 @@ function LayoutEngine:_canSkipLayout()
   end
 
   -- If not dirty, check if layout inputs have actually changed (secondary check)
-  local childrenCount = #self.element.children
-  local containerWidth = self.element.width
-  local containerHeight = self.element.height
-  local containerX = self.element.x
-  local containerY = self.element.y
+  local el = self.element
+  local childrenCount = #el.children
+  local containerWidth = el.width
+  local containerHeight = el.height
+  local containerX = el.x
+  local containerY = el.y
+
+  -- Hash of the element's own layout inputs - all the fields the engine
+  -- pulls at the top of layoutChildren. Including them here means direct
+  -- field assignment (e.g. `el.flexDirection = "column"`) invalidates the
+  -- cache without needing an explicit invalidateLayout() call.
+  local layoutInputsHash = tostring(el.display)
+    .. "|"
+    .. tostring(el.flexDirection)
+    .. "|"
+    .. tostring(el.flexWrap)
+    .. "|"
+    .. tostring(el.justifyContent)
+    .. "|"
+    .. tostring(el.alignItems)
+    .. "|"
+    .. tostring(el.alignContent)
+    .. "|"
+    .. tostring(el.gap)
+    .. "|"
+    .. tostring(el.gridRows)
+    .. "|"
+    .. tostring(el.gridColumns)
+    .. "|"
+    .. tostring(el.columnGap)
+    .. "|"
+    .. tostring(el.rowGap)
 
   -- Generate simple hash of children dimensions + display state
   local childrenHash = ""
-  for i, child in ipairs(self.element.children) do
+  for i, child in ipairs(el.children) do
     if i <= 5 then -- Only hash first 5 children for performance
       childrenHash = childrenHash .. child.width .. "x" .. child.height .. "d" .. tostring(child.display) .. ","
     end
@@ -1711,6 +1758,7 @@ function LayoutEngine:_canSkipLayout()
     and cache.containerX == containerX
     and cache.containerY == containerY
     and cache.childrenHash == childrenHash
+    and cache.layoutInputsHash == layoutInputsHash
   then
     return true -- Layout hasn't changed, can skip
   end
@@ -1722,6 +1770,7 @@ function LayoutEngine:_canSkipLayout()
   cache.containerX = containerX
   cache.containerY = containerY
   cache.childrenHash = childrenHash
+  cache.layoutInputsHash = layoutInputsHash
 
   return false -- Layout has changed, must recalculate
 end

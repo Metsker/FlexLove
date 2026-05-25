@@ -112,4 +112,59 @@ function TestDisplayLayout:test_display_none_toggling_at_runtime()
   luaunit.assertEquals(parent.children[1].x, parent.x)
 end
 
+function TestDisplayLayout:test_display_none_preserves_flex_props_for_later_flip()
+  -- Construct hidden with flex props pre-configured. CSS semantics: those
+  -- props stay on the element and take effect when display flips to "flex".
+  local parent = FlexLove.new({
+    display = "none",
+    flexDirection = "column",
+    width = 100,
+    height = 300,
+    children = {
+      { id = "a", width = 50, height = 50 },
+      { id = "b", width = 50, height = 50 },
+    },
+  })
+
+  luaunit.assertEquals(parent.flexDirection, "column")
+
+  parent.display = "flex"
+  parent:layoutChildren()
+
+  local a = parent.children[1]
+  local b = parent.children[2]
+  -- Column direction: b stacks below a, not to the right of it.
+  luaunit.assertEquals(b.x, a.x)
+  luaunit.assertEquals(b.y, a.y + a.height)
+end
+
+function TestDisplayLayout:test_direct_flex_prop_mutation_takes_effect()
+  -- The LayoutEngine pulls flex props from the element at the top of each
+  -- layoutChildren pass, so direct field assignment is enough - no
+  -- setProperty / invalidateLayout call required. Mirrors the visual-prop
+  -- contract in docs/usage.md.
+  local parent = FlexLove.new({
+    display = "flex",
+    flexDirection = "row",
+    width = 300,
+    height = 300,
+    children = {
+      { id = "a", width = 50, height = 50 },
+      { id = "b", width = 50, height = 50 },
+    },
+  })
+
+  local a = parent.children[1]
+  local b = parent.children[2]
+  luaunit.assertEquals(b.x, a.x + a.width) -- row: side by side
+  luaunit.assertEquals(b.y, a.y)
+
+  parent.flexDirection = "column"
+  parent:layoutChildren()
+
+  -- After direct mutation, column direction: b stacks below a.
+  luaunit.assertEquals(b.x, a.x)
+  luaunit.assertEquals(b.y, a.y + a.height)
+end
+
 os.exit(luaunit.LuaUnit.run())

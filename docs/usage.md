@@ -48,7 +48,7 @@ See the repo's `examples/basic_ui.lua` for a complete worked example.
 
 | Prop | Values | Notes |
 | --- | --- | --- |
-| `display` | `"flex"` (default), `"block"`, `"grid"`, `"none"` | `flex`/`grid` make this a container that lays out its children; `block` leaves children at their explicit `x`/`y` (no automatic flow); `none` removes it from layout, render, and hit-testing. `flexDirection` / `justifyContent` / `alignItems` / `flexWrap` only take effect under `display = "flex"`; `gridRows` / `gridColumns` only under `display = "grid"`. |
+| `display` | `"flex"` (default), `"block"`, `"grid"`, `"none"` | `flex`/`grid` make this a container that lays out its children; `block` leaves children at their explicit `x`/`y` (no automatic flow); `none` removes it from layout, render, and hit-testing. `flexDirection` / `justifyContent` / `alignItems` / `flexWrap` only take effect under `display = "flex"`; `gridRows` / `gridColumns` only under `display = "grid"`. Props are stored regardless of current display, so they survive `display` flips at runtime - see "Runtime mutation" below. |
 | `position` | `"relative"` (default), `"static"`, `"absolute"`, `"fixed"` | `relative` keeps the child in flow and shifts it visually by `top`/`right`/`bottom`/`left` (with the subtree following). `absolute`/`fixed` detach the child and resolve `top`/`right`/`bottom`/`left` against the parent's content box. `static` ignores all four. `display` and `position` are independent: a `display = "flex"` element can also be `position = "absolute"`. |
 | `flexDirection` | `"row"`, `"row-reverse"`, `"column"`, `"column-reverse"` | CSS values. `row-reverse` / `column-reverse` mirror the main-axis position of each child (and its subtree); `justifyContent` semantics flip accordingly. |
 | `justifyContent` | `"flex-start"`, `"center"`, `"flex-end"`, `"space-between"`, `"space-around"`, `"space-evenly"` | |
@@ -68,6 +68,26 @@ Auto-sizing: omit `width` or `height` to size to content. **Don't** pass `"auto"
 `backgroundColor`, `backgroundImage`, `backgroundSize`, `backgroundPosition`, `backgroundRepeat`, `backgroundOpacity`, `imageTint`, `color`, `fontSize`, `fontFamily`, `textAlign`, `verticalAlign`, `borderRadius`, `border`, `borderStyle`, `borderColor`, `borderTop`/`borderRight`/`borderBottom`/`borderLeft`, `opacity`, `visibility`, `transform`, `transition`, `contentBlur`, `backdropBlur`, `themeComponent`.
 
 **Direct mutation works.** Assigning `el.backgroundColor`, `el.color`, `el.borderRadius`, `el.opacity`, `el.themeComponent`, or any of the event handlers on an existing element takes effect on the next frame. No `setProperty` call required.
+
+### Runtime mutation
+
+The "edit a field, see it next frame" contract extends to layout props too. Direct assignment to `el.display`, `el.flexDirection`, `el.flexWrap`, `el.justifyContent`, `el.alignItems`, `el.alignContent`, `el.gap`, `el.gridRows`, `el.gridColumns`, `el.columnGap`, `el.rowGap` is picked up on the next layout pass - the `LayoutEngine` pulls layout inputs from the element at the top of every `layoutChildren()` call, and its memoization cache hashes them so direct mutation also invalidates the cache. No `setProperty` or `invalidateLayout()` call required.
+
+```lua
+local panel = FlexLove.new({ display = "none", flexDirection = "column", ... })
+-- ...later, when the panel should appear:
+panel.display = "flex"     -- takes effect next layout pass
+panel.gap = 12             -- so does this
+```
+
+This is symmetric with visual reactivity (`Renderer:draw` re-syncs visual props from the element on every draw - see `docs/repo.md`).
+
+**When to use `setProperty` instead.** `setProperty(prop, value)` is still the right entry point in two cases:
+
+- **Animated changes.** If the element has a `transition` configured for that property, `setProperty` interpolates from the current value to the target using the configured duration and easing. A raw assignment snaps the value with no animation - **that's intentional, not a bug.** Use raw assignment when you specifically want to skip the animation (resetting state, jumping past an in-progress tween, internal updates); use `setProperty` when you want the configured transition to fire.
+- **Dimension strings.** `setProperty("width", "50%")` parses the unit string, resolves it against the parent's content box, and stores two facts: the resolved pixel number on `el.width` (what layout reads) and the unit spec on `el.units.width` - the latter is what `FlexLove.resize()` uses to re-resolve the value when the viewport changes. A raw `el.width = "50%"` would leave the literal string in `el.width`, which downstream layout code expects to be a number and will mishandle. Numeric values (`el.width = 200`) work fine via direct assignment - the string-resolution path is only needed for unit strings.
+
+For all other property changes, direct mutation is preferred.
 
 ### `border` shorthand
 
