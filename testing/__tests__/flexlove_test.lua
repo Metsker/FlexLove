@@ -1,7 +1,9 @@
 package.path = package.path .. ";./?.lua"
 local originalSearchers = package.searchers or package.loaders
 table.insert(originalSearchers, 2, function(modname)
-  if modname == "FlexLove" then return loadfile("./init.lua") end
+  if modname == "FlexLove" then
+    return loadfile("./init.lua")
+  end
   if modname:match("^FlexLove%.modules%.") then
     local moduleName = modname:gsub("^FlexLove%.modules%.", "")
     return function()
@@ -138,13 +140,13 @@ end
 function TestFlexLove:testCSSDisplayFlex()
   local el = FlexLove.new({ display = "flex", width = 100, height = 100 })
   luaunit.assertEquals(el.display, "flex")
-  luaunit.assertEquals(el.positioning, "flex")
+  luaunit.assertEquals(el.display, "flex")
 end
 
 function TestFlexLove:testCSSDisplayGrid()
   local el = FlexLove.new({ display = "grid", width = 100, height = 100, gridColumns = 2, gridRows = 2 })
   luaunit.assertEquals(el.display, "grid")
-  luaunit.assertEquals(el.positioning, "grid")
+  luaunit.assertEquals(el.display, "grid")
 end
 
 function TestFlexLove:testCSSDisplayNone()
@@ -154,12 +156,12 @@ end
 
 function TestFlexLove:testCSSPositionAbsolute()
   local el = FlexLove.new({ position = "absolute", x = 100, y = 50, width = 10, height = 10 })
-  luaunit.assertEquals(el.positioning, "absolute")
+  luaunit.assertEquals(el.position, "absolute")
 end
 
 function TestFlexLove:testCSSPositionRelative()
   local el = FlexLove.new({ position = "relative", width = 10, height = 10 })
-  luaunit.assertEquals(el.positioning, "relative")
+  luaunit.assertEquals(el.position, "relative")
 end
 
 function TestFlexLove:testChildrenAcceptsPropTables()
@@ -264,7 +266,9 @@ function TestFlexLove:testOnClickProp()
   local el = FlexLove.new({
     width = 10,
     height = 10,
-    onClick = function() fired = fired + 1 end,
+    onClick = function()
+      fired = fired + 1
+    end,
   })
   -- Simulate a click event through the EventHandler's invocation path.
   el._eventHandler:_invokeCallback(el, { type = "click", button = 1 })
@@ -274,9 +278,14 @@ end
 function TestFlexLove:testOnMouseEnterAndLeave()
   local enters, leaves = 0, 0
   local el = FlexLove.new({
-    width = 10, height = 10,
-    onMouseEnter = function() enters = enters + 1 end,
-    onMouseLeave = function() leaves = leaves + 1 end,
+    width = 10,
+    height = 10,
+    onMouseEnter = function()
+      enters = enters + 1
+    end,
+    onMouseLeave = function()
+      leaves = leaves + 1
+    end,
   })
   el._eventHandler:_invokeCallback(el, { type = "hover" })
   el._eventHandler:_invokeCallback(el, { type = "unhover" })
@@ -359,9 +368,16 @@ end
 function TestFlexLove:testOnEventAndOnClickBothFire()
   local catchAll, typed = 0, 0
   local el = FlexLove.new({
-    width = 10, height = 10,
-    onEvent = function(_, e) if e.type == "click" then catchAll = catchAll + 1 end end,
-    onClick = function() typed = typed + 1 end,
+    width = 10,
+    height = 10,
+    onEvent = function(_, e)
+      if e.type == "click" then
+        catchAll = catchAll + 1
+      end
+    end,
+    onClick = function()
+      typed = typed + 1
+    end,
   })
   el._eventHandler:_invokeCallback(el, { type = "click", button = 1 })
   luaunit.assertEquals(catchAll, 1)

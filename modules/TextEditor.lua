@@ -1637,7 +1637,8 @@ function TextEditor:updateAutoGrowHeight(element)
   if element.height ~= newContentHeight then
     element.height = newContentHeight
     element._borderBoxHeight = element.height + element.padding.top + element.padding.bottom
-    if element.parent and not element._explicitlyAbsolute then
+    local isDetached = element.position == "absolute" or element.position == "fixed"
+    if element.parent and not isDetached then
       element.parent:layoutChildren()
     end
   end

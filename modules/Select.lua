@@ -133,7 +133,7 @@ function Select.getOrCreateManagedAnchor(element)
   local Element = Select._Element
   local anchor = Element.new({
     id = string.format("%s__select_anchor", element.id or "select"),
-    positioning = Select._utils.enums.Positioning.ABSOLUTE,
+    position = "absolute",
     left = 0,
     top = element:getBorderBoxHeight(),
     width = element:getBorderBoxWidth(),
@@ -161,8 +161,9 @@ function Select.applyManagedFrameLayout(element, frame)
   anchor.units.width = { value = triggerBorderBoxWidth, unit = "px" }
   frame._managedSelectMinimumBorderBoxWidth = triggerBorderBoxWidth
 
-  frame.positioning = frame.positioning or Select._utils.enums.Positioning.RELATIVE
-  frame._explicitlyAbsolute = false
+  -- The managed dropdown frame participates in the anchor's flow; clear any
+  -- detached state and absolute offsets it may have been built with.
+  frame.position = "static"
   frame.left = nil
   frame.top = nil
   frame.right = nil
@@ -367,14 +368,14 @@ function Select.attachOptionToManagedFrame(element)
   if element.parent ~= selectFrame then
     element._selectParentHint = selectParent
 
+    -- An option originally authored as `position = "absolute"` needs to fall
+    -- back into normal flow so the managed dropdown stacks its options.
     if
-      element._originalPositioning == Select._utils.enums.Positioning.ABSOLUTE
+      (element.position == "absolute" or element.position == "fixed")
       and element._managedSelectOptionUsesFrameLayout == nil
     then
       element._managedSelectOptionUsesFrameLayout = true
-      element.positioning = Select._utils.enums.Positioning.RELATIVE
-      element._originalPositioning = nil
-      element._explicitlyAbsolute = false
+      element.position = "static"
       element.left = nil
       element.top = nil
       element.right = nil

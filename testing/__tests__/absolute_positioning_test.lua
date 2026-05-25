@@ -1,7 +1,9 @@
 package.path = package.path .. ";./?.lua"
 local originalSearchers = package.searchers or package.loaders
 table.insert(originalSearchers, 2, function(modname)
-  if modname == "FlexLove" then return loadfile("./init.lua") end
+  if modname == "FlexLove" then
+    return loadfile("./init.lua")
+  end
   if modname:match("^FlexLove%.modules%.") then
     local moduleName = modname:gsub("^FlexLove%.modules%.", "")
     return function()
@@ -24,14 +26,14 @@ end
 function TestAbsolutePositioning:testAbsoluteBottomRightInFlexParent()
   -- Create a flex parent
   local parent = FlexLove.new({
-    positioning = "flex",
+    display = "flex",
     width = 400,
     height = 400,
   })
 
   -- Create an absolutely positioned child with bottom and right offsets
   local child = parent:appendChild(FlexLove.new({
-    positioning = "absolute",
+    position = "absolute",
     bottom = 0,
     right = 0,
     width = 100,
@@ -46,14 +48,14 @@ end
 function TestAbsolutePositioning:testAbsoluteTopLeftInFlexParent()
   -- Create a flex parent
   local parent = FlexLove.new({
-    positioning = "flex",
+    display = "flex",
     width = 400,
     height = 400,
   })
 
   -- Create an absolutely positioned child with top and left offsets
   local child = parent:appendChild(FlexLove.new({
-    positioning = "absolute",
+    position = "absolute",
     top = 10,
     left = 10,
     width = 100,
@@ -68,7 +70,7 @@ end
 function TestAbsolutePositioning:testAbsoluteWithPaddingParent()
   -- Create a flex parent with padding
   local parent = FlexLove.new({
-    positioning = "flex",
+    display = "flex",
     width = 400,
     height = 400,
     padding = 20,
@@ -76,7 +78,7 @@ function TestAbsolutePositioning:testAbsoluteWithPaddingParent()
 
   -- Create an absolutely positioned child
   local child = parent:appendChild(FlexLove.new({
-    positioning = "absolute",
+    position = "absolute",
     bottom = 0,
     right = 0,
     width = 100,
@@ -93,7 +95,7 @@ end
 function TestAbsolutePositioning:testAbsoluteDoesNotAffectFlexLayout()
   -- Create a flex parent
   local parent = FlexLove.new({
-    positioning = "flex",
+    display = "flex",
     flexDirection = "row",
     width = 400,
     height = 400,
@@ -112,7 +114,7 @@ function TestAbsolutePositioning:testAbsoluteDoesNotAffectFlexLayout()
 
   -- Add absolutely positioned child
   local absChild = parent:appendChild(FlexLove.new({
-    positioning = "absolute",
+    position = "absolute",
     top = 0,
     left = 0,
     width = 50,
@@ -131,14 +133,14 @@ end
 function TestAbsolutePositioning:testMultipleAbsoluteChildren()
   -- Create a flex parent
   local parent = FlexLove.new({
-    positioning = "flex",
+    display = "flex",
     width = 400,
     height = 400,
   })
 
   -- Create multiple absolutely positioned children
   local topLeft = parent:appendChild(FlexLove.new({
-    positioning = "absolute",
+    position = "absolute",
     top = 0,
     left = 0,
     width = 50,
@@ -146,7 +148,7 @@ function TestAbsolutePositioning:testMultipleAbsoluteChildren()
   }))
 
   local topRight = parent:appendChild(FlexLove.new({
-    positioning = "absolute",
+    position = "absolute",
     top = 0,
     right = 0,
     width = 50,
@@ -154,7 +156,7 @@ function TestAbsolutePositioning:testMultipleAbsoluteChildren()
   }))
 
   local bottomLeft = parent:appendChild(FlexLove.new({
-    positioning = "absolute",
+    position = "absolute",
     bottom = 0,
     left = 0,
     width = 50,
@@ -162,7 +164,7 @@ function TestAbsolutePositioning:testMultipleAbsoluteChildren()
   }))
 
   local bottomRight = parent:appendChild(FlexLove.new({
-    positioning = "absolute",
+    position = "absolute",
     bottom = 0,
     right = 0,
     width = 50,
@@ -184,18 +186,17 @@ function TestAbsolutePositioning:testMultipleAbsoluteChildren()
 end
 
 function TestAbsolutePositioning:testAbsoluteInImmediateMode()
-
   local parent, child
 
   local function createUI()
     parent = FlexLove.new({
-      positioning = "flex",
+      display = "flex",
       width = 400,
       height = 400,
     })
 
     child = parent:appendChild(FlexLove.new({
-      positioning = "absolute",
+      position = "absolute",
       bottom = 0,
       right = 0,
       width = 100,
@@ -214,12 +215,11 @@ function TestAbsolutePositioning:testAbsoluteInImmediateMode()
 
   luaunit.assertEquals(child.x, 300, "Frame 2: Child x should be 300")
   luaunit.assertEquals(child.y, 300, "Frame 2: Child y should be 300")
-
 end
 
 function TestAbsolutePositioning:testExplicitlyAbsoluteFlagIsSet()
   local parent = FlexLove.new({
-    positioning = "flex",
+    display = "flex",
     flexDirection = "row",
     width = 400,
     height = 400,
@@ -227,7 +227,7 @@ function TestAbsolutePositioning:testExplicitlyAbsoluteFlagIsSet()
 
   -- Child with explicit absolute positioning
   local absoluteChild = parent:appendChild(FlexLove.new({
-    positioning = "absolute",
+    position = "absolute",
     width = 100,
     height = 100,
   }))

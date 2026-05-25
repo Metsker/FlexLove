@@ -213,8 +213,9 @@ function ScrollManager:detectOverflow(element)
   local contentY = element.y + element.padding.top
 
   for _, child in ipairs(element.children) do
-    -- Skip absolutely positioned children (they don't contribute to overflow)
-    if not child._explicitlyAbsolute then
+    -- Skip detached children (they don't contribute to overflow)
+    local isDetached = child.position == "absolute" or child.position == "fixed"
+    if not isDetached then
       -- Calculate child's margin box bounds relative to content area
       -- child.x/y is the border-box position, margins extend outside this
       local childMarginLeft = child.x - contentX - child.margin.left

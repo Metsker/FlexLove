@@ -1,7 +1,9 @@
 package.path = package.path .. ";./?.lua"
 local originalSearchers = package.searchers or package.loaders
 table.insert(originalSearchers, 2, function(modname)
-  if modname == "FlexLove" then return loadfile("./init.lua") end
+  if modname == "FlexLove" then
+    return loadfile("./init.lua")
+  end
   if modname:match("^FlexLove%.modules%.") then
     local moduleName = modname:gsub("^FlexLove%.modules%.", "")
     return function()
@@ -343,7 +345,7 @@ function TestChildrenPropIntegration:test_issue5_style_grid_example()
     id = "grid_container",
     width = 400,
     height = 300,
-    positioning = "flex",
+    display = "flex",
     flexDirection = "column",
     gap = 8,
     padding = { horizontal = 16, vertical = 16 },
@@ -355,7 +357,7 @@ function TestChildrenPropIntegration:test_issue5_style_grid_example()
         width = "100%",
       },
       {
-        positioning = "grid",
+        display = "grid",
         gridColumns = COLS,
         width = "100%",
         height = 30,
@@ -363,7 +365,7 @@ function TestChildrenPropIntegration:test_issue5_style_grid_example()
         children = headerCells,
       },
       {
-        positioning = "grid",
+        display = "grid",
         gridColumns = COLS,
         gridRows = 2,
         width = "100%",
@@ -383,7 +385,7 @@ function TestChildrenPropIntegration:test_issue5_style_grid_example()
 
   -- Header grid
   local headerGrid = container.children[2]
-  luaunit.assertEquals(headerGrid.positioning, "grid")
+  luaunit.assertEquals(headerGrid.display, "grid")
   luaunit.assertEquals(#headerGrid.children, COLS)
   for i, cell in ipairs(headerGrid.children) do
     luaunit.assertEquals(cell.text, "Col " .. i)
@@ -392,7 +394,7 @@ function TestChildrenPropIntegration:test_issue5_style_grid_example()
 
   -- Body grid
   local bodyGrid = container.children[3]
-  luaunit.assertEquals(bodyGrid.positioning, "grid")
+  luaunit.assertEquals(bodyGrid.display, "grid")
   luaunit.assertEquals(#bodyGrid.children, 8)
   for i, cell in ipairs(bodyGrid.children) do
     luaunit.assertEquals(cell.text, "Cell " .. i)
@@ -409,7 +411,7 @@ function TestChildrenPropIntegration:test_children_with_flex_properties()
     id = "flex_container",
     width = 300,
     height = 200,
-    positioning = "flex",
+    display = "flex",
     flexDirection = "row",
     children = {
       { width = 100, height = 100, flexGrow = 1 },

@@ -1,7 +1,9 @@
 package.path = package.path .. ";./?.lua"
 local originalSearchers = package.searchers or package.loaders
 table.insert(originalSearchers, 2, function(modname)
-  if modname == "FlexLove" then return loadfile("./init.lua") end
+  if modname == "FlexLove" then
+    return loadfile("./init.lua")
+  end
   if modname:match("^FlexLove%.modules%.") then
     local moduleName = modname:gsub("^FlexLove%.modules%.", "")
     return function()
@@ -17,8 +19,7 @@ FlexLove.init()
 
 TestScrollbarPlacement = {}
 
-function TestScrollbarPlacement:setUp()
-end
+function TestScrollbarPlacement:setUp() end
 
 function TestScrollbarPlacement:test_reserve_space_with_percentage_height_children()
   -- Test case from user: horizontal scroll container with 100% height children
@@ -26,7 +27,7 @@ function TestScrollbarPlacement:test_reserve_space_with_percentage_height_childr
   local container = FlexLove.new({
     width = 200,
     height = 200,
-    positioning = "flex",
+    display = "flex",
     flexDirection = "row",
     overflow = "scroll", -- Always shows scrollbars
     scrollbarPlacement = "reserve-space",
@@ -57,7 +58,7 @@ function TestScrollbarPlacement:test_reserve_space_with_percentage_width_childre
   local container = FlexLove.new({
     width = 200,
     height = 200,
-    positioning = "flex",
+    display = "flex",
     flexDirection = "column",
     overflow = "scroll", -- Always shows scrollbars
     scrollbarPlacement = "reserve-space",
@@ -88,7 +89,7 @@ function TestScrollbarPlacement:test_overlay_mode_no_size_adjustment()
   local container = FlexLove.new({
     width = 200,
     height = 200,
-    positioning = "flex",
+    display = "flex",
     flexDirection = "row",
     overflow = "scroll",
     scrollbarPlacement = "overlay",
@@ -112,7 +113,7 @@ function TestScrollbarPlacement:test_auto_overflow_reserves_space_only_when_need
   local container = FlexLove.new({
     width = 200,
     height = 200,
-    positioning = "flex",
+    display = "flex",
     flexDirection = "column",
     overflow = "auto",
     scrollbarPlacement = "reserve-space",
@@ -141,7 +142,7 @@ function TestScrollbarPlacement:test_vertical_overflow_detected_with_reserved_sp
   local container = FlexLove.new({
     width = 200,
     height = 200,
-    positioning = "flex",
+    display = "flex",
     flexDirection = "column",
     overflow = "auto",
     scrollbarPlacement = "reserve-space",
@@ -172,7 +173,7 @@ function TestScrollbarPlacement:test_scrollbar_balance_vertical()
   local container = FlexLove.new({
     width = 200,
     height = 200,
-    positioning = "flex",
+    display = "flex",
     flexDirection = "column",
     overflow = "scroll",
     scrollbarPlacement = "reserve-space",
@@ -200,7 +201,7 @@ function TestScrollbarPlacement:test_scrollbar_balance_horizontal()
   local container = FlexLove.new({
     width = 200,
     height = 200,
-    positioning = "flex",
+    display = "flex",
     flexDirection = "row",
     overflow = "scroll",
     scrollbarPlacement = "reserve-space",
@@ -228,7 +229,7 @@ function TestScrollbarPlacement:test_scrollbar_balance_both()
   local container = FlexLove.new({
     width = 200,
     height = 200,
-    positioning = "flex",
+    display = "flex",
     overflow = "scroll",
     scrollbarPlacement = "reserve-space",
     scrollbarBalance = true,

@@ -305,22 +305,6 @@ function Element.new(props, _parent)
     Color = Element._Color,
   }
 
-  -- CSS-style display/position mapping. Internally the layout engine operates on a
-  -- single `positioning` field; we derive it from the user-facing display and position
-  -- props. Order: position="absolute" wins; otherwise display drives the container layout.
-  if props.positioning == nil then
-    if props.position == "absolute" or props.position == "fixed" then
-      props.positioning = "absolute"
-    elseif props.display == "flex" then
-      props.positioning = "flex"
-    elseif props.display == "grid" then
-      props.positioning = "grid"
-    elseif props.position == "relative" or props.position == "static" or props.position == nil then
-      -- leave nil; constructor will assign default (relative) or inherit from parent layout
-      props.positioning = nil
-    end
-  end
-
   -- Normalize padding: convert single value to table with all sides
   if props.padding ~= nil and type(props.padding) ~= "table" then
     local singleValue = props.padding
@@ -694,6 +678,24 @@ function Element.new(props, _parent)
     self.display = "block"
   end
 
+  -- Set position property (CSS-style: "static" | "relative" | "absolute" | "fixed")
+  -- Default "static": element participates in its parent's flow.
+  -- "absolute" / "fixed" detach the element so top/right/bottom/left apply.
+  if props.position ~= nil then
+    local validPosition = { static = true, relative = true, absolute = true, fixed = true }
+    if validPosition[props.position] then
+      self.position = props.position
+    else
+      self.position = "static"
+      Element._ErrorHandler:warn("Element", "LAY_006", {
+        property = "position",
+        got = tostring(props.position),
+      })
+    end
+  else
+    self.position = "static"
+  end
+
   -- Set transform property (optional)
   self.transform = props.transform or nil
 
@@ -879,7 +881,7 @@ function Element.new(props, _parent)
   -- Initialize LayoutEngine early with default values for auto-sizing calculations
   -- It will be re-configured later with actual layout properties
   self._layoutEngine = Element._LayoutEngine.new({
-    positioning = Element._utils.enums.Positioning.RELATIVE,
+    display = self.display,
     flexDirection = Element._utils.enums.FlexDirection.ROW,
     flexWrap = Element._utils.enums.FlexWrap.NOWRAP,
     justifyContent = Element._utils.enums.JustifyContent.FLEX_START,
@@ -1397,21 +1399,13 @@ function Element.new(props, _parent)
       end
     end
 
-    -- Track if positioning was explicitly set
-    if props.positioning then
-      Element._utils.validateEnum(props.positioning, Element._utils.enums.Positioning, "positioning")
-      self.positioning = props.positioning
-      self._originalPositioning = props.positioning
-      self._explicitlyAbsolute = (props.positioning == Element._utils.enums.Positioning.ABSOLUTE)
-    else
-      self.positioning = Element._utils.enums.Positioning.RELATIVE
-      self._originalPositioning = nil -- No explicit positioning
-      self._explicitlyAbsolute = false
-    end
+    -- self.position was set earlier from props.position. detached children
+    -- (position=absolute/fixed) consume top/right/bottom/left; in-flow children
+    -- ignore them.
+    local isDetached = (self.position == "absolute" or self.position == "fixed")
 
-    -- Handle positioning properties for elements without parent
-    -- Warn if CSS positioning properties are used without absolute positioning
-    if (props.top or props.bottom or props.left or props.right) and not self._explicitlyAbsolute then
+    -- Warn if CSS positioning properties are used without absolute/fixed positioning
+    if (props.top or props.bottom or props.left or props.right) and not isDetached then
       local properties = {}
       if props.top then
         table.insert(properties, "top")
@@ -1427,7 +1421,7 @@ function Element.new(props, _parent)
       end
       Element._ErrorHandler:warn("Element", "LAY_011", {
         element = self.id or "unnamed",
-        positioning = self._originalPositioning or "relative",
+        position = self.position,
         properties = table.concat(properties, ", "),
       })
     end
@@ -1446,36 +1440,16 @@ function Element.new(props, _parent)
       _resolveUnit(self, props.left, "left", viewportWidth, _ctx)
     end
   else
-    -- Set positioning first and track if explicitly set
-    self._originalPositioning = props.positioning -- Track original intent
-    if props.positioning == Element._utils.enums.Positioning.ABSOLUTE then
-      self.positioning = Element._utils.enums.Positioning.ABSOLUTE
-      self._explicitlyAbsolute = true -- Explicitly set to absolute by user
-    elseif props.positioning == Element._utils.enums.Positioning.FLEX then
-      self.positioning = Element._utils.enums.Positioning.FLEX
-      self._explicitlyAbsolute = false
-    elseif props.positioning == Element._utils.enums.Positioning.GRID then
-      self.positioning = Element._utils.enums.Positioning.GRID
-      self._explicitlyAbsolute = false
-    else
-      -- Default: children in flex/grid containers participate in parent's layout
-      -- children in relative/absolute containers default to relative
-      if
-        self.parent.positioning == Element._utils.enums.Positioning.FLEX
-        or self.parent.positioning == Element._utils.enums.Positioning.GRID
-      then
-        self.positioning = Element._utils.enums.Positioning.ABSOLUTE -- They are positioned BY flex/grid, not AS flex/grid
-        self._explicitlyAbsolute = false -- Participate in parent's layout
-      else
-        self.positioning = Element._utils.enums.Positioning.RELATIVE
-        self._explicitlyAbsolute = false -- Default for relative/absolute containers
-      end
-    end
+    -- self.position was set earlier from props.position. With `position` already
+    -- normalized to one of static/relative/absolute/fixed, only detached children
+    -- consume top/right/bottom/left; in-flow children are laid out by the parent
+    -- when the parent's display is flex or grid.
+    local isDetached = (self.position == "absolute" or self.position == "fixed")
 
     -- Set initial position
     local parentPadding = self.parent.padding or { left = 0, top = 0 }
-    if self.positioning == Element._utils.enums.Positioning.ABSOLUTE then
-      -- Absolute positioning is relative to parent's content area (padding box)
+    if isDetached then
+      -- Absolute / fixed positioning is relative to parent's content area (padding box)
       local baseX = self.parent.x + parentPadding.left
       local baseY = self.parent.y + parentPadding.top
 
@@ -1486,16 +1460,15 @@ function Element.new(props, _parent)
       self.z = Element._ZIndex.clamp(props.z or 0)
       self.tabIndex = props.tabIndex
     else
-      -- Children in flex containers start at parent position but will be repositioned by layoutChildren
-      -- Children in absolute/relative containers start at parent's content area (accounting for padding)
+      -- In-flow children: when the parent uses flex/grid, the parent's
+      -- layoutChildren() pass overwrites x/y; for `display = "block"` parents
+      -- the child sits at parent.content-area + child.x/y.
       local baseX = self.parent.x + parentPadding.left
       local baseY = self.parent.y + parentPadding.top
 
-      -- Warn if explicit x/y is set on a child that will be positioned by flex layout
-      -- This position will be overridden unless the child has positioning="absolute"
-      local parentWillUseFlex = self.parent.positioning ~= "grid"
-      local childIsRelative = self.positioning ~= "absolute" or not self._explicitlyAbsolute
-      if parentWillUseFlex and childIsRelative and (props.x or props.y) then
+      -- Warn if explicit x/y is set on a child that will be laid out by the parent.
+      local parentLaysOutChildren = self.parent.display == "flex" or self.parent.display == "grid"
+      if parentLaysOutChildren and (props.x or props.y) then
         Element._ErrorHandler:warn("Element", "LAY_008", {
           element = self.id or "unnamed",
           parent = self.parent.id or "unnamed",
@@ -1524,9 +1497,8 @@ function Element.new(props, _parent)
       end
     end
 
-    -- Handle positioning properties BEFORE adding to parent (so they're available during layout)
-    -- Warn if CSS positioning properties are used without absolute positioning
-    if (props.top or props.bottom or props.left or props.right) and not self._explicitlyAbsolute then
+    -- Warn if CSS positioning properties are used without absolute/fixed positioning
+    if (props.top or props.bottom or props.left or props.right) and not isDetached then
       local properties = {}
       if props.top then
         table.insert(properties, "top")
@@ -1542,7 +1514,7 @@ function Element.new(props, _parent)
       end
       Element._ErrorHandler:warn("Element", "LAY_011", {
         element = self.id or "unnamed",
-        positioning = self._originalPositioning or "relative",
+        position = self.position,
         properties = table.concat(properties, ", "),
       })
     end
@@ -1564,7 +1536,7 @@ function Element.new(props, _parent)
     _parent:appendChild(self)
   end
 
-  if self.positioning == Element._utils.enums.Positioning.FLEX then
+  if self.display == "flex" then
     -- Validate enum properties
     if props.flexDirection then
       Element._utils.validateEnum(props.flexDirection, Element._utils.enums.FlexDirection, "flexDirection")
@@ -1585,11 +1557,11 @@ function Element.new(props, _parent)
       Element._utils.validateEnum(props.justifySelf, Element._utils.enums.JustifySelf, "justifySelf")
     end
 
-    -- Warn if grid properties are set with flex positioning
+    -- Warn if grid properties are set on a flex container
     if props.gridRows or props.gridColumns then
       Element._ErrorHandler:warn("Element", "LAY_010", {
         element = self.id or "unnamed",
-        positioning = "flex",
+        display = "flex",
         properties = "gridRows/gridColumns",
       })
     end
@@ -1603,12 +1575,12 @@ function Element.new(props, _parent)
   end
 
   -- Grid container properties
-  if self.positioning == Element._utils.enums.Positioning.GRID then
-    -- Warn if flex properties are set with grid positioning
+  if self.display == "grid" then
+    -- Warn if flex properties are set on a grid container
     if props.flexDirection or props.flexWrap or props.justifyContent then
       Element._ErrorHandler:warn("Element", "LAY_009", {
         element = self.id or "unnamed",
-        positioning = "grid",
+        display = "grid",
         properties = "flexDirection/flexWrap/justifyContent",
       })
     end
@@ -1630,7 +1602,7 @@ function Element.new(props, _parent)
 
   -- Update the LayoutEngine with actual layout properties
   -- (it was initialized early with defaults for auto-sizing calculations)
-  self._layoutEngine.positioning = self.positioning
+  self._layoutEngine.display = self.display
   if self.flexDirection then
     self._layoutEngine.flexDirection = self.flexDirection
   end
@@ -2549,33 +2521,34 @@ function Element:appendChild(child)
 
   child.parent = self
 
-  -- Re-evaluate positioning now that we have a parent
-  -- If child was created without explicit positioning, inherit from parent
-  if child._originalPositioning == nil then
-    -- No explicit positioning was set during construction
-    if
-      self.positioning == Element._utils.enums.Positioning.FLEX
-      or self.positioning == Element._utils.enums.Positioning.GRID
-    then
-      child.positioning = Element._utils.enums.Positioning.ABSOLUTE -- They are positioned BY flex/grid, not AS flex/grid
-      child._explicitlyAbsolute = false -- Participate in parent's layout
-    else
-      child.positioning = Element._utils.enums.Positioning.RELATIVE
-      child._explicitlyAbsolute = false -- Default for relative/absolute containers
-    end
-  end
-  -- If child._originalPositioning is set, it means explicit positioning was provided
-  -- and _explicitlyAbsolute was already set correctly during construction
-
   table.insert(self.children, child)
   Element._Select.registerWithSelectParent(child)
+
+  -- Resolve percentage-based dimensions against the newly-attached parent.
+  -- Standalone construction resolves against the viewport; once attached, CSS
+  -- percentages refer to the parent's content box regardless of `display`.
+  if child.units then
+    if child.units.width and child.units.width.unit == "%" and self.width then
+      local newBorderBoxWidth = (child.units.width.value / 100) * self.width
+      newBorderBoxWidth = Element._utils.clamp(newBorderBoxWidth, child.minWidth, child.maxWidth)
+      child._borderBoxWidth = newBorderBoxWidth
+      child.width = math.max(0, newBorderBoxWidth - child.padding.left - child.padding.right)
+    end
+    if child.units.height and child.units.height.unit == "%" and self.height then
+      local newBorderBoxHeight = (child.units.height.value / 100) * self.height
+      newBorderBoxHeight = Element._utils.clamp(newBorderBoxHeight, child.minHeight, child.maxHeight)
+      child._borderBoxHeight = newBorderBoxHeight
+      child.height = math.max(0, newBorderBoxHeight - child.padding.top - child.padding.bottom)
+    end
+  end
 
   -- Mark parent as having dirty children to trigger layout recalculation
   self._childrenDirty = true
 
   -- Only recalculate auto-sizing if the child participates in layout
-  -- (CSS: absolutely positioned children don't affect parent auto-sizing)
-  if not child._explicitlyAbsolute then
+  -- (CSS: absolutely/fixed positioned children don't affect parent auto-sizing)
+  local childDetached = child.position == "absolute" or child.position == "fixed"
+  if not childDetached then
     local sizeChanged = false
 
     local overflowX = self.overflowX or self.overflow
@@ -4238,7 +4211,8 @@ function Element:setProperty(property, value)
     justifyContent = true,
     alignItems = true,
     alignContent = true,
-    positioning = true,
+    display = true,
+    position = true,
     gridRows = true,
     gridColumns = true,
 

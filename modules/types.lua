@@ -331,7 +331,8 @@ local FlexLoveConfig = {}
 ---@class FlexLoveEnums
 ---@field TextAlign TextAlign
 ---@field TextAlignVertical TextAlignVertical
----@field Positioning Positioning
+---@field Display Display
+---@field Position Position
 ---@field FlexDirection FlexDirection
 ---@field JustifyContent JustifyContent
 ---@field JustifySelf JustifySelf

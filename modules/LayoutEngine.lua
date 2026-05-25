@@ -1,6 +1,6 @@
 ---@class LayoutEngine
 ---@field element Element? Reference to the parent element
----@field positioning Positioning Layout positioning mode
+---@field display Display Container display mode that drives child layout (block/flex/grid/none)
 ---@field flexDirection FlexDirection Direction of flex layout
 ---@field justifyContent JustifyContent Alignment of items along main axis
 ---@field alignItems AlignItems Alignment of items along cross axis
@@ -14,7 +14,6 @@
 ---@field _Grid table
 ---@field _Units table
 ---@field _Context table
----@field _Positioning table
 ---@field _FlexDirection table
 ---@field _JustifyContent table
 ---@field _AlignContent table
@@ -37,7 +36,7 @@ function LayoutEngine.init(deps)
 end
 
 ---@class LayoutEngineProps
----@field positioning Positioning? Layout positioning mode (default: RELATIVE)
+---@field display Display? Container display mode (default: "block")
 ---@field flexDirection FlexDirection? Direction of flex layout (default: HORIZONTAL)
 ---@field justifyContent JustifyContent? Alignment of items along main axis (default: FLEX_START)
 ---@field alignItems AlignItems? Alignment of items along cross axis (default: STRETCH)
@@ -55,7 +54,6 @@ end
 ---@return LayoutEngine
 function LayoutEngine.new(props, deps)
   local enums = deps.utils.enums
-  local Positioning = enums.Positioning
   local FlexDirection = enums.FlexDirection
   local JustifyContent = enums.JustifyContent
   local AlignContent = enums.AlignContent
@@ -70,7 +68,6 @@ function LayoutEngine.new(props, deps)
   self._Units = deps.Units
   self._Context = deps.Context
   self._ErrorHandler = deps.ErrorHandler
-  self._Positioning = Positioning
   self._FlexDirection = FlexDirection
   self._JustifyContent = JustifyContent
   self._AlignContent = AlignContent
@@ -79,7 +76,7 @@ function LayoutEngine.new(props, deps)
   self._FlexWrap = FlexWrap
 
   -- Layout configuration
-  self.positioning = props.positioning or Positioning.FLEX
+  self.display = props.display or "block"
   self.flexDirection = props.flexDirection or FlexDirection.ROW
   self.justifyContent = props.justifyContent or JustifyContent.FLEX_START
   self.alignItems = props.alignItems or AlignItems.STRETCH
@@ -133,50 +130,47 @@ function LayoutEngine:_isReverse()
     or self.flexDirection == self._FlexDirection.COLUMN_REVERSE
 end
 
---- Apply CSS positioning offsets (top, right, bottom, left) to a child element
+--- Apply CSS positioning offsets (top, right, bottom, left) to a child element.
+--- Only detached children (position=absolute/fixed) consume the offsets; in-flow
+--- children participate in their parent's layout and ignore them.
 ---@param child Element The element to apply offsets to
 function LayoutEngine:applyPositioningOffsets(child)
   if not child then
     return
   end
 
-  -- For CSS-style positioning, we need the parent's bounds
   local parent = child.parent
   if not parent then
     return
   end
 
-  -- Only apply offsets to explicitly absolute children or children in relative/absolute containers
-  -- Flex/grid children ignore positioning offsets as they participate in layout
-  local isFlexChild = child.positioning == self._Positioning.FLEX
-    or child.positioning == self._Positioning.GRID
-    or (child.positioning == self._Positioning.ABSOLUTE and not child._explicitlyAbsolute)
+  local isDetached = child.position == "absolute" or child.position == "fixed"
+  if not isDetached then
+    return
+  end
 
-  if not isFlexChild and child._explicitlyAbsolute then
-    -- Apply absolute positioning for explicitly absolute children
-    -- Apply top offset (distance from parent's content box top edge)
-    if child.top then
-      child.y = parent.y + parent.padding.top + child.top
-    end
+  -- Apply top offset (distance from parent's content box top edge)
+  if child.top then
+    child.y = parent.y + parent.padding.top + child.top
+  end
 
-    -- Apply bottom offset (distance from parent's content box bottom edge)
-    -- BORDER-BOX MODEL: Use border-box dimensions for positioning
-    if child.bottom then
-      local elementBorderBoxHeight = child:getBorderBoxHeight()
-      child.y = parent.y + parent.padding.top + parent.height - child.bottom - elementBorderBoxHeight
-    end
+  -- Apply bottom offset (distance from parent's content box bottom edge)
+  -- BORDER-BOX MODEL: Use border-box dimensions for positioning
+  if child.bottom then
+    local elementBorderBoxHeight = child:getBorderBoxHeight()
+    child.y = parent.y + parent.padding.top + parent.height - child.bottom - elementBorderBoxHeight
+  end
 
-    -- Apply left offset (distance from parent's content box left edge)
-    if child.left then
-      child.x = parent.x + parent.padding.left + child.left
-    end
+  -- Apply left offset (distance from parent's content box left edge)
+  if child.left then
+    child.x = parent.x + parent.padding.left + child.left
+  end
 
-    -- Apply right offset (distance from parent's content box right edge)
-    -- BORDER-BOX MODEL: Use border-box dimensions for positioning
-    if child.right then
-      local elementBorderBoxWidth = child:getBorderBoxWidth()
-      child.x = parent.x + parent.padding.left + parent.width - child.right - elementBorderBoxWidth
-    end
+  -- Apply right offset (distance from parent's content box right edge)
+  -- BORDER-BOX MODEL: Use border-box dimensions for positioning
+  if child.right then
+    local elementBorderBoxWidth = child:getBorderBoxWidth()
+    child.x = parent.x + parent.padding.left + parent.width - child.right - elementBorderBoxWidth
   end
 end
 
@@ -391,7 +385,7 @@ function LayoutEngine:layoutChildren()
   self:_trackLayoutRecalculation()
 
   -- Handle grid layout
-  if self.positioning == self._Positioning.GRID then
+  if self.display == "grid" then
     self._Grid.layoutGridItems(self.element)
 
     -- Stop performance timing
@@ -411,12 +405,35 @@ function LayoutEngine:layoutChildren()
     return
   end
 
-  -- Get flex children (children that participate in flex layout)
-  -- Exclude display=false (CSS display:none) and explicitly absolute children
+  -- For block (and any non-flex) containers, still apply positioning offsets
+  -- to detached children. No flex math runs.
+  if self.display ~= "flex" then
+    for _, child in ipairs(self.element.children) do
+      local isDetached = child.position == "absolute" or child.position == "fixed"
+      if isDetached and child.display ~= "none" then
+        self:applyPositioningOffsets(child)
+      end
+      if child.display ~= "none" and #child.children > 0 then
+        child:layoutChildren()
+      end
+    end
+
+    if self.element._detectOverflow then
+      self.element:_detectOverflow()
+    end
+
+    if timerName and LayoutEngine._Performance then
+      LayoutEngine._Performance:stopTimer(timerName)
+    end
+    return
+  end
+
+  -- Get flex children (children that participate in flex layout).
+  -- Exclude display="none" and detached children (position=absolute/fixed).
   local flexChildren = {}
   for _, child in ipairs(self.element.children) do
-    local isFlexChild = not (child.positioning == self._Positioning.ABSOLUTE and child._explicitlyAbsolute)
-      and child.display ~= "none"
+    local isDetached = child.position == "absolute" or child.position == "fixed"
+    local isFlexChild = not isDetached and child.display ~= "none"
     if isFlexChild then
       table.insert(flexChildren, child)
 
@@ -437,14 +454,13 @@ function LayoutEngine:layoutChildren()
   -- CSS-compliant behavior: absolutely positioned elements are completely removed from normal flow
   -- They do NOT reserve space or affect flex layout calculations at all
 
-  -- If no flex children, skip flex layout but still position absolute children
+  -- If no flex children, skip flex layout but still position detached children
   if #flexChildren == 0 then
-    -- Position absolutely positioned children even when there are no flex children
-    for i, child in ipairs(self.element.children) do
-      if child.positioning == self._Positioning.ABSOLUTE and child._explicitlyAbsolute and child.display ~= "none" then
+    for _, child in ipairs(self.element.children) do
+      local isDetached = child.position == "absolute" or child.position == "fixed"
+      if isDetached and child.display ~= "none" then
         self:applyPositioningOffsets(child)
 
-        -- If child has children, layout them after position change
         if #child.children > 0 then
           child:layoutChildren()
         end
@@ -951,9 +967,10 @@ function LayoutEngine:layoutChildren()
     currentCrossPos = currentCrossPos + lineHeight + lineSpacing
   end
 
-  -- Position explicitly absolute children after flex layout
-  for i, child in ipairs(self.element.children) do
-    if child.positioning == self._Positioning.ABSOLUTE and child._explicitlyAbsolute and child.display ~= "none" then
+  -- Position detached children (position=absolute/fixed) after flex layout
+  for _, child in ipairs(self.element.children) do
+    local isDetached = child.position == "absolute" or child.position == "fixed"
+    if isDetached and child.display ~= "none" then
       -- Apply positioning offsets (top, right, bottom, left)
       self:applyPositioningOffsets(child)
 
@@ -1078,11 +1095,12 @@ function LayoutEngine:calculateAutoWidth()
     return contentWidth
   end
 
-  -- Get flex children (children that participate in flex layout)
-  -- Exclude display=false (CSS display:none) and explicitly absolute children
+  -- Get flex children (children that participate in flex layout).
+  -- Exclude display="none" and detached children (position=absolute/fixed).
   local flexChildren = {}
   for _, child in ipairs(self.element.children) do
-    if not child._explicitlyAbsolute and child.display ~= "none" then
+    local isDetached = child.position == "absolute" or child.position == "fixed"
+    if not isDetached and child.display ~= "none" then
       table.insert(flexChildren, child)
     end
   end
@@ -1161,11 +1179,12 @@ function LayoutEngine:calculateAutoHeight()
     return height
   end
 
-  -- Get flex children (children that participate in flex layout)
-  -- Exclude display=false (CSS display:none) and explicitly absolute children
+  -- Get flex children (children that participate in flex layout).
+  -- Exclude display="none" and detached children (position=absolute/fixed).
   local flexChildren = {}
   for _, child in ipairs(self.element.children) do
-    if not child._explicitlyAbsolute and child.display ~= "none" then
+    local isDetached = child.position == "absolute" or child.position == "fixed"
+    if not isDetached and child.display ~= "none" then
       table.insert(flexChildren, child)
     end
   end
@@ -1302,11 +1321,14 @@ function LayoutEngine:recalculateUnits(newViewportWidth, newViewportHeight)
     self.element._borderBoxHeight = self.element.units.height.value * scaleY
   end
 
-  -- Recalculate position if using viewport or percentage units
-  -- Skip position recalculation for flex children (non-explicitly-absolute children with a parent)
-  -- Their x/y is entirely controlled by the parent's layoutChildren() call
-  local isFlexChild = self.element.parent and not self.element._explicitlyAbsolute
-  if not isFlexChild then
+  -- Recalculate position if using viewport or percentage units.
+  -- Skip recalculation for in-flow children of a flex/grid parent: their x/y is
+  -- entirely controlled by the parent's layoutChildren() call.
+  local elementIsDetached = self.element.position == "absolute" or self.element.position == "fixed"
+  local parentLaysOutChildren = self.element.parent
+    and (self.element.parent.display == "flex" or self.element.parent.display == "grid")
+  local managedByParent = self.element.parent and not elementIsDetached and parentLaysOutChildren
+  if not managedByParent then
     if self.element.units.x.unit ~= "px" then
       local parentWidth = self.element.parent and self.element.parent.width or newViewportWidth
       local baseX = self.element.parent and self.element.parent.x or 0

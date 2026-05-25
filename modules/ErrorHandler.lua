@@ -96,8 +96,8 @@ local ErrorCodes = {
     LAY_006 = {
       code = "FLEXLOVE_LAY_006",
       category = "LAY",
-      description = "Invalid positioning mode",
-      suggestion = "Use 'absolute', 'relative', 'flex', or 'grid' for positioning",
+      description = "Invalid position value",
+      suggestion = "Use 'static', 'relative', 'absolute', or 'fixed' for the `position` prop",
     },
     LAY_007 = {
       code = "FLEXLOVE_LAY_007",
@@ -108,26 +108,26 @@ local ErrorCodes = {
     LAY_008 = {
       code = "FLEXLOVE_LAY_008",
       category = "LAY",
-      description = "Explicit position will be ignored by flex layout",
-      suggestion = "Remove x/y properties (flex layout controls position), OR set positioning='absolute' with left/top/right/bottom properties. Additionally, you can use margin/padding for positional offsets in flex layouts.",
+      description = "Explicit position will be ignored by parent layout",
+      suggestion = "Remove x/y properties (the parent's flex/grid layout controls position), OR set position='absolute' (or 'fixed') with left/top/right/bottom properties. You can also use margin/padding for positional offsets within parent layouts.",
     },
     LAY_009 = {
       code = "FLEXLOVE_LAY_009",
       category = "LAY",
-      description = "Flex layout properties ignored with grid positioning",
-      suggestion = "Remove flexDirection/justifyContent/alignItems properties, or change positioning to 'flex' or 'relative'",
+      description = "Flex layout properties ignored on a non-flex container",
+      suggestion = "Remove flexDirection/justifyContent/alignItems properties, or change display to 'flex'",
     },
     LAY_010 = {
       code = "FLEXLOVE_LAY_010",
       category = "LAY",
-      description = "Grid layout properties ignored without grid positioning",
-      suggestion = "Set positioning='grid' to use grid layout properties, or remove grid properties",
+      description = "Grid layout properties ignored on a non-grid container",
+      suggestion = "Set display='grid' to use grid layout properties, or remove the grid properties",
     },
     LAY_011 = {
       code = "FLEXLOVE_LAY_011",
       category = "LAY",
       description = "CSS positioning properties ignored",
-      suggestion = "Set positioning='absolute' to use top/bottom/left/right properties",
+      suggestion = "Set position='absolute' (or 'fixed') to use top/bottom/left/right properties",
     },
 
     -- Rendering Errors (REN_001 - REN_099)

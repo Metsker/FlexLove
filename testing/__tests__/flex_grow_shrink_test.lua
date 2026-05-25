@@ -1,7 +1,9 @@
 package.path = package.path .. ";./?.lua"
 local originalSearchers = package.searchers or package.loaders
 table.insert(originalSearchers, 2, function(modname)
-  if modname == "FlexLove" then return loadfile("./init.lua") end
+  if modname == "FlexLove" then
+    return loadfile("./init.lua")
+  end
   if modname:match("^FlexLove%.modules%.") then
     local moduleName = modname:gsub("^FlexLove%.modules%.", "")
     return function()
@@ -68,11 +70,9 @@ end
 
 TestFlexShorthand = {}
 
-function TestFlexShorthand:setUp()
-end
+function TestFlexShorthand:setUp() end
 
-function TestFlexShorthand:tearDown()
-end
+function TestFlexShorthand:tearDown() end
 
 function TestFlexShorthand:test_flex_number_shorthand()
   -- flex: 1 should set flexGrow=1, flexShrink=1, flexBasis=0
@@ -173,11 +173,9 @@ end
 
 TestFlexPropertyValidation = {}
 
-function TestFlexPropertyValidation:setUp()
-end
+function TestFlexPropertyValidation:setUp() end
 
-function TestFlexPropertyValidation:tearDown()
-end
+function TestFlexPropertyValidation:tearDown() end
 
 function TestFlexPropertyValidation:test_default_flex_values()
   local element = FlexLove.new({
@@ -280,17 +278,15 @@ end
 
 TestFlexGrow = {}
 
-function TestFlexGrow:setUp()
-end
+function TestFlexGrow:setUp() end
 
-function TestFlexGrow:tearDown()
-end
+function TestFlexGrow:tearDown() end
 
 function TestFlexGrow:test_single_item_with_flex_grow()
   local container = FlexLove.new({
     width = 500,
     height = 100,
-    positioning = "flex",
+    display = "flex",
     flexDirection = "row",
     gap = 0,
   })
@@ -311,7 +307,7 @@ function TestFlexGrow:test_two_items_equal_flex_grow()
   local container = FlexLove.new({
     width = 600,
     height = 100,
-    positioning = "flex",
+    display = "flex",
     flexDirection = "row",
     gap = 0,
   })
@@ -339,7 +335,7 @@ function TestFlexGrow:test_proportional_flex_grow()
   local container = FlexLove.new({
     width = 700,
     height = 100,
-    positioning = "flex",
+    display = "flex",
     flexDirection = "row",
     gap = 0,
   })
@@ -369,7 +365,7 @@ function TestFlexGrow:test_flex_grow_with_gap()
   local container = FlexLove.new({
     width = 620,
     height = 100,
-    positioning = "flex",
+    display = "flex",
     flexDirection = "row",
     gap = 20,
   })
@@ -398,7 +394,7 @@ function TestFlexGrow:test_flex_grow_vertical()
   local container = FlexLove.new({
     width = 100,
     height = 500,
-    positioning = "flex",
+    display = "flex",
     flexDirection = "column",
     gap = 0,
   })
@@ -426,7 +422,7 @@ function TestFlexGrow:test_flex_grow_with_margins()
   local container = FlexLove.new({
     width = 640,
     height = 100,
-    positioning = "flex",
+    display = "flex",
     flexDirection = "row",
     gap = 0,
   })
@@ -461,18 +457,16 @@ end
 
 TestFlexShrink = {}
 
-function TestFlexShrink:setUp()
-end
+function TestFlexShrink:setUp() end
 
-function TestFlexShrink:tearDown()
-end
+function TestFlexShrink:tearDown() end
 
 function TestFlexShrink:test_items_shrink_equally()
   -- CSS behavior: Items with flex-shrink: 1 (default) should shrink when overflow
   local container = FlexLove.new({
     width = 300,
     height = 100,
-    positioning = "flex",
+    display = "flex",
     flexDirection = "row",
     gap = 0,
   })
@@ -502,7 +496,7 @@ function TestFlexShrink:test_default_flex_shrink_applies_when_unspecified()
   local container = FlexLove.new({
     width = 300,
     height = 100,
-    positioning = "flex",
+    display = "flex",
     flexDirection = "row",
     gap = 0,
   })
@@ -527,7 +521,7 @@ function TestFlexShrink:test_proportional_shrink()
   local container = FlexLove.new({
     width = 300,
     height = 100,
-    positioning = "flex",
+    display = "flex",
     flexDirection = "row",
     gap = 0,
   })
@@ -558,7 +552,7 @@ function TestFlexShrink:test_flex_shrink_zero_prevents_shrinking()
   local container = FlexLove.new({
     width = 300,
     height = 100,
-    positioning = "flex",
+    display = "flex",
     flexDirection = "row",
     gap = 0,
   })
@@ -587,7 +581,7 @@ function TestFlexShrink:test_different_basis_affects_shrink()
   local container = FlexLove.new({
     width = 300,
     height = 100,
-    positioning = "flex",
+    display = "flex",
     flexDirection = "row",
     gap = 0,
   })
@@ -618,7 +612,7 @@ function TestFlexShrink:test_shrink_with_margins()
   local container = FlexLove.new({
     width = 300,
     height = 100,
-    positioning = "flex",
+    display = "flex",
     flexDirection = "row",
     gap = 0,
   })
@@ -652,17 +646,15 @@ end
 
 TestFlexBasis = {}
 
-function TestFlexBasis:setUp()
-end
+function TestFlexBasis:setUp() end
 
-function TestFlexBasis:tearDown()
-end
+function TestFlexBasis:tearDown() end
 
 function TestFlexBasis:test_flexBasis_auto_uses_element_width()
   local container = FlexLove.new({
     width = 500,
     height = 100,
-    positioning = "flex",
+    display = "flex",
     flexDirection = "row",
     gap = 0,
   })
@@ -684,7 +676,7 @@ function TestFlexBasis:test_flexBasis_numeric_overrides_width()
   local container = FlexLove.new({
     width = 500,
     height = 100,
-    positioning = "flex",
+    display = "flex",
     flexDirection = "row",
     gap = 0,
   })
@@ -706,7 +698,7 @@ function TestFlexBasis:test_flexBasis_percentage()
   local container = FlexLove.new({
     width = 600,
     height = 100,
-    positioning = "flex",
+    display = "flex",
     flexDirection = "row",
     gap = 0,
   })
@@ -728,7 +720,7 @@ function TestFlexBasis:test_flexBasis_with_grow()
   local container = FlexLove.new({
     width = 600,
     height = 100,
-    positioning = "flex",
+    display = "flex",
     flexDirection = "row",
     gap = 0,
   })
@@ -759,7 +751,7 @@ function TestFlexBasis:test_flexBasis_zero_with_grow()
   local container = FlexLove.new({
     width = 600,
     height = 100,
-    positioning = "flex",
+    display = "flex",
     flexDirection = "row",
     gap = 0,
   })
@@ -792,17 +784,15 @@ end
 
 TestFlexComplexScenarios = {}
 
-function TestFlexComplexScenarios:setUp()
-end
+function TestFlexComplexScenarios:setUp() end
 
-function TestFlexComplexScenarios:tearDown()
-end
+function TestFlexComplexScenarios:tearDown() end
 
 function TestFlexComplexScenarios:test_mixed_grow_no_grow()
   local container = FlexLove.new({
     width = 700,
     height = 100,
-    positioning = "flex",
+    display = "flex",
     flexDirection = "row",
     gap = 0,
   })
@@ -840,7 +830,7 @@ function TestFlexComplexScenarios:test_wrapping_with_flex_grow()
   local container = FlexLove.new({
     width = 400,
     height = 200,
-    positioning = "flex",
+    display = "flex",
     flexDirection = "row",
     flexWrap = "wrap",
     gap = 0,
@@ -879,7 +869,7 @@ function TestFlexComplexScenarios:test_exact_fit_no_grow_no_shrink()
   local container = FlexLove.new({
     width = 400,
     height = 100,
-    positioning = "flex",
+    display = "flex",
     flexDirection = "row",
     gap = 0,
   })
@@ -909,7 +899,7 @@ function TestFlexComplexScenarios:test_nested_flex_containers()
   local outer = FlexLove.new({
     width = 800,
     height = 200,
-    positioning = "flex",
+    display = "flex",
     flexDirection = "row",
     gap = 0,
   })
@@ -917,7 +907,7 @@ function TestFlexComplexScenarios:test_nested_flex_containers()
   local inner = outer:appendChild(FlexLove.new({
     width = 400,
     height = 100,
-    positioning = "flex",
+    display = "flex",
     flexDirection = "row",
     flexGrow = 1,
     gap = 0,
@@ -948,7 +938,7 @@ function TestFlexComplexScenarios:test_flex_with_padding()
   local container = FlexLove.new({
     width = 600,
     height = 100,
-    positioning = "flex",
+    display = "flex",
     flexDirection = "row",
     gap = 0,
     padding = { left = 20, right = 20, top = 10, bottom = 10 },
@@ -978,7 +968,7 @@ function TestFlexComplexScenarios:test_flex_main_size_keeps_border_box_model()
   local container = FlexLove.new({
     width = 300,
     height = 120,
-    positioning = "flex",
+    display = "flex",
     flexDirection = "row",
     gap = 0,
   })

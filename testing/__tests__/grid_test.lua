@@ -1,7 +1,9 @@
 package.path = package.path .. ";./?.lua"
 local originalSearchers = package.searchers or package.loaders
 table.insert(originalSearchers, 2, function(modname)
-  if modname == "FlexLove" then return loadfile("./init.lua") end
+  if modname == "FlexLove" then
+    return loadfile("./init.lua")
+  end
   if modname:match("^FlexLove%.modules%.") then
     local moduleName = modname:gsub("^FlexLove%.modules%.", "")
     return function()
@@ -35,7 +37,7 @@ function TestGridLayout:test_default_grid_single_child()
     y = 0,
     width = 400,
     height = 300,
-    positioning = "grid",
+    display = "grid",
     -- Default: gridRows=1, gridColumns=1
   })
 
@@ -44,7 +46,6 @@ function TestGridLayout:test_default_grid_single_child()
     width = 50, -- Will be stretched by grid
     height = 50,
   }))
-
 
   -- Child should be stretched to fill the entire grid cell
   luaunit.assertEquals(child.x, 0, "Child should be at x=0")
@@ -61,7 +62,7 @@ function TestGridLayout:test_2x2_grid_four_children()
     y = 0,
     width = 400,
     height = 400,
-    positioning = "grid",
+    display = "grid",
     gridRows = 2,
     gridColumns = 2,
   })
@@ -74,7 +75,6 @@ function TestGridLayout:test_2x2_grid_four_children()
       height = 50,
     }))
   end
-
 
   -- Each cell should be 200x200
   -- Child 1: top-left (0, 0)
@@ -104,7 +104,7 @@ function TestGridLayout:test_grid_with_gaps()
     y = 0,
     width = 420, -- 2 cells * 200 + 1 gap * 20
     height = 320, -- 2 cells * 150 + 1 gap * 20
-    positioning = "grid",
+    display = "grid",
     gridRows = 2,
     gridColumns = 2,
     columnGap = 20,
@@ -119,7 +119,6 @@ function TestGridLayout:test_grid_with_gaps()
       height = 50,
     }))
   end
-
 
   -- Cell size: (420 - 20) / 2 = 200, (320 - 20) / 2 = 150
   luaunit.assertEquals(children[1].width, 200, "Cell width should be 200")
@@ -142,7 +141,7 @@ function TestGridLayout:test_grid_overflow_children()
     y = 0,
     width = 400,
     height = 200,
-    positioning = "grid",
+    display = "grid",
     gridRows = 2,
     gridColumns = 2,
     -- Only 4 cells available
@@ -156,7 +155,6 @@ function TestGridLayout:test_grid_overflow_children()
       height = 50,
     }))
   end
-
 
   -- First 4 children should be positioned
   luaunit.assertNotNil(children[1].x, "Child 1 should be positioned")
@@ -174,7 +172,7 @@ function TestGridLayout:test_grid_align_center()
     y = 0,
     width = 400,
     height = 400,
-    positioning = "grid",
+    display = "grid",
     gridRows = 2,
     gridColumns = 2,
     alignItems = "center",
@@ -185,7 +183,6 @@ function TestGridLayout:test_grid_align_center()
     width = 100,
     height = 100,
   }))
-
 
   -- Cell is 200x200, child is 100x100, should be centered
   -- Center position: (200 - 100) / 2 = 50
@@ -203,7 +200,7 @@ function TestGridLayout:test_grid_align_flex_start()
     y = 0,
     width = 400,
     height = 400,
-    positioning = "grid",
+    display = "grid",
     gridRows = 2,
     gridColumns = 2,
     alignItems = "flex-start",
@@ -214,7 +211,6 @@ function TestGridLayout:test_grid_align_flex_start()
     width = 100,
     height = 100,
   }))
-
 
   -- Child should be at top-left of cell
   luaunit.assertEquals(child.x, 0, "Child should be at left of cell")
@@ -231,7 +227,7 @@ function TestGridLayout:test_grid_align_flex_end()
     y = 0,
     width = 400,
     height = 400,
-    positioning = "grid",
+    display = "grid",
     gridRows = 2,
     gridColumns = 2,
     alignItems = "flex-end",
@@ -242,7 +238,6 @@ function TestGridLayout:test_grid_align_flex_end()
     width = 100,
     height = 100,
   }))
-
 
   -- Cell is 200x200, child is 100x100, should be at bottom-right
   luaunit.assertEquals(child.x, 100, "Child should be at right of cell (200 - 100)")
@@ -260,7 +255,7 @@ function TestGridLayout:test_grid_with_padding()
     width = 500, -- Total width
     height = 500,
     padding = { top = 50, right = 50, bottom = 50, left = 50 },
-    positioning = "grid",
+    display = "grid",
     gridRows = 2,
     gridColumns = 2,
   })
@@ -270,7 +265,6 @@ function TestGridLayout:test_grid_with_padding()
     width = 50,
     height = 50,
   }))
-
 
   -- Available space: 500 - 50 - 50 = 400
   -- Cell size: 400 / 2 = 200
@@ -289,7 +283,7 @@ function TestGridLayout:test_grid_with_absolute_child()
     y = 0,
     width = 400,
     height = 400,
-    positioning = "grid",
+    display = "grid",
     gridRows = 2,
     gridColumns = 2,
   })
@@ -304,7 +298,7 @@ function TestGridLayout:test_grid_with_absolute_child()
   -- Absolutely positioned child (should be ignored by grid layout)
   local child2 = container:appendChild(FlexLove.new({
     id = "child2",
-    positioning = "absolute",
+    position = "absolute",
     x = 10,
     y = 10,
     width = 30,
@@ -317,7 +311,6 @@ function TestGridLayout:test_grid_with_absolute_child()
     width = 50,
     height = 50,
   }))
-
 
   -- child1 should be in first grid cell (0, 0)
   luaunit.assertEquals(child1.x, 0, "Child 1 should be at x=0")
@@ -340,12 +333,11 @@ function TestGridLayout:test_empty_grid()
     y = 0,
     width = 400,
     height = 400,
-    positioning = "grid",
+    display = "grid",
     gridRows = 2,
     gridColumns = 2,
     -- No children
   })
-
 
   -- Should not crash
   luaunit.assertEquals(#container.children, 0, "Grid should have no children")
@@ -359,7 +351,7 @@ function TestGridLayout:test_grid_zero_dimensions()
     y = 0,
     width = 400,
     height = 400,
-    positioning = "grid",
+    display = "grid",
     gridRows = 0, -- Invalid: 0 rows
     gridColumns = 0, -- Invalid: 0 columns
   })
@@ -384,7 +376,7 @@ function TestGridLayout:test_nested_grids()
     y = 0,
     width = 400,
     height = 400,
-    positioning = "grid",
+    display = "grid",
     gridRows = 2,
     gridColumns = 2,
   })
@@ -394,7 +386,7 @@ function TestGridLayout:test_nested_grids()
     id = "inner",
     width = 200,
     height = 200,
-    positioning = "grid",
+    display = "grid",
     gridRows = 2,
     gridColumns = 2,
   }))
@@ -407,7 +399,6 @@ function TestGridLayout:test_nested_grids()
       height = 25,
     }))
   end
-
 
   -- Inner grid should be positioned in first cell of outer grid
   luaunit.assertEquals(innerGrid.x, 0, "Inner grid should be at x=0")
@@ -423,7 +414,7 @@ function TestGridLayout:test_grid_with_reserved_space()
     y = 0,
     width = 400,
     height = 400,
-    positioning = "grid",
+    display = "grid",
     gridRows = 2,
     gridColumns = 2,
   })
@@ -431,7 +422,7 @@ function TestGridLayout:test_grid_with_reserved_space()
   -- Absolute child with left positioning (reserves left space)
   container:appendChild(FlexLove.new({
     id = "absolute_left",
-    positioning = "absolute",
+    position = "absolute",
     left = 0,
     top = 0,
     width = 50,
@@ -444,7 +435,6 @@ function TestGridLayout:test_grid_with_reserved_space()
     width = 50,
     height = 50,
   }))
-
 
   -- Grid should account for reserved space
   -- Available width: 400 - 50 (reserved left) = 350
@@ -466,7 +456,7 @@ function TestGridLayout:test_variable_column_widths_mixed()
     y = 0,
     width = 500,
     height = 300,
-    positioning = "grid",
+    display = "grid",
     gridColumns = { "1fr", "2fr", "100px" }, -- 3 cols: flex, 2x flex, fixed
     gridRows = { "1fr", "1fr" }, -- 2 equal rows
     columnGap = 0,
@@ -479,7 +469,6 @@ function TestGridLayout:test_variable_column_widths_mixed()
       id = "child" .. i,
     }))
   end
-
 
   -- Available width: 500, total fr = 3, fr unit = (500 - 100) / 3 = 133.333...
   -- Col 1: 133.33, Col 2: 266.67, Col 3: 100
@@ -509,7 +498,7 @@ function TestGridLayout:test_variable_row_heights_mixed()
     y = 0,
     width = 400,
     height = 500,
-    positioning = "grid",
+    display = "grid",
     gridColumns = { "1fr", "1fr" },
     gridRows = { "100px", "1fr", "2fr" }, -- fixed, flex, 2x flex
     rowGap = 0,
@@ -522,7 +511,6 @@ function TestGridLayout:test_variable_row_heights_mixed()
       id = "child" .. i,
     }))
   end
-
 
   -- Available height: 500, Row 1: 100px fixed
   -- Remaining: 400, fr unit = 400 / 3 = 133.33
@@ -546,7 +534,7 @@ function TestGridLayout:test_variable_all_px()
     y = 0,
     width = 400,
     height = 200,
-    positioning = "grid",
+    display = "grid",
     gridColumns = { 100, 200, 50 }, -- all px
     gridRows = { 100 },
     columnGap = 10,
@@ -558,7 +546,6 @@ function TestGridLayout:test_variable_all_px()
       id = "child" .. i,
     }))
   end
-
 
   luaunit.assertEquals(children[1].width, 100, "Col 1 should be 100px")
   luaunit.assertEquals(children[2].width, 200, "Col 2 should be 200px")
@@ -576,7 +563,7 @@ function TestGridLayout:test_variable_auto_tracks()
     y = 0,
     width = 600,
     height = 300,
-    positioning = "grid",
+    display = "grid",
     gridColumns = { "auto", "auto", "auto" }, -- 3 equal auto columns
     gridRows = { "auto", "auto" },
   })
@@ -587,7 +574,6 @@ function TestGridLayout:test_variable_auto_tracks()
       id = "child" .. i,
     }))
   end
-
 
   -- Available width: 600, 3 auto columns, 600/3 = 200 each
   luaunit.assertEquals(children[1].width, 200, "Auto col 1 should be 200")
@@ -607,7 +593,7 @@ function TestGridLayout:test_variable_percent_tracks()
     y = 0,
     width = 800,
     height = 400,
-    positioning = "grid",
+    display = "grid",
     gridColumns = { "25%", "50%", "25%" }, -- 200, 400, 200
     gridRows = { "100%" },
   })
@@ -618,7 +604,6 @@ function TestGridLayout:test_variable_percent_tracks()
       id = "child" .. i,
     }))
   end
-
 
   luaunit.assertEquals(children[1].width, 200, "25% col should be 200px")
   luaunit.assertEquals(children[2].width, 400, "50% col should be 400px")
@@ -633,7 +618,7 @@ function TestGridLayout:test_variable_with_gaps()
     y = 0,
     width = 500,
     height = 200,
-    positioning = "grid",
+    display = "grid",
     gridColumns = { "1fr", "1fr", "1fr" },
     gridRows = { "1fr" },
     columnGap = 20,
@@ -645,7 +630,6 @@ function TestGridLayout:test_variable_with_gaps()
       id = "child" .. i,
     }))
   end
-
 
   -- Available width: 500, 2 gaps = 40, remaining = 460
   -- Each col = 460/3 = 153.33
@@ -663,7 +647,7 @@ function TestGridLayout:test_variable_fallback_to_equal()
     y = 0,
     width = 300,
     height = 300,
-    positioning = "grid",
+    display = "grid",
     gridColumns = 3,
     gridRows = 3,
     -- No gridColumns/TemplateRows set -- fallback to equal 1fr
@@ -672,7 +656,6 @@ function TestGridLayout:test_variable_fallback_to_equal()
   local child = container:appendChild(FlexLove.new({
     id = "child1",
   }))
-
 
   -- 3 equal 1fr columns = 100 each
   luaunit.assertEquals(child.width, 100, "Fallback col should be 100px equal")
@@ -687,7 +670,7 @@ function TestGridLayout:test_variable_align_center()
     y = 0,
     width = 400,
     height = 300,
-    positioning = "grid",
+    display = "grid",
     gridColumns = { "1fr", "2fr" },
     gridRows = { "1fr", "1fr" },
     alignItems = "center",
@@ -698,7 +681,6 @@ function TestGridLayout:test_variable_align_center()
     width = 50,
     height = 30,
   }))
-
 
   -- Cell 1: (~133.33, 150)
   -- Child: (50, 30), centered: ((133.33-50)/2, (150-30)/2)
@@ -716,7 +698,7 @@ function TestGridLayout:test_variable_auto_content_sized()
     y = 0,
     width = 600,
     height = 200,
-    positioning = "grid",
+    display = "grid",
     -- auto track sizes to child content (100px), fr tracks split the remainder
     gridColumns = { "auto", "1fr", "2fr" },
     gridRows = { "1fr" },
@@ -727,7 +709,6 @@ function TestGridLayout:test_variable_auto_content_sized()
   children[1] = container:appendChild(FlexLove.new({ id = "child1", width = 100, height = 50 }))
   children[2] = container:appendChild(FlexLove.new({ id = "child2" }))
   children[3] = container:appendChild(FlexLove.new({ id = "child3" }))
-
 
   -- auto track: child1 has width=100, so auto = 100
   -- remaining: 600 - 100 = 500, totalFr = 3
@@ -747,7 +728,7 @@ function TestGridLayout:test_variable_auto_no_content()
     y = 0,
     width = 600,
     height = 200,
-    positioning = "grid",
+    display = "grid",
     -- auto track has no content (intrinsic = 0), fr tracks get all space
     gridColumns = { "auto", "1fr", "2fr" },
     gridRows = { "1fr" },
@@ -758,7 +739,6 @@ function TestGridLayout:test_variable_auto_no_content()
   for i = 1, 3 do
     children[i] = container:appendChild(FlexLove.new({ id = "child" .. i }))
   end
-
 
   -- auto track: no content, intrinsic = 0
   -- remaining: 600 - 0 = 600, totalFr = 3
@@ -778,7 +758,7 @@ function TestGridLayout:test_variable_auto_max_content()
     y = 0,
     width = 600,
     height = 400,
-    positioning = "grid",
+    display = "grid",
     gridColumns = { "auto", "1fr" },
     gridRows = { "1fr", "1fr" },
     columnGap = 0,
@@ -790,7 +770,6 @@ function TestGridLayout:test_variable_auto_max_content()
   children[2] = container:appendChild(FlexLove.new({ id = "child2" }))
   children[3] = container:appendChild(FlexLove.new({ id = "child3", width = 120, height = 50 }))
   children[4] = container:appendChild(FlexLove.new({ id = "child4" }))
-
 
   -- auto track: max(80, 120) = 120
   -- remaining: 600 - 120 = 480, totalFr = 1
@@ -811,7 +790,7 @@ function TestGridLayout:test_guard_negative_fr_tracks()
     y = 0,
     width = 100,
     height = 100,
-    positioning = "grid",
+    display = "grid",
     gridColumns = { "200px", "1fr" }, -- px exceeds available width
     gridRows = { "1fr" },
   })
@@ -819,7 +798,6 @@ function TestGridLayout:test_guard_negative_fr_tracks()
   local child = container:appendChild(FlexLove.new({
     id = "child1",
   }))
-
 
   -- col1 = 100px (clamped to availableWidth), col2 = 1fr = 0 (no space remaining)
   -- Track sizes should never be negative
@@ -835,7 +813,7 @@ function TestGridLayout:test_guard_all_px_overflow()
     y = 0,
     width = 50,
     height = 50,
-    positioning = "grid",
+    display = "grid",
     gridColumns = { "100px", "100px" }, -- both exceed available
     gridRows = { "1fr" },
   })
@@ -843,7 +821,6 @@ function TestGridLayout:test_guard_all_px_overflow()
   local child = container:appendChild(FlexLove.new({
     id = "child1",
   }))
-
 
   luaunit.assertTrue(child.width >= 0, "Child width should never be negative, got " .. tostring(child.width))
 end
@@ -856,7 +833,7 @@ function TestGridLayout:test_guard_negative_available_space()
     y = 0,
     width = 100,
     height = 100,
-    positioning = "grid",
+    display = "grid",
     gridRows = 1,
     gridColumns = 1,
   })
@@ -864,7 +841,7 @@ function TestGridLayout:test_guard_negative_available_space()
   -- Absolute child that reserves more space than container has
   container:appendChild(FlexLove.new({
     id = "abs_child",
-    positioning = "absolute",
+    position = "absolute",
     left = 0,
     top = 0,
     width = 200, -- larger than container width
@@ -874,7 +851,6 @@ function TestGridLayout:test_guard_negative_available_space()
   local child = container:appendChild(FlexLove.new({
     id = "child1",
   }))
-
 
   -- Available space should be clamped to 0 (not negative)
   -- When available is 0, track = 0, child width/height = 0 or greater
@@ -890,7 +866,7 @@ function TestGridLayout:test_guard_extreme_overflow()
     y = 0,
     width = 10,
     height = 10,
-    positioning = "grid",
+    display = "grid",
     gridColumns = { "auto", "auto", "auto" },
     gridRows = { "auto", "auto" },
   })
@@ -900,7 +876,6 @@ function TestGridLayout:test_guard_extreme_overflow()
     width = 500,
     height = 500,
   }))
-
 
   luaunit.assertTrue(child.width >= 0, "Child width should never be negative, got " .. tostring(child.width))
   luaunit.assertTrue(child.height >= 0, "Child height should never be negative, got " .. tostring(child.height))
@@ -918,7 +893,7 @@ function TestGridLayout:test_units_vw_columns()
     y = 0,
     width = 1000,
     height = 400,
-    positioning = "grid",
+    display = "grid",
     gridColumns = { "25vw", "1fr" },
     gridRows = { "1fr" },
     columnGap = 0,
@@ -928,7 +903,6 @@ function TestGridLayout:test_units_vw_columns()
   for i = 1, 2 do
     children[i] = container:appendChild(FlexLove.new({ id = "child" .. i }))
   end
-
 
   -- Viewport is 800x600 from loveStub, so 25vw = 200px
   -- Available width: 1000, col1 = 200, remaining = 800, col2 = 1fr = 800
@@ -945,7 +919,7 @@ function TestGridLayout:test_units_vh_rows()
     y = 0,
     width = 400,
     height = 1000,
-    positioning = "grid",
+    display = "grid",
     gridColumns = { "1fr" },
     gridRows = { "50vh", "1fr" },
     rowGap = 0,
@@ -955,7 +929,6 @@ function TestGridLayout:test_units_vh_rows()
   for i = 1, 2 do
     children[i] = container:appendChild(FlexLove.new({ id = "child" .. i }))
   end
-
 
   -- Viewport is 800x600 from loveStub, so 50vh = 300px
   -- Available height: 1000, row1 = 300, remaining = 700, row2 = 1fr = 700
@@ -972,7 +945,7 @@ function TestGridLayout:test_units_vw_vh_mixed()
     y = 0,
     width = 800,
     height = 600,
-    positioning = "grid",
+    display = "grid",
     gridColumns = { "10vw", "20vw" },
     gridRows = { "10vh" },
     columnGap = 0,
@@ -983,7 +956,6 @@ function TestGridLayout:test_units_vw_vh_mixed()
   for i = 1, 2 do
     children[i] = container:appendChild(FlexLove.new({ id = "child" .. i }))
   end
-
 
   -- 10vw = 80px, 20vw = 160px, 10vh = 60px
   luaunit.assertEquals(children[1].width, 80, "10vw col should be 80px")
@@ -1000,7 +972,7 @@ function TestGridLayout:test_units_calc_vw_columns()
     y = 0,
     width = 1000,
     height = 200,
-    positioning = "grid",
+    display = "grid",
     gridColumns = { FlexLove.calc("10vw + 50px"), "1fr" },
     gridRows = { "1fr" },
     columnGap = 0,
@@ -1010,7 +982,6 @@ function TestGridLayout:test_units_calc_vw_columns()
   for i = 1, 2 do
     children[i] = container:appendChild(FlexLove.new({ id = "child" .. i }))
   end
-
 
   -- Viewport = 800x600, so 10vw = 80px, calc(80 + 50) = 130px
   -- col1 = 130, remaining = 870, col2 = 1fr = 870
@@ -1027,7 +998,7 @@ function TestGridLayout:test_units_calc_percent_columns()
     y = 0,
     width = 400,
     height = 200,
-    positioning = "grid",
+    display = "grid",
     gridColumns = { FlexLove.calc("50% - 20px"), "1fr" },
     gridRows = { "1fr" },
     columnGap = 0,
@@ -1037,7 +1008,6 @@ function TestGridLayout:test_units_calc_percent_columns()
   for i = 1, 2 do
     children[i] = container:appendChild(FlexLove.new({ id = "child" .. i }))
   end
-
 
   -- col1: 50% of availableWidth(400) = 200, minus 20px = 180
   -- remaining = 400 - 180 = 220, col2 = 1fr = 220
@@ -1054,7 +1024,7 @@ function TestGridLayout:test_units_vw_with_gap()
     y = 0,
     width = 500,
     height = 200,
-    positioning = "grid",
+    display = "grid",
     gridColumns = { "10vw", "1fr" },
     gridRows = { "1fr" },
     columnGap = 20,
@@ -1064,7 +1034,6 @@ function TestGridLayout:test_units_vw_with_gap()
   for i = 1, 2 do
     children[i] = container:appendChild(FlexLove.new({ id = "child" .. i }))
   end
-
 
   -- 10vw = 80px, gap = 20, remaining = 500 - 80 - 20 = 400, col2 = 400
   luaunit.assertEquals(children[1].width, 80, "10vw col should be 80px with gap")

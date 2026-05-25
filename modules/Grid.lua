@@ -3,7 +3,6 @@ local utils = require(modulePath .. "utils")
 local enums = utils.enums
 local Units = require(modulePath .. "Units")
 
-local Positioning = enums.Positioning
 local AlignItems = enums.AlignItems
 
 --- Grid layout with variable column widths / row heights
@@ -196,8 +195,9 @@ function Grid.layoutGridItems(element)
   local reservedBottom = 0
 
   for _, child in ipairs(element.children) do
-    -- Only consider absolutely positioned children with explicit positioning and display != false
-    if child.positioning == Positioning.ABSOLUTE and child._explicitlyAbsolute and child.display ~= "none" then
+    -- Only consider detached children (position=absolute/fixed) that aren't display=none
+    local isDetached = child.position == "absolute" or child.position == "fixed"
+    if isDetached and child.display ~= "none" then
       -- BORDER-BOX MODEL: Use border-box dimensions for space calculations
       local childBorderBoxWidth = child:getBorderBoxWidth()
       local childBorderBoxHeight = child:getBorderBoxHeight()
@@ -226,10 +226,11 @@ function Grid.layoutGridItems(element)
   local columnGap = element.columnGap or 0
   local rowGap = element.rowGap or 0
 
-  -- Collect grid children (exclude explicitly absolute and display=false)
+  -- Collect grid children (exclude detached and display=none)
   local gridChildren = {}
   for _, child in ipairs(element.children) do
-    if not (child.positioning == Positioning.ABSOLUTE and child._explicitlyAbsolute) and child.display ~= "none" then
+    local isDetached = child.position == "absolute" or child.position == "fixed"
+    if not isDetached and child.display ~= "none" then
       table.insert(gridChildren, child)
     end
   end

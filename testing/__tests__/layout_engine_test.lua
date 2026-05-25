@@ -1,7 +1,9 @@
 package.path = package.path .. ";./?.lua"
 local originalSearchers = package.searchers or package.loaders
 table.insert(originalSearchers, 2, function(modname)
-  if modname == "FlexLove" then return loadfile("./init.lua") end
+  if modname == "FlexLove" then
+    return loadfile("./init.lua")
+  end
   if modname:match("^FlexLove%.modules%.") then
     local moduleName = modname:gsub("^FlexLove%.modules%.", "")
     return function()
@@ -93,7 +95,7 @@ TestLayoutEngineNew = {}
 function TestLayoutEngineNew:testNewWithDefaults()
   local layout = LayoutEngine.new({}, deps)
   luaunit.assertNotNil(layout)
-  luaunit.assertEquals(layout.positioning, utils.enums.Positioning.FLEX)
+  luaunit.assertEquals(layout.display, "block")
   luaunit.assertEquals(layout.flexDirection, utils.enums.FlexDirection.ROW)
   luaunit.assertEquals(layout.justifyContent, utils.enums.JustifyContent.FLEX_START)
   luaunit.assertEquals(layout.alignItems, utils.enums.AlignItems.STRETCH)
@@ -104,7 +106,7 @@ end
 
 function TestLayoutEngineNew:testNewWithCustomProps()
   local layout = LayoutEngine.new({
-    positioning = utils.enums.Positioning.GRID,
+    display = "grid",
     flexDirection = utils.enums.FlexDirection.COLUMN,
     justifyContent = utils.enums.JustifyContent.CENTER,
     alignItems = utils.enums.AlignItems.CENTER,
@@ -113,7 +115,7 @@ function TestLayoutEngineNew:testNewWithCustomProps()
     gridColumns = 4,
   }, deps)
 
-  luaunit.assertEquals(layout.positioning, utils.enums.Positioning.GRID)
+  luaunit.assertEquals(layout.display, "grid")
   luaunit.assertEquals(layout.flexDirection, utils.enums.FlexDirection.COLUMN)
   luaunit.assertEquals(layout.justifyContent, utils.enums.JustifyContent.CENTER)
   luaunit.assertEquals(layout.alignItems, utils.enums.AlignItems.CENTER)
@@ -180,19 +182,19 @@ function TestLayoutEngineAutoWidth:testAutoWidthHorizontalWithGap()
   }, deps)
 
   local mockChild1 = {
-    _explicitlyAbsolute = false,
+    position = "static",
     getBorderBoxWidth = function()
       return 50
     end,
   }
   local mockChild2 = {
-    _explicitlyAbsolute = false,
+    position = "static",
     getBorderBoxWidth = function()
       return 60
     end,
   }
   local mockChild3 = {
-    _explicitlyAbsolute = false,
+    position = "static",
     getBorderBoxWidth = function()
       return 70
     end,
@@ -218,19 +220,19 @@ function TestLayoutEngineAutoWidth:testAutoWidthVerticalTakesMax()
   }, deps)
 
   local mockChild1 = {
-    _explicitlyAbsolute = false,
+    position = "static",
     getBorderBoxWidth = function()
       return 50
     end,
   }
   local mockChild2 = {
-    _explicitlyAbsolute = false,
+    position = "static",
     getBorderBoxWidth = function()
       return 150
     end,
   }
   local mockChild3 = {
-    _explicitlyAbsolute = false,
+    position = "static",
     getBorderBoxWidth = function()
       return 75
     end,
@@ -256,19 +258,19 @@ function TestLayoutEngineAutoWidth:testAutoWidthSkipsAbsoluteChildren()
   }, deps)
 
   local mockChild1 = {
-    _explicitlyAbsolute = false,
+    position = "static",
     getBorderBoxWidth = function()
       return 50
     end,
   }
   local mockChild2 = {
-    _explicitlyAbsolute = true, -- Should be skipped
+    position = "absolute", -- Should be skipped
     getBorderBoxWidth = function()
       return 1000
     end,
   }
   local mockChild3 = {
-    _explicitlyAbsolute = false,
+    position = "static",
     getBorderBoxWidth = function()
       return 60
     end,
@@ -294,13 +296,13 @@ function TestLayoutEngineAutoWidth:testAutoWidthWithZeroGap()
   }, deps)
 
   local mockChild1 = {
-    _explicitlyAbsolute = false,
+    position = "static",
     getBorderBoxWidth = function()
       return 50
     end,
   }
   local mockChild2 = {
-    _explicitlyAbsolute = false,
+    position = "static",
     getBorderBoxWidth = function()
       return 60
     end,
@@ -325,7 +327,7 @@ function TestLayoutEngineAutoWidth:testAutoWidthWithTextAndChildren()
   }, deps)
 
   local mockChild = {
-    _explicitlyAbsolute = false,
+    position = "static",
     getBorderBoxWidth = function()
       return 50
     end,
@@ -380,19 +382,19 @@ function TestLayoutEngineAutoHeight:testAutoHeightVerticalWithGap()
   }, deps)
 
   local mockChild1 = {
-    _explicitlyAbsolute = false,
+    position = "static",
     getBorderBoxHeight = function()
       return 30
     end,
   }
   local mockChild2 = {
-    _explicitlyAbsolute = false,
+    position = "static",
     getBorderBoxHeight = function()
       return 40
     end,
   }
   local mockChild3 = {
-    _explicitlyAbsolute = false,
+    position = "static",
     getBorderBoxHeight = function()
       return 50
     end,
@@ -418,19 +420,19 @@ function TestLayoutEngineAutoHeight:testAutoHeightHorizontalTakesMax()
   }, deps)
 
   local mockChild1 = {
-    _explicitlyAbsolute = false,
+    position = "static",
     getBorderBoxHeight = function()
       return 30
     end,
   }
   local mockChild2 = {
-    _explicitlyAbsolute = false,
+    position = "static",
     getBorderBoxHeight = function()
       return 100
     end,
   }
   local mockChild3 = {
-    _explicitlyAbsolute = false,
+    position = "static",
     getBorderBoxHeight = function()
       return 50
     end,
@@ -456,19 +458,19 @@ function TestLayoutEngineAutoHeight:testAutoHeightSkipsAbsoluteChildren()
   }, deps)
 
   local mockChild1 = {
-    _explicitlyAbsolute = false,
+    position = "static",
     getBorderBoxHeight = function()
       return 30
     end,
   }
   local mockChild2 = {
-    _explicitlyAbsolute = true, -- Should be skipped
+    position = "absolute", -- Should be skipped
     getBorderBoxHeight = function()
       return 1000
     end,
   }
   local mockChild3 = {
-    _explicitlyAbsolute = false,
+    position = "static",
     getBorderBoxHeight = function()
       return 40
     end,
@@ -494,7 +496,7 @@ function TestLayoutEngineAutoHeight:testAutoHeightWithSingleChild()
   }, deps)
 
   local mockChild = {
-    _explicitlyAbsolute = false,
+    position = "static",
     getBorderBoxHeight = function()
       return 100
     end,
@@ -545,8 +547,7 @@ function TestLayoutEnginePositioningOffsets:testApplyTopOffset()
 
   local mockChild = {
     parent = mockParent,
-    positioning = utils.enums.Positioning.ABSOLUTE,
-    _explicitlyAbsolute = true,
+    position = "absolute",
     x = 0,
     y = 0,
     top = 30,
@@ -569,8 +570,7 @@ function TestLayoutEnginePositioningOffsets:testApplyLeftOffset()
 
   local mockChild = {
     parent = mockParent,
-    positioning = utils.enums.Positioning.ABSOLUTE,
-    _explicitlyAbsolute = true,
+    position = "absolute",
     x = 0,
     y = 0,
     left = 40,
@@ -595,8 +595,7 @@ function TestLayoutEnginePositioningOffsets:testApplyBottomOffset()
 
   local mockChild = {
     parent = mockParent,
-    positioning = utils.enums.Positioning.ABSOLUTE,
-    _explicitlyAbsolute = true,
+    position = "absolute",
     x = 0,
     y = 0,
     bottom = 50,
@@ -624,8 +623,7 @@ function TestLayoutEnginePositioningOffsets:testApplyRightOffset()
 
   local mockChild = {
     parent = mockParent,
-    positioning = utils.enums.Positioning.ABSOLUTE,
-    _explicitlyAbsolute = true,
+    position = "absolute",
     x = 0,
     y = 0,
     right = 60,
@@ -651,8 +649,7 @@ function TestLayoutEnginePositioningOffsets:testSkipsFlexChildren()
 
   local mockChild = {
     parent = mockParent,
-    positioning = utils.enums.Positioning.ABSOLUTE,
-    _explicitlyAbsolute = false, -- Participates in flex layout
+    position = "static", -- Participates in flex layout
     x = 500,
     y = 600,
     top = 30,
@@ -687,9 +684,9 @@ function TestLayoutEngineLayoutChildren:testLayoutChildrenNoChildren()
   layout:layoutChildren()
 end
 
-function TestLayoutEngineLayoutChildren:testLayoutChildrenAbsolutePositioning()
+function TestLayoutEngineLayoutChildren:testLayoutChildrenBlockDisplay()
   local layout = LayoutEngine.new({
-    positioning = utils.enums.Positioning.ABSOLUTE,
+    display = "block",
   }, deps)
 
   local mockElement = {
@@ -698,22 +695,7 @@ function TestLayoutEngineLayoutChildren:testLayoutChildrenAbsolutePositioning()
   }
   layout:initialize(mockElement)
 
-  -- Should handle absolute positioning (doesn't layout children, just applies offsets)
-  layout:layoutChildren()
-end
-
-function TestLayoutEngineLayoutChildren:testLayoutChildrenRelativePositioning()
-  local layout = LayoutEngine.new({
-    positioning = utils.enums.Positioning.RELATIVE,
-  }, deps)
-
-  local mockElement = {
-    children = {},
-    padding = { left = 0, top = 0, right = 0, bottom = 0 },
-  }
-  layout:initialize(mockElement)
-
-  -- Should handle relative positioning (doesn't layout children, just applies offsets)
+  -- Block containers don't lay out children themselves; should not error.
   layout:layoutChildren()
 end
 
@@ -759,7 +741,7 @@ function TestLayoutEdgeCases:test_percentage_width_with_auto_parent_warns()
     y = 0,
     -- width not specified - auto-sizing width
     height = 200,
-    positioning = "flex",
+    display = "flex",
     flexDirection = "row",
   })
 
@@ -768,7 +750,6 @@ function TestLayoutEdgeCases:test_percentage_width_with_auto_parent_warns()
     width = "50%", -- Percentage width with auto-sizing parent - should warn
     height = 100,
   }))
-
 
   -- Check that a warning was issued
   luaunit.assertTrue(#self.warnings > 0, "Should issue warning for percentage width with auto-sizing parent")
@@ -784,7 +765,7 @@ function TestLayoutEdgeCases:test_percentage_height_with_auto_parent_warns()
     y = 0,
     width = 200,
     -- height not specified - auto-sizing height
-    positioning = "flex",
+    display = "flex",
     flexDirection = "column",
   })
 
@@ -793,7 +774,6 @@ function TestLayoutEdgeCases:test_percentage_height_with_auto_parent_warns()
     width = 100,
     height = "50%", -- Percentage height with auto-sizing parent - should warn
   }))
-
 
   -- Check that a warning was issued
   luaunit.assertTrue(#self.warnings > 0, "Should issue warning for percentage height with auto-sizing parent")
@@ -809,7 +789,7 @@ function TestLayoutEdgeCases:test_pixel_width_with_auto_parent_no_warn()
     y = 0,
     -- width not specified - auto-sizing
     height = 200,
-    positioning = "flex",
+    display = "flex",
     flexDirection = "row",
   })
 
@@ -818,7 +798,6 @@ function TestLayoutEdgeCases:test_pixel_width_with_auto_parent_no_warn()
     width = 100, -- Pixel width - should NOT warn
     height = 100,
   }))
-
 
   -- Check that NO warning was issued about percentage sizing
   for _, warning in ipairs(self.warnings) do
@@ -835,12 +814,12 @@ function TestLayoutEdgeCases:test_css_positioning_top_offset()
     y = 100,
     width = 400,
     height = 400,
-    positioning = "absolute",
+    position = "absolute",
   })
 
   local child = container:appendChild(FlexLove.new({
     id = "child",
-    positioning = "absolute",
+    position = "absolute",
     top = 50, -- 50px from top
     left = 0,
     width = 100,
@@ -861,18 +840,17 @@ function TestLayoutEdgeCases:test_css_positioning_bottom_offset()
     y = 100,
     width = 400,
     height = 400,
-    positioning = "absolute",
+    position = "absolute",
   })
 
   local child = container:appendChild(FlexLove.new({
     id = "child",
-    positioning = "absolute",
+    position = "absolute",
     bottom = 50, -- 50px from bottom
     left = 0,
     width = 100,
     height = 100,
   }))
-
 
   -- Child should be positioned 50px from container's bottom edge
   local expectedY = container.y + container.padding.top + container.height - 50 - child:getBorderBoxHeight()
@@ -886,18 +864,17 @@ function TestLayoutEdgeCases:test_css_positioning_left_offset()
     y = 100,
     width = 400,
     height = 400,
-    positioning = "absolute",
+    position = "absolute",
   })
 
   local child = container:appendChild(FlexLove.new({
     id = "child",
-    positioning = "absolute",
+    position = "absolute",
     top = 0,
     left = 50, -- 50px from left
     width = 100,
     height = 100,
   }))
-
 
   -- Child should be positioned 50px from container's left edge
   local expectedX = container.x + container.padding.left + 50
@@ -911,18 +888,17 @@ function TestLayoutEdgeCases:test_css_positioning_right_offset()
     y = 100,
     width = 400,
     height = 400,
-    positioning = "absolute",
+    position = "absolute",
   })
 
   local child = container:appendChild(FlexLove.new({
     id = "child",
-    positioning = "absolute",
+    position = "absolute",
     top = 0,
     right = 50, -- 50px from right
     width = 100,
     height = 100,
   }))
-
 
   -- Child should be positioned 50px from container's right edge
   local expectedX = container.x + container.padding.left + container.width - 50 - child:getBorderBoxWidth()
@@ -936,19 +912,18 @@ function TestLayoutEdgeCases:test_css_positioning_top_and_bottom()
     y = 100,
     width = 400,
     height = 400,
-    positioning = "absolute",
+    position = "absolute",
   })
 
   local child = container:appendChild(FlexLove.new({
     id = "child",
-    positioning = "absolute",
+    position = "absolute",
     top = 10,
     bottom = 20, -- Both specified - last one wins in current implementation
     left = 0,
     width = 100,
     height = 100,
   }))
-
 
   -- Bottom should override top
   local expectedY = container.y + container.padding.top + container.height - 20 - child:getBorderBoxHeight()
@@ -962,19 +937,18 @@ function TestLayoutEdgeCases:test_css_positioning_left_and_right()
     y = 100,
     width = 400,
     height = 400,
-    positioning = "absolute",
+    position = "absolute",
   })
 
   local child = container:appendChild(FlexLove.new({
     id = "child",
-    positioning = "absolute",
+    position = "absolute",
     top = 0,
     left = 10,
     right = 20, -- Both specified - last one wins in current implementation
     width = 100,
     height = 100,
   }))
-
 
   -- Right should override left
   local expectedX = container.x + container.padding.left + container.width - 20 - child:getBorderBoxWidth()
@@ -989,18 +963,17 @@ function TestLayoutEdgeCases:test_css_positioning_with_padding()
     width = 400,
     height = 400,
     padding = { top = 20, right = 20, bottom = 20, left = 20 },
-    positioning = "absolute",
+    position = "absolute",
   })
 
   local child = container:appendChild(FlexLove.new({
     id = "child",
-    positioning = "absolute",
+    position = "absolute",
     top = 10,
     left = 10,
     width = 100,
     height = 100,
   }))
-
 
   -- Offsets should be relative to content area (after padding)
   local expectedX = container.x + container.padding.left + 10
@@ -1017,7 +990,7 @@ function TestLayoutEdgeCases:test_css_positioning_ignored_in_flex()
     y = 0,
     width = 400,
     height = 400,
-    positioning = "flex",
+    display = "flex",
     flexDirection = "row",
   })
 
@@ -1028,7 +1001,6 @@ function TestLayoutEdgeCases:test_css_positioning_ignored_in_flex()
     width = 100,
     height = 100,
   }))
-
 
   -- In flex layout, child should be positioned by flex rules, not CSS offsets
   -- Child should be at (0, 0) relative to container content area
@@ -1043,18 +1015,17 @@ function TestLayoutEdgeCases:test_css_positioning_in_relative_container()
     y = 100,
     width = 400,
     height = 400,
-    positioning = "relative",
+    position = "relative",
   })
 
   local child = container:appendChild(FlexLove.new({
     id = "child",
-    positioning = "absolute",
+    position = "absolute",
     top = 30,
     left = 30,
     width = 100,
     height = 100,
   }))
-
 
   -- Should work the same as absolute container
   local expectedX = container.x + container.padding.left + 30
@@ -1074,8 +1045,7 @@ function TestOverflowDetection:setUp()
   FlexLove.init()
 end
 
-function TestOverflowDetection:tearDown()
-end
+function TestOverflowDetection:tearDown() end
 
 function TestOverflowDetection:test_vertical_overflow_detected()
   local container = FlexLove.new({
@@ -1124,7 +1094,6 @@ function TestOverflowDetection:test_horizontal_overflow_detected()
     flexShrink = 0,
   }))
 
-
   local maxScrollX, maxScrollY = container:getMaxScroll()
   luaunit.assertTrue(maxScrollX > 0, "Should detect horizontal overflow")
   luaunit.assertEquals(maxScrollY, 0, "Should not have vertical overflow")
@@ -1135,7 +1104,7 @@ function TestOverflowDetection:test_main_axis_scroll_keeps_default_items_unshrun
     id = "container",
     width = 100,
     height = 100,
-    positioning = "flex",
+    display = "flex",
     flexDirection = "row",
     overflowX = "scroll",
     overflowY = "hidden",
@@ -1153,7 +1122,6 @@ function TestOverflowDetection:test_main_axis_scroll_keeps_default_items_unshrun
     height = 40,
   }))
 
-
   local maxScrollX = container:getMaxScroll()
   luaunit.assertTrue(maxScrollX > 0, "Default flex-shrink should not collapse scrollable row content")
   luaunit.assertEquals(child1.width, 80)
@@ -1165,7 +1133,7 @@ function TestOverflowDetection:test_main_axis_scroll_keeps_default_items_unshrun
     id = "container",
     width = 120,
     height = 100,
-    positioning = "flex",
+    display = "flex",
     flexDirection = "column",
     overflowY = "scroll",
     overflowX = "hidden",
@@ -1182,7 +1150,6 @@ function TestOverflowDetection:test_main_axis_scroll_keeps_default_items_unshrun
     width = 80,
     height = 60,
   }))
-
 
   local _, maxScrollY = container:getMaxScroll()
   luaunit.assertTrue(maxScrollY > 0, "Default flex-shrink should not collapse scrollable column content")
@@ -1210,7 +1177,6 @@ function TestOverflowDetection:test_both_axes_overflow()
     flexShrink = 0,
   }))
 
-
   local maxScrollX, maxScrollY = container:getMaxScroll()
   luaunit.assertTrue(maxScrollX > 0, "Should detect horizontal overflow")
   luaunit.assertTrue(maxScrollY > 0, "Should detect vertical overflow")
@@ -1235,7 +1201,6 @@ function TestOverflowDetection:test_no_overflow_when_content_fits()
     height = 100,
   }))
 
-
   local maxScrollX, maxScrollY = container:getMaxScroll()
   luaunit.assertEquals(maxScrollX, 0, "Should not have horizontal overflow")
   luaunit.assertEquals(maxScrollY, 0, "Should not have vertical overflow")
@@ -1249,7 +1214,7 @@ function TestOverflowDetection:test_overflow_with_multiple_children()
     width = 200,
     height = 200,
     overflow = "scroll",
-    positioning = "flex",
+    display = "flex",
     flexDirection = "column",
   })
 
@@ -1262,7 +1227,6 @@ function TestOverflowDetection:test_overflow_with_multiple_children()
       flexShrink = 0,
     }))
   end
-
 
   local maxScrollX, maxScrollY = container:getMaxScroll()
   luaunit.assertTrue(maxScrollY > 0, "Should detect overflow from multiple children")
@@ -1288,7 +1252,6 @@ function TestOverflowDetection:test_overflow_with_padding()
     height = 100,
   }))
 
-
   local maxScrollX, maxScrollY = container:getMaxScroll()
   luaunit.assertTrue(maxScrollX > 0, "Should detect overflow accounting for padding")
 end
@@ -1300,7 +1263,7 @@ function TestOverflowDetection:test_overflow_with_margins()
     y = 0,
     width = 200,
     height = 200,
-    positioning = "flex",
+    display = "flex",
     flexDirection = "row",
     overflow = "scroll",
   })
@@ -1314,7 +1277,6 @@ function TestOverflowDetection:test_overflow_with_margins()
     flexShrink = 0,
     margin = { top = 5, right = 20, bottom = 5, left = 5 }, -- Total width: 5+180+20=205, overflows 200px container
   }))
-
 
   local maxScrollX, maxScrollY = container:getMaxScroll()
   luaunit.assertTrue(maxScrollX > 0, "Should include child margins in overflow calculation")
@@ -1339,7 +1301,6 @@ function TestOverflowDetection:test_visible_overflow_skips_detection()
     height = 300,
   }))
 
-
   -- With overflow="visible", maxScroll should be 0 (no scrolling)
   local maxScrollX, maxScrollY = container:getMaxScroll()
   luaunit.assertEquals(maxScrollX, 0, "visible overflow should not enable scrolling")
@@ -1356,7 +1317,6 @@ function TestOverflowDetection:test_empty_container_no_overflow()
     overflow = "scroll",
     -- No children
   })
-
 
   local maxScrollX, maxScrollY = container:getMaxScroll()
   luaunit.assertEquals(maxScrollX, 0, "Empty container should have no overflow")
@@ -1385,13 +1345,12 @@ function TestOverflowDetection:test_absolute_children_ignored_in_overflow()
   -- Absolutely positioned child that extends beyond (should NOT cause overflow)
   container:appendChild(FlexLove.new({
     id = "absolute_child",
-    positioning = "absolute",
+    position = "absolute",
     top = 0,
     left = 0,
     width = 400,
     height = 400,
   }))
-
 
   local maxScrollX, maxScrollY = container:getMaxScroll()
   -- Should not have overflow because absolute children are ignored
@@ -1416,7 +1375,6 @@ function TestOverflowDetection:test_scroll_clamped_to_max()
     width = 100,
     height = 300, -- Creates 200px of vertical overflow
   }))
-
 
   -- Try to scroll beyond max
   container:setScrollPosition(0, 999999)
@@ -1753,7 +1711,7 @@ function TestManagedSelectHooks:test_managed_select_frame_suppresses_percentage_
     x = 0,
     y = 0,
     height = 200,
-    positioning = "flex",
+    display = "flex",
     flexDirection = "row",
   })
 
@@ -1762,7 +1720,6 @@ function TestManagedSelectHooks:test_managed_select_frame_suppresses_percentage_
     width = "50%",
     height = 100,
   }))
-
 
   local hasPercentageWarning = false
   for _, w in ipairs(self.warnings) do
@@ -1846,9 +1803,8 @@ end
 function TestManagedSelectHooks:test_adjust_auto_width_child_border_box()
   FlexLove.init()
   local element = FlexLove.new({ id = "ms4", x = 0, y = 0, width = 200, height = 200 })
-  local child = element:appendChild(
-    FlexLove.new({ id = "child2", width = "100%", height = 30, padding = { left = 0, right = 0 } })
-  )
+  local child =
+    element:appendChild(FlexLove.new({ id = "child2", width = "100%", height = 30, padding = { left = 0, right = 0 } }))
   element._managedSelectFrame = true
   element.autosizing = { width = true, height = false }
 
@@ -1897,8 +1853,11 @@ end
 
 function TestMinMax:test_flex_grow_clamped_by_maxWidth_redistributes()
   local container = FlexLove.new({
-    width = 600, height = 100,
-    positioning = "flex", flexDirection = "row", gap = 0,
+    width = 600,
+    height = 100,
+    display = "flex",
+    flexDirection = "row",
+    gap = 0,
   })
   local capped = container:appendChild(FlexLove.new({ width = 100, height = 50, flexGrow = 1, maxWidth = 200 }))
   local free = container:appendChild(FlexLove.new({ width = 100, height = 50, flexGrow = 1 }))
@@ -1909,9 +1868,12 @@ end
 
 function TestMinMax:test_cross_axis_stretch_clamped_by_maxHeight()
   local container = FlexLove.new({
-    width = 400, height = 300,
-    positioning = "flex", flexDirection = "row",
-    alignItems = "stretch", gap = 0,
+    width = 400,
+    height = 300,
+    display = "flex",
+    flexDirection = "row",
+    alignItems = "stretch",
+    gap = 0,
   })
   local child = container:appendChild(FlexLove.new({ width = 100, maxHeight = 100 }))
   container:layoutChildren()

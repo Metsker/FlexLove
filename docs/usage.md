@@ -48,8 +48,8 @@ See the repo's `examples/basic_ui.lua` for a complete worked example.
 
 | Prop | Values | Notes |
 | --- | --- | --- |
-| `display` | `"block"` (default), `"flex"`, `"grid"`, `"none"` | `flex`/`grid` make this a container that lays out its children; `none` removes it from layout, render, and hit-testing |
-| `position` | `"static"`/`"relative"` (default), `"absolute"`, `"fixed"` | `absolute`/`fixed` detach from flow so `top`/`right`/`bottom`/`left` apply |
+| `display` | `"block"` (default), `"flex"`, `"grid"`, `"none"` | `flex`/`grid` make this a container that lays out its children; `block` leaves children at their explicit `x`/`y` (no automatic flow); `none` removes it from layout, render, and hit-testing. `flexDirection` / `justifyContent` / `alignItems` / `flexWrap` only take effect under `display = "flex"`; `gridRows` / `gridColumns` only under `display = "grid"`. |
+| `position` | `"static"` (default), `"relative"`, `"absolute"`, `"fixed"` | `absolute`/`fixed` detach the child from its parent's flow so `top`/`right`/`bottom`/`left` apply. `display` and `position` are independent: a `display = "flex"` element can also be `position = "absolute"`. |
 | `flexDirection` | `"row"`, `"row-reverse"`, `"column"`, `"column-reverse"` | CSS values. `row-reverse` / `column-reverse` mirror the main-axis position of each child (and its subtree); `justifyContent` semantics flip accordingly. |
 | `justifyContent` | `"flex-start"`, `"center"`, `"flex-end"`, `"space-between"`, `"space-around"`, `"space-evenly"` | |
 | `alignItems` | `"stretch"`, `"flex-start"`, `"center"`, `"flex-end"`, `"baseline"` | |

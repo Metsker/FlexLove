@@ -51,7 +51,7 @@ local function createMockChild(x, y, width, height)
     width = width or 50,
     height = height or 50,
     margin = { top = 0, right = 0, bottom = 0, left = 0 },
-    _explicitlyAbsolute = false,
+    position = "static",
     getBorderBoxWidth = function(self)
       return self.width
     end,
@@ -236,7 +236,7 @@ end
 function TestScrollManagerEdgeCases:testDetectOverflowWithAbsolutelyPositionedChildren()
   local sm = createScrollManager({ overflow = "auto" })
   local child = createMockChild(0, 0, 500, 500)
-  child._explicitlyAbsolute = true -- Should be ignored in overflow calc
+  child.position = "absolute" -- Should be ignored in overflow calc
   local element = createMockElement(200, 300, { child })
   -- sm:initialize(element) -- Removed: element now passed as parameter
   sm:detectOverflow(element)

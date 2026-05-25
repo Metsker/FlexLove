@@ -4,7 +4,9 @@
 package.path = package.path .. ";./?.lua"
 local originalSearchers = package.searchers or package.loaders
 table.insert(originalSearchers, 2, function(modname)
-  if modname == "FlexLove" then return loadfile("./init.lua") end
+  if modname == "FlexLove" then
+    return loadfile("./init.lua")
+  end
   if modname:match("^FlexLove%.modules%.") then
     local moduleName = modname:gsub("^FlexLove%.modules%.", "")
     return function()
@@ -54,7 +56,7 @@ local function createTestUI()
     y = 0,
     width = 800,
     height = 600,
-    positioning = utils.enums.Positioning.FLEX,
+    display = "flex",
     flexDirection = utils.enums.FlexDirection.COLUMN,
     gap = 10,
   })
@@ -226,7 +228,7 @@ local tests = {
       y = 0,
       width = 800,
       height = 600,
-      positioning = utils.enums.Positioning.FLEX,
+      display = "flex",
       flexDirection = utils.enums.FlexDirection.ROW,
       gap = 10,
     })
@@ -262,7 +264,7 @@ local tests = {
       y = 0,
       width = 800,
       height = 600,
-      positioning = utils.enums.Positioning.FLEX,
+      display = "flex",
       flexDirection = utils.enums.FlexDirection.COLUMN,
       gap = 10,
     })
@@ -347,7 +349,7 @@ local tests = {
       y = 0,
       width = 800,
       height = 600,
-      positioning = utils.enums.Positioning.FLEX,
+      display = "flex",
       flexDirection = utils.enums.FlexDirection.COLUMN,
       gap = 10,
     })
@@ -378,7 +380,7 @@ local tests = {
       y = 0,
       width = 800,
       height = 600,
-      positioning = utils.enums.Positioning.FLEX,
+      display = "flex",
       flexDirection = utils.enums.FlexDirection.COLUMN,
       gap = 10,
     })
@@ -485,7 +487,7 @@ local tests = {
       y = 0,
       width = 800,
       height = 600,
-      positioning = utils.enums.Positioning.FLEX,
+      display = "flex",
       flexDirection = utils.enums.FlexDirection.COLUMN,
       gap = 10,
     })
@@ -493,7 +495,6 @@ local tests = {
     btn1 = Element.new({ parent = container, id = "btn1", text = "Button 1", onEvent = function() end })
     btn2 = Element.new({ parent = container, id = "btn2", text = "Button 2", onEvent = function() end })
     btn3 = Element.new({ parent = container, id = "btn3", text = "Button 3", onEvent = function() end })
-
 
     -- Set navigation container for immediate mode
     Context.setNavigationContainer(container)

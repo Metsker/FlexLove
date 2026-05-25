@@ -1,7 +1,9 @@
 package.path = package.path .. ";./?.lua"
 local originalSearchers = package.searchers or package.loaders
 table.insert(originalSearchers, 2, function(modname)
-  if modname == "FlexLove" then return loadfile("./init.lua") end
+  if modname == "FlexLove" then
+    return loadfile("./init.lua")
+  end
   if modname:match("^FlexLove%.modules%.") then
     local moduleName = modname:gsub("^FlexLove%.modules%.", "")
     return function()
@@ -285,14 +287,16 @@ function TestElementCreation:test_select_options_are_routed_into_managed_frame()
 
   luaunit.assertTrue(option.parent == dropdownFrame)
   luaunit.assertEquals(selectParent:getSelectValue(), "windowed")
-  luaunit.assertEquals(option.positioning, "relative")
+  -- Options authored as `position = "absolute"` fall back into normal flow
+  -- ("static") once routed into the managed dropdown frame.
+  luaunit.assertEquals(option.position, "static")
 end
 
 function TestElementCreation:test_managed_select_frame_options_stack_inside_frame()
   local dropdownFrame = FlexLove.new({
     id = "stacked_select_frame",
     width = 220,
-    positioning = "flex",
+    display = "flex",
     flexDirection = "column",
     gap = 4,
     padding = 4,
@@ -345,13 +349,13 @@ function TestElementCreation:test_managed_select_frame_expands_for_wide_option_c
     id = "expanding_select_row",
     width = 640,
     height = 48,
-    positioning = "flex",
+    display = "flex",
     flexDirection = "row",
   })
 
   local dropdownFrame = FlexLove.new({
     id = "expanding_select_frame",
-    positioning = "flex",
+    display = "flex",
     flexDirection = "column",
     gap = 2,
     padding = 12,
@@ -544,11 +548,9 @@ end
 
 TestElementSizing = {}
 
-function TestElementSizing:setUp()
-end
+function TestElementSizing:setUp() end
 
-function TestElementSizing:tearDown()
-end
+function TestElementSizing:tearDown() end
 
 function TestElementSizing:test_getBorderBoxWidth()
   local element = FlexLove.new({
@@ -694,8 +696,7 @@ function TestElementUnits:setUp()
   love.window.setMode(1920, 1080)
 end
 
-function TestElementUnits:tearDown()
-end
+function TestElementUnits:tearDown() end
 
 function TestElementUnits:test_element_with_percentage_width()
   local parent = FlexLove.new({
@@ -807,11 +808,9 @@ end
 
 TestElementPositioning = {}
 
-function TestElementPositioning:setUp()
-end
+function TestElementPositioning:setUp() end
 
-function TestElementPositioning:tearDown()
-end
+function TestElementPositioning:tearDown() end
 
 function TestElementPositioning:test_element_absolute_position()
   local element = FlexLove.new({
@@ -820,11 +819,11 @@ function TestElementPositioning:test_element_absolute_position()
     y = 200,
     width = 50,
     height = 50,
-    positioning = "absolute",
+    position = "absolute",
   })
 
   luaunit.assertNotNil(element)
-  luaunit.assertEquals(element.positioning, "absolute")
+  luaunit.assertEquals(element.position, "absolute")
 end
 
 function TestElementPositioning:test_nested_element_positions()
@@ -836,6 +835,9 @@ function TestElementPositioning:test_nested_element_positions()
     height = 200,
   })
 
+  -- Standalone construction (FlexLove.new without a parent arg) resolves x/y
+  -- against the viewport. Re-parenting via appendChild does NOT rebase x/y -
+  -- use `parent:appendNew({...})` for construction-time parent resolution.
   local child = parent:appendChild(FlexLove.new({
     id = "nest_child",
     x = 20,
@@ -846,45 +848,53 @@ function TestElementPositioning:test_nested_element_positions()
 
   luaunit.assertNotNil(parent)
   luaunit.assertNotNil(child)
-  -- Parent uses default flex layout (positioning="relative" is default)
-  -- Flex layout controls child position, ignoring explicit x/y offsets on relative children
-  -- Child is positioned at parent's content area (parent.x + padding.left)
-  luaunit.assertEquals(child.x, 100)
-  luaunit.assertEquals(child.y, 100)
+  luaunit.assertEquals(child.x, 20)
+  luaunit.assertEquals(child.y, 30)
+
+  -- The construction-time form positions relative to the parent's content area.
+  local nested = parent:appendNew({
+    id = "nest_child_2",
+    x = 20,
+    y = 30,
+    width = 50,
+    height = 50,
+  })
+  luaunit.assertEquals(nested.x, 120)
+  luaunit.assertEquals(nested.y, 130)
 end
 
 function TestElementPositioning:test_absolute_positioning_with_top_left()
   local element = createBasicElement({
-    positioning = "absolute",
+    position = "absolute",
     top = 10,
     left = 20,
   })
 
-  luaunit.assertEquals(element.positioning, "absolute")
+  luaunit.assertEquals(element.position, "absolute")
   luaunit.assertEquals(element.top, 10)
   luaunit.assertEquals(element.left, 20)
 end
 
 function TestElementPositioning:test_absolute_positioning_with_bottom_right()
   local element = createBasicElement({
-    positioning = "absolute",
+    position = "absolute",
     bottom = 10,
     right = 20,
   })
 
-  luaunit.assertEquals(element.positioning, "absolute")
+  luaunit.assertEquals(element.position, "absolute")
   luaunit.assertEquals(element.bottom, 10)
   luaunit.assertEquals(element.right, 20)
 end
 
 function TestElementPositioning:test_relative_positioning()
   local element = createBasicElement({
-    positioning = "relative",
+    position = "relative",
     top = 10,
     left = 10,
   })
 
-  luaunit.assertEquals(element.positioning, "relative")
+  luaunit.assertEquals(element.position, "relative")
 end
 
 function TestElementPositioning:test_applyPositioningOffsets_with_absolute()
@@ -894,14 +904,14 @@ function TestElementPositioning:test_applyPositioningOffsets_with_absolute()
     y = 0,
     width = 500,
     height = 500,
-    positioning = "absolute",
+    position = "absolute",
   })
 
   local child = parent:appendChild(FlexLove.new({
     id = "offset_child",
     width = 100,
     height = 100,
-    positioning = "absolute",
+    position = "absolute",
     top = 50,
     left = 50,
   }))
@@ -921,14 +931,14 @@ function TestElementPositioning:test_applyPositioningOffsets_with_right_bottom()
     y = 0,
     width = 500,
     height = 500,
-    positioning = "relative",
+    position = "relative",
   })
 
   local child = parent:appendChild(FlexLove.new({
     id = "rb_child",
     width = 100,
     height = 100,
-    positioning = "absolute",
+    position = "absolute",
     right = 50,
     bottom = 50,
   }))
@@ -946,11 +956,9 @@ end
 
 TestElementFlex = {}
 
-function TestElementFlex:setUp()
-end
+function TestElementFlex:setUp() end
 
-function TestElementFlex:tearDown()
-end
+function TestElementFlex:tearDown() end
 
 function TestElementFlex:test_element_with_flex_direction()
   local element = FlexLove.new({
@@ -959,7 +967,7 @@ function TestElementFlex:test_element_with_flex_direction()
     y = 0,
     width = 300,
     height = 200,
-    positioning = "flex",
+    display = "flex",
     flexDirection = "row",
   })
 
@@ -974,7 +982,7 @@ function TestElementFlex:test_element_with_flex_properties()
     y = 0,
     width = 300,
     height = 200,
-    positioning = "flex",
+    display = "flex",
     flexDirection = "row",
   })
 
@@ -1001,7 +1009,7 @@ function TestElementFlex:test_element_with_gap()
     y = 0,
     width = 300,
     height = 200,
-    positioning = "flex",
+    display = "flex",
     gap = 10,
   })
 
@@ -1015,27 +1023,25 @@ end
 
 TestElementGrid = {}
 
-function TestElementGrid:setUp()
-end
+function TestElementGrid:setUp() end
 
-function TestElementGrid:tearDown()
-end
+function TestElementGrid:tearDown() end
 
 function TestElementGrid:test_grid_layout()
   local element = createBasicElement({
-    positioning = "grid",
+    display = "grid",
     gridColumns = 2,
     gridRows = 2,
   })
 
-  luaunit.assertEquals(element.positioning, "grid")
+  luaunit.assertEquals(element.display, "grid")
   luaunit.assertEquals(element.gridColumns, 2)
   luaunit.assertEquals(element.gridRows, 2)
 end
 
 function TestElementGrid:test_grid_gap()
   local element = createBasicElement({
-    positioning = "grid",
+    display = "grid",
     columnGap = 10,
     rowGap = 10,
   })
@@ -1051,7 +1057,7 @@ function TestElementGrid:test_grid_with_uneven_children()
     y = 0,
     width = 300,
     height = 300,
-    positioning = "grid",
+    display = "grid",
     gridRows = 2,
     gridColumns = 2,
   })
@@ -1075,7 +1081,7 @@ function TestElementGrid:test_grid_with_percentage_gaps()
     y = 0,
     width = 400,
     height = 400,
-    positioning = "grid",
+    display = "grid",
     gridRows = 2,
     gridColumns = 2,
     columnGap = "5%",
@@ -1094,11 +1100,9 @@ end
 
 TestElementStyling = {}
 
-function TestElementStyling:setUp()
-end
+function TestElementStyling:setUp() end
 
-function TestElementStyling:tearDown()
-end
+function TestElementStyling:tearDown() end
 local Color = FlexLove.Color
 
 function TestElementStyling:test_element_with_border()
@@ -1261,11 +1265,9 @@ end
 
 TestElementMethods = {}
 
-function TestElementMethods:setUp()
-end
+function TestElementMethods:setUp() end
 
-function TestElementMethods:tearDown()
-end
+function TestElementMethods:tearDown() end
 
 function TestElementMethods:test_element_setText()
   local element = FlexLove.new({
@@ -1345,11 +1347,9 @@ end
 
 TestElementScroll = {}
 
-function TestElementScroll:setUp()
-end
+function TestElementScroll:setUp() end
 
-function TestElementScroll:tearDown()
-end
+function TestElementScroll:tearDown() end
 
 function TestElementScroll:test_scrollable_element_with_overflow()
   local element = FlexLove.new({
@@ -1409,7 +1409,7 @@ function TestElementScroll:test_scrollToTop()
     width = 300,
     height = 200,
     overflow = "scroll",
-    positioning = "flex",
+    display = "flex",
     flexDirection = "column",
   })
 
@@ -1442,7 +1442,7 @@ function TestElementScroll:test_scrollToBottom()
     width = 300,
     height = 200,
     overflow = "scroll",
-    positioning = "flex",
+    display = "flex",
     flexDirection = "column",
   })
 
@@ -1516,7 +1516,7 @@ function TestElementScroll:test_getScrollPercentage()
     width = 300,
     height = 200,
     overflow = "scroll",
-    positioning = "flex",
+    display = "flex",
     flexDirection = "column",
   })
 
@@ -1575,7 +1575,7 @@ function TestElementScroll:test_scrollBy_per_axis_deferral()
     width = 300,
     height = 200,
     overflow = "scroll",
-    positioning = "flex",
+    display = "flex",
     flexDirection = "column",
   })
 
@@ -1606,7 +1606,7 @@ function TestElementScroll:test_scrollBy_both_axes_valid()
     width = 200,
     height = 200,
     overflow = "scroll",
-    positioning = "flex",
+    display = "flex",
     flexDirection = "column",
   })
 
@@ -1636,11 +1636,9 @@ end
 
 TestElementChildren = {}
 
-function TestElementChildren:setUp()
-end
+function TestElementChildren:setUp() end
 
-function TestElementChildren:tearDown()
-end
+function TestElementChildren:tearDown() end
 
 function TestElementChildren:test_addChild()
   local parent = FlexLove.new({
@@ -1731,7 +1729,7 @@ function TestElementChildren:test_addChild_triggers_autosize_recalc()
     id = "dynamic_parent",
     x = 0,
     y = 0,
-    positioning = "flex",
+    display = "flex",
   })
 
   local initialWidth = parent.width
@@ -1756,7 +1754,7 @@ function TestElementChildren:test_removeChild_triggers_autosize_recalc()
     id = "shrink_parent",
     x = 0,
     y = 0,
-    positioning = "flex",
+    display = "flex",
   })
 
   local child1 = parent:appendChild(FlexLove.new({
@@ -1784,7 +1782,7 @@ function TestElementChildren:test_clearChildren_resets_autosize()
     id = "clear_parent",
     x = 0,
     y = 0,
-    positioning = "flex",
+    display = "flex",
   })
 
   for i = 1, 5 do
@@ -1810,11 +1808,9 @@ end
 
 TestElementVisibility = {}
 
-function TestElementVisibility:setUp()
-end
+function TestElementVisibility:setUp() end
 
-function TestElementVisibility:tearDown()
-end
+function TestElementVisibility:tearDown() end
 
 function TestElementVisibility:test_visibility_visible()
   local element = FlexLove.new({
@@ -1873,11 +1869,9 @@ end
 
 TestElementTextEditing = {}
 
-function TestElementTextEditing:setUp()
-end
+function TestElementTextEditing:setUp() end
 
-function TestElementTextEditing:tearDown()
-end
+function TestElementTextEditing:tearDown() end
 
 function TestElementTextEditing:test_editable_element()
   local element = FlexLove.new({
@@ -1955,11 +1949,9 @@ end
 
 TestElementState = {}
 
-function TestElementState:setUp()
-end
+function TestElementState:setUp() end
 
-function TestElementState:tearDown()
-end
+function TestElementState:tearDown() end
 
 function TestElementState:test_element_with_disabled()
   local element = FlexLove.new({
@@ -2034,24 +2026,22 @@ end
 
 TestElementAutoSizing = {}
 
-function TestElementAutoSizing:setUp()
-end
+function TestElementAutoSizing:setUp() end
 
-function TestElementAutoSizing:tearDown()
-end
+function TestElementAutoSizing:tearDown() end
 
 function TestElementAutoSizing:test_autosize_with_nested_flex()
   local root = FlexLove.new({
     id = "root",
     x = 0,
     y = 0,
-    positioning = "flex",
+    display = "flex",
     flexDirection = "column",
   })
 
   local row1 = root:appendChild(FlexLove.new({
     id = "row1",
-    positioning = "flex",
+    display = "flex",
     flexDirection = "row",
   }))
 
@@ -2077,7 +2067,7 @@ function TestElementAutoSizing:test_autosize_with_absolutely_positioned_child()
     id = "abs_parent",
     x = 0,
     y = 0,
-    positioning = "flex",
+    display = "flex",
   })
 
   -- Regular child affects size
@@ -2092,7 +2082,7 @@ function TestElementAutoSizing:test_autosize_with_absolutely_positioned_child()
     id = "absolute",
     width = 200,
     height = 200,
-    positioning = "absolute",
+    position = "absolute",
   }))
 
   -- Parent should only size to regular child
@@ -2105,7 +2095,7 @@ function TestElementAutoSizing:test_autosize_with_margin()
     id = "margin_parent",
     x = 0,
     y = 0,
-    positioning = "flex",
+    display = "flex",
     flexDirection = "row",
   })
 
@@ -2584,8 +2574,7 @@ TestElementProperty = {}
 
 -- Note: No setUp/tearDown needed - tests use Element.new() directly (retained mode)
 
-function TestElementProperty:tearDown()
-end
+function TestElementProperty:tearDown() end
 
 function TestElementProperty:test_setProperty_valid()
   local element = createBasicElement({})
@@ -2616,8 +2605,7 @@ TestElementTransitions = {}
 
 -- Note: No setUp/tearDown needed - tests use Element.new() directly (retained mode)
 
-function TestElementTransitions:tearDown()
-end
+function TestElementTransitions:tearDown() end
 
 function TestElementTransitions:test_removeTransition()
   local element = createBasicElement({
@@ -2645,11 +2633,9 @@ end
 
 TestElementTheme = {}
 
-function TestElementTheme:setUp()
-end
+function TestElementTheme:setUp() end
 
-function TestElementTheme:tearDown()
-end
+function TestElementTheme:tearDown() end
 
 function TestElementTheme:test_getScaledContentPadding_no_theme()
   local element = createBasicElement({})
@@ -3097,18 +3083,16 @@ end
 
 TestConvenienceAPI = {}
 
-function TestConvenienceAPI:setUp()
-end
+function TestConvenienceAPI:setUp() end
 
-function TestConvenienceAPI:tearDown()
-end
+function TestConvenienceAPI:tearDown() end
 
 function TestConvenienceAPI:test_flexDirection_row_converts()
   local element = FlexLove.new({
     id = "test_row",
     width = 200,
     height = 100,
-    positioning = "flex",
+    display = "flex",
     flexDirection = "row",
   })
 
@@ -3121,7 +3105,7 @@ function TestConvenienceAPI:test_flexDirection_column_converts()
     id = "test_column",
     width = 200,
     height = 100,
-    positioning = "flex",
+    display = "flex",
     flexDirection = "column",
   })
 
@@ -3188,11 +3172,9 @@ end
 
 TestElementEdgeCases = {}
 
-function TestElementEdgeCases:setUp()
-end
+function TestElementEdgeCases:setUp() end
 
-function TestElementEdgeCases:tearDown()
-end
+function TestElementEdgeCases:tearDown() end
 
 function TestElementEdgeCases:test_element_with_init()
   -- Test that Element.new() works after FlexLove.init() is called
@@ -3318,16 +3300,16 @@ function TestElementEdgeCases:test_element_invalid_text_align()
   end
 end
 
-function TestElementEdgeCases:test_element_invalid_positioning()
-  local success = pcall(function()
-    FlexLove.new({
-      id = "invalid_pos",
-      width = 100,
-      height = 100,
-      positioning = "invalid_positioning",
-    })
-  end)
-  luaunit.assertFalse(success) -- Should error (validateEnum)
+function TestElementEdgeCases:test_element_invalid_position()
+  -- Invalid `position` values now fall back to "static" with a LAY_006 warning,
+  -- so construction succeeds but the field is normalised.
+  local el = FlexLove.new({
+    id = "invalid_pos",
+    width = 100,
+    height = 100,
+    position = "invalid_position",
+  })
+  luaunit.assertEquals(el.position, "static")
 end
 
 function TestElementEdgeCases:test_element_invalid_flex_direction()
@@ -3336,7 +3318,7 @@ function TestElementEdgeCases:test_element_invalid_flex_direction()
       id = "invalid_flex",
       width = 100,
       height = 100,
-      positioning = "flex",
+      display = "flex",
       flexDirection = "diagonal",
     })
   end)
@@ -3668,7 +3650,7 @@ function TestElementEdgeCases:test_invalid_gap()
     id = "test",
     width = 300,
     height = 200,
-    positioning = "flex",
+    display = "flex",
     gap = -10,
   })
   luaunit.assertNotNil(element)
@@ -3678,7 +3660,7 @@ function TestElementEdgeCases:test_invalid_gap()
     id = "test2",
     width = 300,
     height = 200,
-    positioning = "grid",
+    display = "grid",
     gridRows = -5,
     gridColumns = -5,
   })
@@ -3905,14 +3887,11 @@ function TestElementEdgeCases:test_destroy_managed_anchor_clears_owner_reference
   luaunit.assertEquals(parent:getSelectValue(), "a")
 end
 
-
 TestSelectDisabled = {}
 
-function TestSelectDisabled:setUp()
-end
+function TestSelectDisabled:setUp() end
 
-function TestSelectDisabled:tearDown()
-end
+function TestSelectDisabled:tearDown() end
 
 function TestSelectDisabled:test_disabled_select_does_not_fire_toggle_event()
   local eventsReceived = {}
@@ -4018,7 +3997,6 @@ function TestOnCreate:test_onCreate_with_deferred()
   local capturedElement = nil
   local capturedProps = nil
 
-
   FlexLove.new({
     id = "oncreate_deferred",
     width = 100,
@@ -4041,7 +4019,6 @@ function TestOnCreate:test_onCreate_with_deferred()
   luaunit.assertNotNil(capturedElement, "deferred onCreate should fire after executeDeferredCallbacks")
   luaunit.assertEquals(capturedElement.id, "oncreate_deferred")
   luaunit.assertEquals(capturedProps.text, "deferred")
-
 end
 
 function TestOnCreate:test_onCreate_not_required()

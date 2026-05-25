@@ -1,7 +1,9 @@
 package.path = package.path .. ";./?.lua"
 local originalSearchers = package.searchers or package.loaders
 table.insert(originalSearchers, 2, function(modname)
-  if modname == "FlexLove" then return loadfile("./init.lua") end
+  if modname == "FlexLove" then
+    return loadfile("./init.lua")
+  end
   if modname:match("^FlexLove%.modules%.") then
     local moduleName = modname:gsub("^FlexLove%.modules%.", "")
     return function()
@@ -55,7 +57,7 @@ local function createMockElement(width, height, contentWidth, contentHeight)
     width = contentWidth or 200,
     height = contentHeight or 600,
     margin = { top = 0, right = 0, bottom = 0, left = 0 },
-    _explicitlyAbsolute = false,
+    position = "static",
     getBorderBoxWidth = function(self)
       return self.width
     end,
@@ -126,7 +128,6 @@ end
 TestTouchEventHandler = {}
 
 function TestTouchEventHandler:test_touch_began()
-
   local touchEvents = {}
   local element = FlexLove.new({
     width = 200,
@@ -135,7 +136,6 @@ function TestTouchEventHandler:test_touch_began()
       table.insert(touchEvents, event)
     end,
   })
-
 
   love.touch.getTouches = function()
     return { "touch1" }
@@ -162,7 +162,6 @@ function TestTouchEventHandler:test_touch_began()
 end
 
 function TestTouchEventHandler:test_touch_moved()
-
   local touchEvents = {}
   local element = FlexLove.new({
     width = 200,
@@ -171,7 +170,6 @@ function TestTouchEventHandler:test_touch_moved()
       table.insert(touchEvents, event)
     end,
   })
-
 
   love.touch.getTouches = function()
     return { "touch1" }
@@ -209,7 +207,6 @@ function TestTouchEventHandler:test_touch_moved()
 end
 
 function TestTouchEventHandler:test_touch_ended()
-
   local touchEvents = {}
   local element = FlexLove.new({
     width = 200,
@@ -218,7 +215,6 @@ function TestTouchEventHandler:test_touch_ended()
       table.insert(touchEvents, event)
     end,
   })
-
 
   love.touch.getTouches = function()
     return { "touch1" }
@@ -251,7 +247,6 @@ function TestTouchEventHandler:test_touch_ended()
 end
 
 function TestTouchEventHandler:test_multi_touch()
-
   local touchEvents = {}
   local element = FlexLove.new({
     width = 200,
@@ -261,7 +256,6 @@ function TestTouchEventHandler:test_multi_touch()
       table.insert(touchEvents, event)
     end,
   })
-
 
   love.touch.getTouches = function()
     return { "touch1", "touch2" }
@@ -1603,7 +1597,6 @@ function TestTouchRouting:test_pressure_passthrough()
 end
 
 function TestTouchRouting:test_retained_mode_routing()
-
   local touchEvents = {}
   local element = FlexLove.new({
     width = 200,

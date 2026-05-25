@@ -474,7 +474,8 @@ TestEnums = {}
 function TestEnums:testEnums_Exist()
   luaunit.assertNotNil(utils.enums)
   luaunit.assertNotNil(utils.enums.TextAlign)
-  luaunit.assertNotNil(utils.enums.Positioning)
+  luaunit.assertNotNil(utils.enums.Display)
+  luaunit.assertNotNil(utils.enums.Position)
   luaunit.assertNotNil(utils.enums.FlexDirection)
   luaunit.assertNotNil(utils.enums.JustifyContent)
   luaunit.assertNotNil(utils.enums.AlignItems)
@@ -489,11 +490,18 @@ function TestEnums:testEnums_TextAlign()
   luaunit.assertEquals(utils.enums.TextAlign.JUSTIFY, "justify")
 end
 
-function TestEnums:testEnums_Positioning()
-  luaunit.assertEquals(utils.enums.Positioning.ABSOLUTE, "absolute")
-  luaunit.assertEquals(utils.enums.Positioning.RELATIVE, "relative")
-  luaunit.assertEquals(utils.enums.Positioning.FLEX, "flex")
-  luaunit.assertEquals(utils.enums.Positioning.GRID, "grid")
+function TestEnums:testEnums_Display()
+  luaunit.assertEquals(utils.enums.Display.BLOCK, "block")
+  luaunit.assertEquals(utils.enums.Display.FLEX, "flex")
+  luaunit.assertEquals(utils.enums.Display.GRID, "grid")
+  luaunit.assertEquals(utils.enums.Display.NONE, "none")
+end
+
+function TestEnums:testEnums_Position()
+  luaunit.assertEquals(utils.enums.Position.STATIC, "static")
+  luaunit.assertEquals(utils.enums.Position.RELATIVE, "relative")
+  luaunit.assertEquals(utils.enums.Position.ABSOLUTE, "absolute")
+  luaunit.assertEquals(utils.enums.Position.FIXED, "fixed")
 end
 
 -- Run tests if this file is executed directly

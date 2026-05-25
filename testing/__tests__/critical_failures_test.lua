@@ -1,7 +1,9 @@
 package.path = package.path .. ";./?.lua"
 local originalSearchers = package.searchers or package.loaders
 table.insert(originalSearchers, 2, function(modname)
-  if modname == "FlexLove" then return loadfile("./init.lua") end
+  if modname == "FlexLove" then
+    return loadfile("./init.lua")
+  end
   if modname:match("^FlexLove%.modules%.") then
     local moduleName = modname:gsub("^FlexLove%.modules%.", "")
     return function()
@@ -116,7 +118,7 @@ function TestCriticalFailures:test_flex_overflow_positioning()
   local parent = FlexLove.new({
     width = 100,
     height = 100,
-    positioning = "flex",
+    display = "flex",
     flexDirection = "row",
     flexWrap = "nowrap",
   })
@@ -190,7 +192,7 @@ function TestCriticalFailures:test_grid_zero_dimensions()
   local parent = FlexLove.new({
     width = 300,
     height = 200,
-    positioning = "grid",
+    display = "grid",
     gridRows = 0,
     gridColumns = 0,
   })
@@ -302,7 +304,7 @@ function TestCriticalFailures:test_gap_nan_value()
     FlexLove.new({
       width = 300,
       height = 200,
-      positioning = "flex",
+      display = "flex",
       gap = 0 / 0, -- NaN
     })
   end)
@@ -326,7 +328,6 @@ end
 
 -- Test: Scroll position race condition in immediate mode
 function TestCriticalFailures:test_scroll_position_race_immediate_mode()
-
   -- Create scrollable element
   local element = FlexLove.new({
     id = "scroll_test",
@@ -471,15 +472,13 @@ end
 
 -- Test: Scrollable element with overflow content + immediate mode + state restoration
 function TestCriticalFailures:test_scroll_overflow_immediate_mode_integration()
-
   for frame = 1, 3 do
-
     local scrollContainer = FlexLove.new({
       id = "scroll_container",
       width = 200,
       height = 150,
       overflow = "scroll",
-      positioning = "flex",
+      display = "flex",
       flexDirection = "column",
     })
 
@@ -491,7 +490,6 @@ function TestCriticalFailures:test_scroll_overflow_immediate_mode_integration()
         height = 50,
       }))
     end
-
 
     -- Scroll on second frame
     if frame == 2 then
@@ -512,7 +510,7 @@ function TestCriticalFailures:test_grid_autosized_children_percentage_gap()
   local grid = FlexLove.new({
     width = 300,
     height = 300,
-    positioning = "grid",
+    display = "grid",
     gridRows = 3,
     gridColumns = 3,
     gap = "5%", -- Percentage gap
@@ -538,7 +536,7 @@ function TestCriticalFailures:test_nested_flex_conflicting_alignment()
   local outer = FlexLove.new({
     width = 400,
     height = 400,
-    positioning = "flex",
+    display = "flex",
     flexDirection = "column",
     alignItems = "stretch",
     justifyContent = "center",
@@ -547,7 +545,7 @@ function TestCriticalFailures:test_nested_flex_conflicting_alignment()
   local middle = outer:appendChild(FlexLove.new({
     height = 200,
     -- Auto width (should stretch)
-    positioning = "flex",
+    display = "flex",
     flexDirection = "row",
     alignItems = "flex-end",
     justifyContent = "space-between",
@@ -579,7 +577,7 @@ function TestCriticalFailures:test_conflicting_size_sources()
   local parent = FlexLove.new({
     width = 200,
     height = 200,
-    positioning = "flex",
+    display = "flex",
     alignItems = "stretch",
   })
 
@@ -643,7 +641,7 @@ function TestCriticalFailures:test_update_during_layout()
   local parent = FlexLove.new({
     width = 300,
     height = 300,
-    positioning = "flex",
+    display = "flex",
   })
 
   local child = parent:appendChild(FlexLove.new({
@@ -730,7 +728,7 @@ function TestCriticalFailures:test_modify_children_during_iteration()
   local parent = FlexLove.new({
     width = 300,
     height = 300,
-    positioning = "flex",
+    display = "flex",
   })
 
   -- Add several children
