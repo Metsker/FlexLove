@@ -35,7 +35,7 @@ init.lua              - the plugin entry point
 modules/              - everything init.lua wires together
 docs/                 - usage.md (API) + repo.md (contributing)
 examples/             - runnable LÖVE examples
-examples/themes/      - reference 9-patch theme definitions
+themes/               - reference theme definitions (palette + 9-patch schema)
 testing/              - luaunit-based test suite
 ```
 

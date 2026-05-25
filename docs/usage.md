@@ -225,7 +225,7 @@ Tab/Shift+Tab cycle focus through focusables (anything with `editable = true`, a
 ### Theming and 9-patch
 
 ```lua
-FlexLove.init({ theme = "metal" })
+FlexLove.init({ theme = "catppuccin" })
 
 FlexLove.new({
   themeComponent = "button",          -- pulls 9-patch atlas + insets from theme
@@ -233,7 +233,12 @@ FlexLove.new({
 })
 ```
 
-Files ending in `.9.png` are auto-detected: the 1px guide border is stripped on load, top/left guides drive stretch regions, and bottom/right guides become content padding applied to children. See the repo's `examples/space_theme.lua` for a reference theme definition.
+Files ending in `.9.png` are auto-detected: the 1px guide border is stripped on load, top/left guides drive stretch regions, and bottom/right guides become content padding applied to children.
+
+Two reference themes live under `themes/` in the repo:
+
+- **`themes/catppuccin.lua`** - Catppuccin Mocha palette. Colors only, no 9-patch atlases or fonts. Elements with `themeComponent = "..."` fall back to their own `backgroundColor` / `borderRadius` props for visuals. Drop this in if you want a coherent palette without sprite work.
+- **`themes/example_theme.lua`** - full schema reference (components, states, atlases, insets). Atlas PNGs aren't shipped; copy the structure and supply your own art.
 
 ### Color, Animation, Theme, Calc - exposed off `FlexLove`
 
