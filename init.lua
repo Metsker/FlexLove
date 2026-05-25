@@ -707,6 +707,18 @@ function flexlove.update(dt)
     win:update(dt)
   end
 
+  -- Apply any layout-affecting field mutations that happened this frame so
+  -- the documented "edit a field, see it next frame" contract (see
+  -- docs/usage.md "Runtime mutation") holds for layout props as well as
+  -- visuals. Each element's LayoutEngine:_canSkipLayout short-circuits
+  -- when its inputs are unchanged, so this is ~O(N) hash computes on a
+  -- stable tree; real layout work runs only when an input actually
+  -- changed (direct mutation, animations interpolating layout-affecting
+  -- props, etc).
+  for _, win in ipairs(flexlove.topElements) do
+    win:layoutChildren()
+  end
+
   flexlove._activeEventElement = nil
 end
 

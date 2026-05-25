@@ -408,8 +408,18 @@ function LayoutEngine:layoutChildren()
   self.columnGap = el.columnGap
   self.rowGap = el.rowGap
 
-  -- Check if layout can be skipped (memoization optimization)
+  -- Check if layout can be skipped (memoization optimization). When our
+  -- own inputs are unchanged, we skip the positioning pass - but we still
+  -- descend into children so their per-element caches can detect direct
+  -- field mutations deep in the tree (a shallow parent's hash wouldn't
+  -- diff for a grandchild's flexDirection change otherwise).
   if self:_canSkipLayout() then
+    for _, child in ipairs(self.element.children) do
+      if child.display ~= "none" and #child.children > 0 then
+        child:layoutChildren()
+      end
+    end
+
     if timerName and LayoutEngine._Performance then
       LayoutEngine._Performance:stopTimer(timerName)
     end

@@ -71,16 +71,18 @@ Auto-sizing: omit `width` or `height` to size to content. **Don't** pass `"auto"
 
 ### Runtime mutation
 
-The "edit a field, see it next frame" contract extends to layout props too. Direct assignment to `el.display`, `el.flexDirection`, `el.flexWrap`, `el.justifyContent`, `el.alignItems`, `el.alignContent`, `el.gap`, `el.gridRows`, `el.gridColumns`, `el.columnGap`, `el.rowGap` is picked up on the next layout pass - the `LayoutEngine` pulls layout inputs from the element at the top of every `layoutChildren()` call, and its memoization cache hashes them so direct mutation also invalidates the cache. No `setProperty` or `invalidateLayout()` call required.
+The "edit a field, see it next frame" contract extends to layout props too. Direct assignment to `el.display`, `el.flexDirection`, `el.flexWrap`, `el.justifyContent`, `el.alignItems`, `el.alignContent`, `el.gap`, `el.gridRows`, `el.gridColumns`, `el.columnGap`, `el.rowGap` is picked up on the next layout pass without any `setProperty` or `invalidateLayout()` call - the mutation lands, the next `FlexLove.update(dt)` walks the tree, each element's `LayoutEngine:_canSkipLayout` short-circuits on unchanged inputs, and the elements whose inputs actually changed re-lay-out.
 
 ```lua
 local panel = FlexLove.new({ display = "none", flexDirection = "column", ... })
 -- ...later, when the panel should appear:
-panel.display = "flex"     -- takes effect next layout pass
+panel.display = "flex"     -- takes effect next frame
 panel.gap = 12             -- so does this
 ```
 
 This is symmetric with visual reactivity (`Renderer:draw` re-syncs visual props from the element on every draw - see `docs/repo.md`).
+
+**Cost.** Layout reactivity costs one `_canSkipLayout` hash compute per element per frame on stable trees - typically well under a millisecond for trees up to a few thousand elements. Real layout work runs only when an input actually changed (a direct mutation, an animation interpolating a layout-affecting prop like `width`, etc).
 
 **When to use `setProperty` instead.** `setProperty(prop, value)` is still the right entry point in two cases:
 
