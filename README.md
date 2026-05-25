@@ -7,26 +7,13 @@ CSS-style UI library for [LÖVE2D](https://love2d.org/). Flexbox, Grid, theming,
 
 ## Install
 
-As a git submodule (recommended):
-
-```bash
-git submodule add https://github.com/Metsker/FlexLove libs/FlexLove
-```
-
-```lua
--- in main.lua, before any require()
-package.path = package.path .. ";libs/?/init.lua;libs/?.lua"
-
-local FlexLove = require("FlexLove")
-```
-
-Or just clone and copy:
-
 ```bash
 git clone https://github.com/Metsker/FlexLove libs/FlexLove
 ```
 
-Either way, `require("FlexLove")` resolves to `libs/FlexLove/init.lua`.
+```lua
+local FlexLove = require("FlexLove")
+```
 
 ## Repo layout
 
