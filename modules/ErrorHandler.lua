@@ -126,8 +126,8 @@ local ErrorCodes = {
     LAY_011 = {
       code = "FLEXLOVE_LAY_011",
       category = "LAY",
-      description = "CSS positioning properties ignored",
-      suggestion = "Set position='absolute' (or 'fixed') to use top/bottom/left/right properties",
+      description = "CSS positioning properties ignored on position: static",
+      suggestion = "Use position='relative' for in-flow visual offsets, or position='absolute'/'fixed' for detached positioning",
     },
 
     -- Rendering Errors (REN_001 - REN_099)

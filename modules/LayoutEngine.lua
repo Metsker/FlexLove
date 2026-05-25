@@ -27,6 +27,21 @@
 local LayoutEngine = {}
 LayoutEngine.__index = LayoutEngine
 
+--- Recursively shift an element and all its descendants by (dx, dy).
+--- Used by row-reverse mirroring and `position: relative` offset application:
+--- both run after the rest of layout has placed the subtree, so a single
+--- delta walk is enough to keep descendants visually anchored to the parent.
+---@param elem Element
+---@param dx number
+---@param dy number
+local function shiftSubtree(elem, dx, dy)
+  elem.x = elem.x + dx
+  elem.y = elem.y + dy
+  for _, c in ipairs(elem.children) do
+    shiftSubtree(c, dx, dy)
+  end
+end
+
 --- Initialize module with shared dependencies
 ---@param deps table Dependencies {ErrorHandler, Performance, utils}
 function LayoutEngine.init(deps)
@@ -993,14 +1008,6 @@ function LayoutEngine:layoutChildren()
     local contentH = parent.height
     local mirrorHorizontal = self:_isHorizontal()
 
-    local function shiftSubtree(elem, dx, dy)
-      elem.x = elem.x + dx
-      elem.y = elem.y + dy
-      for _, c in ipairs(elem.children) do
-        shiftSubtree(c, dx, dy)
-      end
-    end
-
     for _, child in ipairs(flexChildren) do
       if mirrorHorizontal then
         local distFromLeft = child.x - parent.x - padLeft
@@ -1018,6 +1025,29 @@ function LayoutEngine:layoutChildren()
         if dy ~= 0 then
           shiftSubtree(child, 0, dy)
         end
+      end
+    end
+  end
+
+  -- position: relative - shift each in-flow child by (left or -right, top or
+  -- -bottom) after flex flow (and row-reverse) has placed it, so the offset
+  -- is a pure visual delta that doesn't influence siblings' flow positions.
+  -- Per CSS, top wins over bottom and left wins over right when both are set.
+  for _, child in ipairs(flexChildren) do
+    if child.position == "relative" then
+      local dx, dy = 0, 0
+      if child.top then
+        dy = child.top
+      elseif child.bottom then
+        dy = -child.bottom
+      end
+      if child.left then
+        dx = child.left
+      elseif child.right then
+        dx = -child.right
+      end
+      if dx ~= 0 or dy ~= 0 then
+        shiftSubtree(child, dx, dy)
       end
     end
   end

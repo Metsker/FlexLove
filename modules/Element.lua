@@ -1402,12 +1402,14 @@ function Element.new(props, _parent)
     end
 
     -- self.position was set earlier from props.position. detached children
-    -- (position=absolute/fixed) consume top/right/bottom/left; in-flow children
-    -- ignore them.
+    -- (position=absolute/fixed) consume top/right/bottom/left as a resolved
+    -- box. `position: relative` consumes them as a visual delta applied below.
+    -- `position: static` ignores them (with a LAY_011 warning).
     local isDetached = (self.position == "absolute" or self.position == "fixed")
+    local consumesOffsets = isDetached or self.position == "relative"
 
-    -- Warn if CSS positioning properties are used without absolute/fixed positioning
-    if (props.top or props.bottom or props.left or props.right) and not isDetached then
+    -- Warn if CSS positioning properties are used with position: static
+    if (props.top or props.bottom or props.left or props.right) and not consumesOffsets then
       local properties = {}
       if props.top then
         table.insert(properties, "top")
@@ -1441,12 +1443,32 @@ function Element.new(props, _parent)
     if props.left then
       _resolveUnit(self, props.left, "left", viewportWidth, _ctx)
     end
+
+    -- position: relative - apply the offsets as a visual delta on top of the
+    -- in-flow position. CSS: top wins over bottom; left wins over right.
+    -- Flex/grid parents will overwrite x/y in layoutChildren and re-apply this
+    -- delta there; this branch is what makes block parents and the top-level
+    -- case work.
+    if self.position == "relative" then
+      if self.top then
+        self.y = self.y + self.top
+      elseif self.bottom then
+        self.y = self.y - self.bottom
+      end
+      if self.left then
+        self.x = self.x + self.left
+      elseif self.right then
+        self.x = self.x - self.right
+      end
+    end
   else
     -- self.position was set earlier from props.position. With `position` already
-    -- normalized to one of static/relative/absolute/fixed, only detached children
-    -- consume top/right/bottom/left; in-flow children are laid out by the parent
-    -- when the parent's display is flex or grid.
+    -- normalized to one of static/relative/absolute/fixed, detached children
+    -- (absolute/fixed) consume top/right/bottom/left as a resolved box, and
+    -- `relative` consumes them as a visual delta applied below. `static`
+    -- ignores them (with a LAY_011 warning).
     local isDetached = (self.position == "absolute" or self.position == "fixed")
+    local consumesOffsets = isDetached or self.position == "relative"
 
     -- Set initial position
     local parentPadding = self.parent.padding or { left = 0, top = 0 }
@@ -1499,8 +1521,8 @@ function Element.new(props, _parent)
       end
     end
 
-    -- Warn if CSS positioning properties are used without absolute/fixed positioning
-    if (props.top or props.bottom or props.left or props.right) and not isDetached then
+    -- Warn if CSS positioning properties are used with position: static
+    if (props.top or props.bottom or props.left or props.right) and not consumesOffsets then
       local properties = {}
       if props.top then
         table.insert(properties, "top")
@@ -1533,6 +1555,24 @@ function Element.new(props, _parent)
     end
     if props.left then
       _resolveUnit(self, props.left, "left", viewportWidth, _ctx)
+    end
+
+    -- position: relative - apply offsets as a visual delta on top of the
+    -- in-flow position. CSS: top wins over bottom; left wins over right.
+    -- Flex/grid parents overwrite x/y in layoutChildren and re-apply this
+    -- delta there; for `display = "block"` parents the construction-time
+    -- shift here is what sticks (block parents don't reflow).
+    if self.position == "relative" then
+      if self.top then
+        self.y = self.y + self.top
+      elseif self.bottom then
+        self.y = self.y - self.bottom
+      end
+      if self.left then
+        self.x = self.x + self.left
+      elseif self.right then
+        self.x = self.x - self.right
+      end
     end
 
     _parent:appendChild(self)

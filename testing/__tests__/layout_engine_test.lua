@@ -983,7 +983,7 @@ function TestLayoutEdgeCases:test_css_positioning_with_padding()
   luaunit.assertEquals(child.y, expectedY, "Top offset should account for container padding")
 end
 
-function TestLayoutEdgeCases:test_css_positioning_ignored_in_flex()
+function TestLayoutEdgeCases:test_css_positioning_ignored_for_static_in_flex()
   local container = FlexLove.new({
     id = "container",
     x = 0,
@@ -996,16 +996,126 @@ function TestLayoutEdgeCases:test_css_positioning_ignored_in_flex()
 
   local child = container:appendChild(FlexLove.new({
     id = "child",
-    top = 100, -- This should be IGNORED in flex layout
-    left = 100, -- This should be IGNORED in flex layout
+    position = "static",
+    top = 100, -- Ignored on position: static
+    left = 100, -- Ignored on position: static
     width = 100,
     height = 100,
   }))
 
-  -- In flex layout, child should be positioned by flex rules, not CSS offsets
-  -- Child should be at (0, 0) relative to container content area
-  luaunit.assertEquals(child.x, 0, "CSS offsets should be ignored in flex layout")
-  luaunit.assertEquals(child.y, 0, "CSS offsets should be ignored in flex layout")
+  luaunit.assertEquals(child.x, 0, "CSS offsets should be ignored on position: static")
+  luaunit.assertEquals(child.y, 0, "CSS offsets should be ignored on position: static")
+end
+
+function TestLayoutEdgeCases:test_relative_offsets_shift_flex_child()
+  local container = FlexLove.new({
+    id = "container",
+    x = 0,
+    y = 0,
+    width = 400,
+    height = 400,
+    display = "flex",
+    flexDirection = "row",
+  })
+
+  local child = container:appendChild(FlexLove.new({
+    id = "child",
+    -- position defaults to "relative"
+    top = 20,
+    left = 30,
+    width = 100,
+    height = 100,
+  }))
+
+  -- Flex flow positions the child at the container's content origin (0, 0),
+  -- then the relative offset shifts it by (left, top).
+  luaunit.assertEquals(child.x, 30, "left offset shifts relative child along x")
+  luaunit.assertEquals(child.y, 20, "top offset shifts relative child along y")
+end
+
+function TestLayoutEdgeCases:test_relative_offsets_dont_affect_sibling_flow()
+  local container = FlexLove.new({
+    id = "container",
+    x = 0,
+    y = 0,
+    width = 400,
+    height = 100,
+    display = "flex",
+    flexDirection = "row",
+    gap = 0,
+  })
+
+  local first = container:appendChild(FlexLove.new({
+    id = "first",
+    top = 50,
+    left = 75,
+    width = 60,
+    height = 40,
+  }))
+  local second = container:appendChild(FlexLove.new({
+    id = "second",
+    width = 60,
+    height = 40,
+  }))
+
+  -- The first child's flow box is at (0, 0) of width 60. The second child
+  -- starts after the first child's flow box, not its shifted position.
+  luaunit.assertEquals(first.x, 75, "first child shifted right by left offset")
+  luaunit.assertEquals(first.y, 50, "first child shifted down by top offset")
+  luaunit.assertEquals(second.x, 60, "second child uses first child's flow position, not its shifted position")
+end
+
+function TestLayoutEdgeCases:test_relative_offset_top_wins_over_bottom()
+  local container = FlexLove.new({
+    id = "container",
+    x = 0,
+    y = 0,
+    width = 400,
+    height = 400,
+    display = "flex",
+  })
+
+  local child = container:appendChild(FlexLove.new({
+    id = "child",
+    top = 10,
+    bottom = 99, -- Per CSS, ignored when top is also set
+    left = 5,
+    right = 99, -- Per CSS, ignored when left is also set
+    width = 50,
+    height = 50,
+  }))
+
+  luaunit.assertEquals(child.x, 5, "left wins over right")
+  luaunit.assertEquals(child.y, 10, "top wins over bottom")
+end
+
+function TestLayoutEdgeCases:test_relative_offset_shifts_subtree()
+  local container = FlexLove.new({
+    id = "container",
+    x = 0,
+    y = 0,
+    width = 400,
+    height = 400,
+    display = "flex",
+  })
+
+  local outer = container:appendChild(FlexLove.new({
+    id = "outer",
+    top = 15,
+    left = 25,
+    width = 200,
+    height = 200,
+    display = "flex",
+    children = {
+      { id = "inner", width = 50, height = 50 },
+    },
+  }))
+  local inner = outer.children[1]
+
+  -- Without the relative offset on `outer`, `inner` would sit at (0, 0).
+  -- The offset shifts the whole subtree.
+  luaunit.assertEquals(inner.x, 25, "inner follows outer's left offset")
+  luaunit.assertEquals(inner.y, 15, "inner follows outer's top offset")
 end
 
 function TestLayoutEdgeCases:test_css_positioning_in_relative_container()
