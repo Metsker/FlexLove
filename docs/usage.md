@@ -48,8 +48,8 @@ See the repo's `examples/basic_ui.lua` for a complete worked example.
 
 | Prop | Values | Notes |
 | --- | --- | --- |
-| `display` | `"block"` (default), `"flex"`, `"grid"`, `"none"` | `flex`/`grid` make this a container that lays out its children; `block` leaves children at their explicit `x`/`y` (no automatic flow); `none` removes it from layout, render, and hit-testing. `flexDirection` / `justifyContent` / `alignItems` / `flexWrap` only take effect under `display = "flex"`; `gridRows` / `gridColumns` only under `display = "grid"`. |
-| `position` | `"static"` (default), `"relative"`, `"absolute"`, `"fixed"` | `absolute`/`fixed` detach the child from its parent's flow so `top`/`right`/`bottom`/`left` apply. `display` and `position` are independent: a `display = "flex"` element can also be `position = "absolute"`. |
+| `display` | `"flex"` (default), `"block"`, `"grid"`, `"none"` | `flex`/`grid` make this a container that lays out its children; `block` leaves children at their explicit `x`/`y` (no automatic flow); `none` removes it from layout, render, and hit-testing. `flexDirection` / `justifyContent` / `alignItems` / `flexWrap` only take effect under `display = "flex"`; `gridRows` / `gridColumns` only under `display = "grid"`. |
+| `position` | `"relative"` (default), `"static"`, `"absolute"`, `"fixed"` | `absolute`/`fixed` detach the child from its parent's flow so `top`/`right`/`bottom`/`left` apply. `display` and `position` are independent: a `display = "flex"` element can also be `position = "absolute"`. |
 | `flexDirection` | `"row"`, `"row-reverse"`, `"column"`, `"column-reverse"` | CSS values. `row-reverse` / `column-reverse` mirror the main-axis position of each child (and its subtree); `justifyContent` semantics flip accordingly. |
 | `justifyContent` | `"flex-start"`, `"center"`, `"flex-end"`, `"space-between"`, `"space-around"`, `"space-evenly"` | |
 | `alignItems` | `"stretch"`, `"flex-start"`, `"center"`, `"flex-end"`, `"baseline"` | |
@@ -295,7 +295,7 @@ These behaviours are part of the public contract - tests pin them down, and they
 ## Intentionally out of scope
 
 - Sticky / `position: fixed` is recognised as a synonym for `"absolute"`; full sticky behaviour isn't implemented. Offsets resolve against the immediate parent, not the viewport.
-- `position: relative` is accepted and validated but behaves identically to `"static"`: `top`/`right`/`bottom`/`left` are ignored (a `LAY_011` warning fires) and it does NOT establish a new containing block for `absolute` descendants — absolute children always position against their immediate parent.
+- `position: relative` (the default) and `position: static` behave identically today: `top`/`right`/`bottom`/`left` are ignored on both (a `LAY_011` warning fires) and neither establishes a new containing block for `absolute` descendants — absolute children always position against their immediate parent. Planned future addition: have `relative` honor `top`/`right`/`bottom`/`left` as visual offsets that don't affect flow (the CSS-faithful behavior).
 - `display: block` parents do not normal-flow-stack their children. Block just means "I don't lay out my children"; each child sits at the `x`/`y` resolved at construction time. Use `display = "flex"` with `flexDirection = "column"` if you want vertical stacking.
 - `borderStyle` values other than `"solid"` (passed through but not rendered).
 - Inline display, baseline alignment beyond `stretch`/`flex-start`/`center`/`end`, and CSS `box-sizing: content-box`. Border-box is the only model.

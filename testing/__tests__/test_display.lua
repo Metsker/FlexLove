@@ -1,7 +1,9 @@
 package.path = package.path .. ";./?.lua"
 local originalSearchers = package.searchers or package.loaders
 table.insert(originalSearchers, 2, function(modname)
-  if modname == "FlexLove" then return loadfile("./init.lua") end
+  if modname == "FlexLove" then
+    return loadfile("./init.lua")
+  end
   if modname:match("^FlexLove%.modules%.") then
     local moduleName = modname:gsub("^FlexLove%.modules%.", "")
     return function()
@@ -31,9 +33,9 @@ function TestDisplayCreation:tearDown()
   FlexLove.destroy()
 end
 
-function TestDisplayCreation:test_default_display_is_block()
+function TestDisplayCreation:test_default_display_is_flex()
   local element = FlexLove.new({ width = 100, height = 100 })
-  luaunit.assertEquals(element.display, "block")
+  luaunit.assertEquals(element.display, "flex")
 end
 
 function TestDisplayCreation:test_display_flex()
@@ -51,9 +53,9 @@ function TestDisplayCreation:test_display_none()
   luaunit.assertEquals(element.display, "none")
 end
 
-function TestDisplayCreation:test_invalid_display_defaults_to_block()
+function TestDisplayCreation:test_invalid_display_defaults_to_flex()
   local element = FlexLove.new({ display = "invalid", width = 100, height = 100 })
-  luaunit.assertEquals(element.display, "block")
+  luaunit.assertEquals(element.display, "flex")
 end
 
 -- ============================================================================

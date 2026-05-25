@@ -95,7 +95,7 @@ TestLayoutEngineNew = {}
 function TestLayoutEngineNew:testNewWithDefaults()
   local layout = LayoutEngine.new({}, deps)
   luaunit.assertNotNil(layout)
-  luaunit.assertEquals(layout.display, "block")
+  luaunit.assertEquals(layout.display, "flex")
   luaunit.assertEquals(layout.flexDirection, utils.enums.FlexDirection.ROW)
   luaunit.assertEquals(layout.justifyContent, utils.enums.JustifyContent.FLEX_START)
   luaunit.assertEquals(layout.alignItems, utils.enums.AlignItems.STRETCH)

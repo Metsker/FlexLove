@@ -132,8 +132,13 @@ function TestFlexLove:testThemeIsExposed()
   luaunit.assertEquals(t.name, "test1")
 end
 
-function TestFlexLove:testCSSDisplayBlock()
+function TestFlexLove:testCSSDisplayDefaultsToFlex()
   local el = FlexLove.new({ width = 10, height = 10 })
+  luaunit.assertEquals(el.display, "flex")
+end
+
+function TestFlexLove:testCSSDisplayBlock()
+  local el = FlexLove.new({ display = "block", width = 10, height = 10 })
   luaunit.assertEquals(el.display, "block")
 end
 

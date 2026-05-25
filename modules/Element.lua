@@ -661,39 +661,41 @@ function Element.new(props, _parent)
   self.visibility = props.visibility or "visible"
 
   -- Set display property (CSS-style: "block" | "flex" | "grid" | "none")
-  -- Default "block": element participates in layout but does NOT lay out its children
-  -- as a flex/grid container. Use "flex" or "grid" to enable container layout.
-  -- Use "none" to skip layout, rendering, and hit testing entirely.
+  -- Default "flex": this is a UI lib for games and flex container layout is
+  -- the overwhelmingly common need. Opt into "block" to leave children at
+  -- their explicit `x`/`y`. Use "grid" for grid layout, "none" to skip
+  -- layout, rendering, and hit testing entirely.
   if props.display ~= nil then
     local validDisplay = { block = true, flex = true, grid = true, none = true }
     if validDisplay[props.display] then
       self.display = props.display
     else
-      self.display = "block"
+      self.display = "flex"
       Element._ErrorHandler:warn("Element", "ELEM_010", {
         issue = "display must be 'block' | 'flex' | 'grid' | 'none', got " .. tostring(props.display),
       })
     end
   else
-    self.display = "block"
+    self.display = "flex"
   end
 
   -- Set position property (CSS-style: "static" | "relative" | "absolute" | "fixed")
-  -- Default "static": element participates in its parent's flow.
+  -- Default "relative". "static" behaves identically to "relative" today
+  -- (see docs/usage.md "Intentionally out of scope" for the no-op caveat).
   -- "absolute" / "fixed" detach the element so top/right/bottom/left apply.
   if props.position ~= nil then
     local validPosition = { static = true, relative = true, absolute = true, fixed = true }
     if validPosition[props.position] then
       self.position = props.position
     else
-      self.position = "static"
+      self.position = "relative"
       Element._ErrorHandler:warn("Element", "LAY_006", {
         property = "position",
         got = tostring(props.position),
       })
     end
   else
-    self.position = "static"
+    self.position = "relative"
   end
 
   -- Set transform property (optional)

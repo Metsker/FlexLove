@@ -36,7 +36,7 @@ function LayoutEngine.init(deps)
 end
 
 ---@class LayoutEngineProps
----@field display Display? Container display mode (default: "block")
+---@field display Display? Container display mode (default: "flex")
 ---@field flexDirection FlexDirection? Direction of flex layout (default: HORIZONTAL)
 ---@field justifyContent JustifyContent? Alignment of items along main axis (default: FLEX_START)
 ---@field alignItems AlignItems? Alignment of items along cross axis (default: STRETCH)
@@ -76,7 +76,7 @@ function LayoutEngine.new(props, deps)
   self._FlexWrap = FlexWrap
 
   -- Layout configuration
-  self.display = props.display or "block"
+  self.display = props.display or "flex"
   self.flexDirection = props.flexDirection or FlexDirection.ROW
   self.justifyContent = props.justifyContent or JustifyContent.FLEX_START
   self.alignItems = props.alignItems or AlignItems.STRETCH

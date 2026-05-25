@@ -287,9 +287,9 @@ function TestElementCreation:test_select_options_are_routed_into_managed_frame()
 
   luaunit.assertTrue(option.parent == dropdownFrame)
   luaunit.assertEquals(selectParent:getSelectValue(), "windowed")
-  -- Options authored as `position = "absolute"` fall back into normal flow
-  -- ("static") once routed into the managed dropdown frame.
-  luaunit.assertEquals(option.position, "static")
+  -- Option was authored without an explicit `position`, so it picks up the
+  -- default "relative" and stays in normal flow inside the dropdown frame.
+  luaunit.assertEquals(option.position, "relative")
 end
 
 function TestElementCreation:test_managed_select_frame_options_stack_inside_frame()
@@ -827,6 +827,9 @@ function TestElementPositioning:test_element_absolute_position()
 end
 
 function TestElementPositioning:test_nested_element_positions()
+  -- Default `display = "flex"`: parent's layout pass overrides child x/y,
+  -- placing each in-flow child at the parent's content-area origin (modulo
+  -- flexDirection, gaps, and sibling stacking).
   local parent = FlexLove.new({
     id = "nest_parent",
     x = 100,
@@ -835,9 +838,6 @@ function TestElementPositioning:test_nested_element_positions()
     height = 200,
   })
 
-  -- Standalone construction (FlexLove.new without a parent arg) resolves x/y
-  -- against the viewport. Re-parenting via appendChild does NOT rebase x/y -
-  -- use `parent:appendNew({...})` for construction-time parent resolution.
   local child = parent:appendChild(FlexLove.new({
     id = "nest_child",
     x = 20,
@@ -848,12 +848,37 @@ function TestElementPositioning:test_nested_element_positions()
 
   luaunit.assertNotNil(parent)
   luaunit.assertNotNil(child)
+  luaunit.assertEquals(child.x, 100)
+  luaunit.assertEquals(child.y, 100)
+end
+
+function TestElementPositioning:test_block_parent_honors_child_x_y()
+  -- Opt out of flex with `display = "block"` to keep children at their
+  -- explicit x/y. `appendChild` does NOT rebase x/y, so standalone-resolved
+  -- coords stay where they were (here: viewport-relative).
+  local parent = FlexLove.new({
+    id = "block_parent",
+    display = "block",
+    x = 100,
+    y = 100,
+    width = 300,
+    height = 200,
+  })
+
+  local child = parent:appendChild(FlexLove.new({
+    id = "block_child",
+    x = 20,
+    y = 30,
+    width = 50,
+    height = 50,
+  }))
+
   luaunit.assertEquals(child.x, 20)
   luaunit.assertEquals(child.y, 30)
 
-  -- The construction-time form positions relative to the parent's content area.
+  -- `appendNew` resolves x/y against the parent's content-area at construction time.
   local nested = parent:appendNew({
-    id = "nest_child_2",
+    id = "block_child_2",
     x = 20,
     y = 30,
     width = 50,
@@ -3301,15 +3326,15 @@ function TestElementEdgeCases:test_element_invalid_text_align()
 end
 
 function TestElementEdgeCases:test_element_invalid_position()
-  -- Invalid `position` values now fall back to "static" with a LAY_006 warning,
-  -- so construction succeeds but the field is normalised.
+  -- Invalid `position` values fall back to the default "relative" with a
+  -- LAY_006 warning, so construction succeeds but the field is normalised.
   local el = FlexLove.new({
     id = "invalid_pos",
     width = 100,
     height = 100,
     position = "invalid_position",
   })
-  luaunit.assertEquals(el.position, "static")
+  luaunit.assertEquals(el.position, "relative")
 end
 
 function TestElementEdgeCases:test_element_invalid_flex_direction()

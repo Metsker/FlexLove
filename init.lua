@@ -57,7 +57,7 @@ local Transform = Animation.Transform
 local enums = utils.enums
 
 local flexlove = Context
-flexlove._VERSION = "0.16.0"
+flexlove._VERSION = "0.17.0"
 flexlove._DESCRIPTION = "CSS-style UI library for LÖVE2D"
 flexlove._URL = "https://github.com/mikefreno/FlexLove"
 flexlove._LICENSE = [[
