@@ -87,7 +87,7 @@ FlexLove.new({
 
 `transition` accepts the CSS shorthand: `<property> <duration> <timing-function> <delay>`. Multiple property transitions are comma-separated. Durations accept `300ms`, `0.5s`, or a bare number (seconds). Timing functions: `linear`, `ease`, `ease-in`, `ease-out`, `ease-in-out`, or any FlexLove easing name (e.g. `easeOutCubic`).
 
-### Tree composition - children, not parent
+### Tree composition
 
 Build trees through `children`, which accepts either:
 
@@ -134,12 +134,7 @@ childA:setParent(otherParent)   -- move
 for _, child in ipairs(panel.children) do print(child.id) end
 ```
 
-**There is no `parent` prop.** Trees go together one of three ways:
-1. `children = { ... }` on the parent's prop table (construction-time).
-2. `parent:appendNew({ ... })` for procedurally-built children that need parent-aware unit resolution.
-3. `parent:appendChild(existingChild)` or `child:setParent(parent)` for reparenting elements that already exist.
-
-DOM-named tree-mutation methods: `appendNew`, `appendChild`, `removeChild`, `replaceChildren`, `setParent`, `getChildCount`. Find elements via `FlexLove.getElementById(id)` and `FlexLove.elementFromPoint(x, y)`.
+Tree-mutation methods: `appendNew`, `appendChild`, `removeChild`, `replaceChildren`, `setParent`, `getChildCount`. Find elements via `FlexLove.getElementById(id)` and `FlexLove.elementFromPoint(x, y)`.
 
 #### Conditional and looped children
 
@@ -291,13 +286,6 @@ These behaviours are part of the public contract - tests pin them down, and they
 - **DOM-style typed event handlers:** `onClick`, `onMouseDown`, `onMouseUp`, `onMouseEnter`, `onMouseLeave`, `onMouseMove`, `onDrag`, `onContextMenu`, `onAuxClick`. The catch-all `onEvent(self, event)` still exists for power users; both fire if both are set.
 - **CSS shorthand strings:** `border = "2px solid #fff"` and `transition = "opacity 300ms ease-in-out"` are parsed at construction. Multi-property `transition = "opacity 0.3s, transform 0.5s ease-out 0.1s"` works.
 - **Direct field mutation** works for: `backgroundColor`, `borderColor`, `borderRadius`, `opacity`, `themeComponent`, `onEvent`, every typed event handler, `onTouchEvent`, `onGesture`, `disabled`, `active`. Set the field and the change is picked up next frame.
-
-## Pitfalls
-
-- The `parent` prop is gone. `Element.new` warns (`ELEM_013`) if you pass it. Attach a child by: (1) putting it in the parent's `children = { ... }` at construction, (2) `parent:appendNew({ ... })`, or (3) `parent:appendChild(existing)` / `child:setParent(parent)`.
-- `display` is a **string** (`"block"`/`"flex"`/`"grid"`/`"none"`), not a boolean.
-- `flexDirection` is `"row"` / `"row-reverse"` / `"column"` / `"column-reverse"`. The old `"horizontal"`/`"vertical"` aliases are gone.
-- Reassigning `el.children = {...}` doesn't rebuild the subtree - use the DOM-style mutation methods.
 
 ## Intentionally out of scope
 
