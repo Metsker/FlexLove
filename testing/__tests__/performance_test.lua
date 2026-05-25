@@ -1,4 +1,4 @@
-package.path = package.path .. ";./?.lua;./modules/?.lua"
+package.path = package.path .. ";./?.lua;./src/FlexLove/?.lua;./src/?/init.lua"
 local originalSearchers = package.searchers or package.loaders
 table.insert(originalSearchers, 2, function(modname)
   if modname:match("^FlexLove%.modules%.") then
@@ -189,8 +189,7 @@ function TestPerformanceWarnings:testHierarchyDepthWarning()
       id = "child_" .. i,
       width = 50,
       height = 50,
-    }, Element.defaultDependencies)
-    table.insert(current.children, child)
+    }, Element.defaultDependencies))
     current = child
   end
 
@@ -213,12 +212,11 @@ function TestPerformanceWarnings:testElementCountWarning()
 
   -- Add many child elements
   for i = 1, 50 do -- Keep test fast, just verify the counting logic works
-    local child = root:appendChild(Element.new({
+    root:appendChild(Element.new({
       id = "child_" .. i,
       width = 20,
       height = 20,
-    }, Element.defaultDependencies)
-    table.insert(root.children, child)
+    }, Element.defaultDependencies))
   end
 
   local count = root:countElements()
@@ -240,7 +238,7 @@ function TestPerformanceWarnings:testAnimationTracking()
       id = "animated_child_" .. i,
       width = 20,
       height = 20,
-    }, Element.defaultDependencies)
+    }, Element.defaultDependencies))
 
     -- Add mock animation
     child.animation = {
@@ -277,8 +275,7 @@ function TestPerformanceWarnings:testWarningsCanBeDisabled()
       id = "child_" .. i,
       width = 50,
       height = 50,
-    }, Element.defaultDependencies)
-    table.insert(current.children, child)
+    }, Element.defaultDependencies))
     current = child
   end
 

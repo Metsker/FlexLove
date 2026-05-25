@@ -11,7 +11,6 @@
       "examples",
       ".git",
       "tasks",
-      "themes",
       "profiling"
     ],
     "ignoreSubmodules": true

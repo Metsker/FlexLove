@@ -1,14 +1,6 @@
-OverlayStats.lua
-lick.lua
-themes/space/
 .DS_STORE
-tasks
 testoutput*
 luacov.*
-docs/doc.json
-docs/doc.md
-docs/node_modules
-releases/
 *.log*
 memory_scan*
 *_report*

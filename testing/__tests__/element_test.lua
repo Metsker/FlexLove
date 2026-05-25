@@ -1,4 +1,4 @@
-package.path = package.path .. ";./?.lua;./modules/?.lua"
+package.path = package.path .. ";./?.lua;./src/FlexLove/?.lua;./src/?/init.lua"
 local originalSearchers = package.searchers or package.loaders
 table.insert(originalSearchers, 2, function(modname)
   if modname:match("^FlexLove%.modules%.") then
@@ -2661,7 +2661,7 @@ end
 function TestElementTheme:test_getScaledContentPaddingForState_shim()
   local atlas = love.graphics.newImage(love.image.newImageData(100, 100))
   local previousTheme = FlexLove.Theme.getActive()
-  local preloadKey = "modules.themes.content_padding_shim_test"
+  local preloadKey = "content_padding_shim_test"
 
   local definition = {
     name = "content_padding_shim_test",
@@ -2751,7 +2751,7 @@ end
 function TestElementTheme:test_children_shift_with_pressed_theme_state()
   local atlas = love.graphics.newImage(love.image.newImageData(100, 100))
   local previousTheme = FlexLove.Theme.getActive()
-  local preloadKey = "modules.themes.state_shift_test"
+  local preloadKey = "state_shift_test"
 
   local definition = {
     name = "state_shift_test",
@@ -2845,7 +2845,7 @@ end
 function TestElementTheme:test_children_shift_uses_corner_scaling_not_full_stretch()
   local atlas = love.graphics.newImage(love.image.newImageData(100, 100))
   local previousTheme = FlexLove.Theme.getActive()
-  local preloadKey = "modules.themes.state_shift_corner_scale_test"
+  local preloadKey = "state_shift_corner_scale_test"
 
   local definition = {
     name = "state_shift_corner_scale_test",
@@ -2913,7 +2913,7 @@ end
 function TestElementTheme:test_hover_state_uses_hover_content_padding()
   local atlas = love.graphics.newImage(love.image.newImageData(100, 100))
   local previousTheme = FlexLove.Theme.getActive()
-  local preloadKey = "modules.themes.hover_padding_stability_test"
+  local preloadKey = "hover_padding_stability_test"
 
   local definition = {
     name = "hover_padding_stability_test",

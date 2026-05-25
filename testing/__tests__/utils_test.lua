@@ -1,7 +1,7 @@
 -- Test suite for utils.lua module
 -- Tests all 16+ utility functions with comprehensive edge cases
 
-package.path = package.path .. ";./?.lua;./modules/?.lua"
+package.path = package.path .. ";./?.lua;./src/FlexLove/?.lua;./src/?/init.lua"
 
 -- Load love stub before anything else
 require("testing.loveStub")

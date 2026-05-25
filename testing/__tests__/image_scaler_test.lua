@@ -1,4 +1,4 @@
-package.path = package.path .. ";./?.lua;./modules/?.lua"
+package.path = package.path .. ";./?.lua;./src/FlexLove/?.lua;./src/?/init.lua"
 local originalSearchers = package.searchers or package.loaders
 table.insert(originalSearchers, 2, function(modname)
   if modname:match("^FlexLove%.modules%.") then

@@ -1,5 +1,4 @@
-package.path = package.path
-  .. ";./?.lua;./modules/?.lua;./game/?.lua;./game/utils/?.lua;./game/components/?.lua;./game/systems/?.lua"
+package.path = package.path .. ";./?.lua;./src/FlexLove/?.lua;./src/?/init.lua"
 
 _G.RUNNING_ALL_TESTS = true
 
