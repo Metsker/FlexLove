@@ -294,6 +294,8 @@ These behaviours are part of the public contract - tests pin them down, and they
 
 ## Intentionally out of scope
 
-- Sticky / `position: fixed` is recognised as a synonym for `"absolute"`; full sticky behaviour isn't implemented.
+- Sticky / `position: fixed` is recognised as a synonym for `"absolute"`; full sticky behaviour isn't implemented. Offsets resolve against the immediate parent, not the viewport.
+- `position: relative` is accepted and validated but behaves identically to `"static"`: `top`/`right`/`bottom`/`left` are ignored (a `LAY_011` warning fires) and it does NOT establish a new containing block for `absolute` descendants — absolute children always position against their immediate parent.
+- `display: block` parents do not normal-flow-stack their children. Block just means "I don't lay out my children"; each child sits at the `x`/`y` resolved at construction time. Use `display = "flex"` with `flexDirection = "column"` if you want vertical stacking.
 - `borderStyle` values other than `"solid"` (passed through but not rendered).
 - Inline display, baseline alignment beyond `stretch`/`flex-start`/`center`/`end`, and CSS `box-sizing: content-box`. Border-box is the only model.
