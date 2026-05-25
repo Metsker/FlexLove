@@ -8,8 +8,10 @@ CSS-style UI library for [LÖVE2D](https://love2d.org/). Flexbox, Grid, theming,
 ## Install
 
 ```bash
-git clone https://github.com/Metsker/FlexLove libs/FlexLove
+git clone https://github.com/Metsker/FlexLove
 ```
+
+usage:
 
 ```lua
 local FlexLove = require("FlexLove")
