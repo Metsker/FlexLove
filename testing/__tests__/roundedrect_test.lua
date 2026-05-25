@@ -1,4 +1,4 @@
-package.path = package.path .. ";./?.lua;./src/FlexLove/?.lua;./src/?/init.lua"
+package.path = package.path .. ";./?.lua"
 local luaunit = require("testing.luaunit")
 require("testing.loveStub")
 

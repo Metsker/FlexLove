@@ -1,5 +1,5 @@
 -- Test suite for InputEvent module
-package.path = package.path .. ";./?.lua;./src/FlexLove/?.lua;./src/?/init.lua"
+package.path = package.path .. ";./?.lua"
 
 require("testing.loveStub")
 local luaunit = require("testing.luaunit")

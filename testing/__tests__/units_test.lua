@@ -1,7 +1,7 @@
 -- Test suite for Units.lua module
 -- Tests unit parsing, resolution, and conversion functions
 
-package.path = package.path .. ";./?.lua;./src/FlexLove/?.lua;./src/?/init.lua"
+package.path = package.path .. ";./?.lua"
 
 -- Load love stub before anything else
 require("testing.loveStub")

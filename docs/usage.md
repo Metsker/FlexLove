@@ -4,7 +4,7 @@ CSS-style UI library for [LÖVE2D](https://love2d.org/). Flexbox, Grid, theming,
 
 **Retained mode only.** No reconciliation, no virtual DOM - build trees declaratively at construction; mutate them imperatively after.
 
-This file is the implementation reference for agents using FlexLove. For repo workflows (tests, lint, contributing changes to FlexLove itself), see the repo-root `AGENTS.md`.
+This file is the implementation reference for agents using FlexLove. For repo workflows (tests, lint, contributing changes to FlexLove itself), see [`repo.md`](repo.md).
 
 ## Quick start
 
@@ -238,7 +238,7 @@ FlexLove.new({
 })
 ```
 
-Files ending in `.9.png` are auto-detected: the 1px guide border is stripped on load, top/left guides drive stretch regions, and bottom/right guides become content padding applied to children. See the repo's `examples/themes/metal.lua` for a complete example.
+Files ending in `.9.png` are auto-detected: the 1px guide border is stripped on load, top/left guides drive stretch regions, and bottom/right guides become content padding applied to children. See the repo's `examples/space_theme.lua` for a reference theme definition.
 
 ### Color, Animation, Theme, Calc - exposed off `FlexLove`
 

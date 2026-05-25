@@ -1,6 +1,7 @@
-package.path = package.path .. ";./?.lua;./src/FlexLove/?.lua;./src/?/init.lua"
+package.path = package.path .. ";./?.lua"
 local originalSearchers = package.searchers or package.loaders
 table.insert(originalSearchers, 2, function(modname)
+  if modname == "FlexLove" then return loadfile("./init.lua") end
   if modname:match("^FlexLove%.modules%.") then
     local moduleName = modname:gsub("^FlexLove%.modules%.", "")
     return function()
@@ -1715,7 +1716,7 @@ end
 TestManagedSelectDecoupling = {}
 
 function TestManagedSelectDecoupling:test_layout_engine_no_managed_select_references()
-  local f = io.open("src/FlexLove/modules/LayoutEngine.lua", "r")
+  local f = io.open("modules/LayoutEngine.lua", "r")
   luaunit.assertNotNil(f, "Should be able to read LayoutEngine source")
   local source = f:read("*all")
   f:close()

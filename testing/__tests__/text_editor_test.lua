@@ -1,6 +1,6 @@
 -- Comprehensive test suite for TextEditor module
 -- Consolidated from multiple test files for complete coverage
-package.path = package.path .. ";./?.lua;./src/FlexLove/?.lua;./src/?/init.lua"
+package.path = package.path .. ";./?.lua"
 
 require("testing.loveStub")
 local luaunit = require("testing.luaunit")

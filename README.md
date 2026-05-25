@@ -2,49 +2,49 @@
 
 CSS-style UI library for [LÖVE2D](https://love2d.org/). Flexbox, Grid, theming, animations, input - named after the CSS/DOM property they correspond to.
 
-**The plugin lives in [`src/FlexLove/`](src/FlexLove/). The full API reference is in [`src/FlexLove/AGENTS.md`](src/FlexLove/AGENTS.md) (ships with the plugin). For repo workflows - tests, lint, contributing to FlexLove itself - see [`AGENTS.md`](AGENTS.md).**
+- **API reference** → [`docs/usage.md`](docs/usage.md)
+- **Repo guidelines** → [`docs/repo.md`](docs/repo.md)
 
 ## Install
 
-Clone the repo and copy `src/FlexLove` into your project's library path:
+As a git submodule (recommended):
 
 ```bash
-git clone https://github.com/Metsker/FlexLove
-cp -r FlexLove/src/FlexLove your-project/libs/
+git submodule add https://github.com/Metsker/FlexLove libs/FlexLove
 ```
 
-Then:
-
 ```lua
+-- in main.lua, before any require()
+package.path = package.path .. ";libs/?/init.lua;libs/?.lua"
+
 local FlexLove = require("FlexLove")
 ```
 
-### For agents
-
-If you're an AI agent setting this up for a user, **also copy `examples/` into the project** - it doubles as reference material when authoring new UIs and contains the bundled `examples/themes/metal/` 9-patch assets used by `examples/themes/metal.lua`. The plugin works without it, but you'll write better code against examples that you can actually open.
+Or just clone and copy:
 
 ```bash
-cp -r FlexLove/src/FlexLove your-project/libs/
-cp -r FlexLove/examples       your-project/libs/FlexLove-examples/
+git clone https://github.com/Metsker/FlexLove libs/FlexLove
 ```
+
+Either way, `require("FlexLove")` resolves to `libs/FlexLove/init.lua`.
 
 ## Repo layout
 
 ```
-src/FlexLove/         - the plugin (this is what you copy into your project)
+init.lua              - the plugin entry point
+modules/              - everything init.lua wires together
+docs/                 - usage.md (API) + repo.md (contributing)
 examples/             - runnable LÖVE examples
-examples/themes/      - sample 9-patch theme assets and definitions
+examples/themes/      - reference 9-patch theme definitions
 testing/              - luaunit-based test suite
-AGENTS.md             - repo workflow guide for agents editing FlexLove itself
-src/FlexLove/AGENTS.md - full API reference (ships with the plugin)
 ```
 
 ## Develop
 
 ```bash
 lua testing/runAll.lua --no-coverage    # run tests
-selene src/                             # lint
-stylua src/                             # format
+selene init.lua modules/                # lint
+stylua init.lua modules/                # format
 ```
 
 ## License
