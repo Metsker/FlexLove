@@ -61,6 +61,8 @@ See the repo's `examples/basic_ui.lua` for a complete worked example.
 
 Auto-sizing: omit `width` or `height` to size to content. **Don't** pass `"auto"` - just leave the prop off.
 
+> **Defaults diverge from CSS on purpose.** CSS defaults `display: inline` (spec) / `block` (UA stylesheet for `<div>` etc.) and `position: static`. FlexLove defaults `display: flex` and `position: relative`. There's no `inline` mode here, so the spec default isn't applicable; `flex` matches what game UI authors want almost every time; `relative` over `static` is naming-only (they behave identically today) and matches what CSS authors actually write.
+
 ### Visual props - all CSS-named
 
 `backgroundColor`, `backgroundImage`, `backgroundSize`, `backgroundPosition`, `backgroundRepeat`, `backgroundOpacity`, `imageTint`, `color`, `fontSize`, `fontFamily`, `textAlign`, `verticalAlign`, `borderRadius`, `border`, `borderStyle`, `borderColor`, `borderTop`/`borderRight`/`borderBottom`/`borderLeft`, `opacity`, `visibility`, `transform`, `transition`, `contentBlur`, `backdropBlur`, `themeComponent`.
