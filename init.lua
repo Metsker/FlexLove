@@ -1,3 +1,5 @@
+-- Lua 5.4 moved `unpack` to `table.unpack`; same shim as modules/Blur.lua and modules/Element.lua.
+local unpack = table.unpack or unpack
 local packageName = ... or "FlexLove"
 local modulePath = packageName:match("(.-)[^%.]+$")
 if modulePath == "" then
